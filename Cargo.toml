@@ -1,0 +1,15 @@
+[package]
+name = "tnil"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+sheet-root-data = []
+sheet-affix-data = []
+lexicon-json-root-data = []
+combined-root-data = ["sheet-root-data", "lexicon-json-root-data"]
+all-data = ["combined-root-data", "sheet-affix-data"]
+
+[dependencies]
+paste = "1.0.14"
+vec1 = "1.10.1"
