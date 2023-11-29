@@ -5,7 +5,7 @@ use crate::gloss::{Gloss, GlossFlags};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// Any affix other than appositive referential affixes.
-pub enum NormalAffix {
+pub enum RegularAffix {
     /// A plain affix.
     Plain(PlainAffix),
 
@@ -22,7 +22,7 @@ pub enum NormalAffix {
     Referential(ThematicReferentialAffix),
 }
 
-impl Gloss for NormalAffix {
+impl Gloss for RegularAffix {
     fn gloss(&self, flags: GlossFlags) -> String {
         match self {
             Self::Plain(value) => value.gloss(flags),

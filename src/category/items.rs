@@ -597,8 +597,78 @@ custom_category!(
 custom_category!(
     ModularAdjunctMode,
     (Full, "Full", "Full", "", ""),
-    (Parent, "Parent", "Parent", "{parent}", "{parent}"),
-    (Concatenated, "Concat", "Concat", "{concat.}", "{concat.}"),
+    (
+        Parent,
+        "Parent",
+        "Parent",
+        "{parent}",
+        "{only applies to parent formative}"
+    ),
+    (
+        Concatenated,
+        "Concat",
+        "Concatenated",
+        "{concat.}",
+        "{only applies to concatenated formative}"
+    ),
+);
+
+custom_category!(
+    AffixualAdjunctScope,
+    (
+        VDom,
+        "VDom",
+        "Slot V Dominant",
+        "{v.dom}",
+        "{scope over slot V}"
+    ),
+    (
+        VSub,
+        "VSub",
+        "Slot V Subordinate",
+        "{v.sub}",
+        "{scope under slot V}"
+    ),
+    (
+        VIIDom,
+        "VIIDom",
+        "Slot VII Dominant",
+        "{vii.dom}",
+        "{slot over slot VII}"
+    ),
+    (
+        VIISub,
+        "VIISub",
+        "Slot VII Subordinate",
+        "{vii.sub}",
+        "{slot under slot VII}"
+    ),
+    (
+        Formative,
+        "Formative",
+        "Formative",
+        "{form.}",
+        "{scope over formative}"
+    ),
+    (
+        OverAdj,
+        "OverAdj",
+        "Over Adjacent",
+        "{over_adj}",
+        "{scope over formative and adjacent adjuncts}"
+    ),
+);
+
+custom_category!(
+    AffixualAdjunctMode,
+    (Full, "Full", "Full", "", ""),
+    (
+        Concatenated,
+        "Concat",
+        "Concatenated",
+        "{concat.}",
+        "{only applies to concatenated formative}"
+    ),
 );
 
 custom_category!(

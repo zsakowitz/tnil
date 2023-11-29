@@ -1,11 +1,11 @@
-use super::{AppositiveReferentialAffix, NormalAffix};
+use super::{AppositiveReferentialAffix, RegularAffix};
 use crate::gloss::{Gloss, GlossFlags};
 
 /// A list of affixes in a formative slot.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AffixList {
     /// A list of normal affixes.
-    Normal(Vec<NormalAffix>),
+    Normal(Vec<RegularAffix>),
 
     /// A single appositive referential affix.
     AppositiveReferential(AppositiveReferentialAffix),
