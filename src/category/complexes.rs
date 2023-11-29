@@ -1,11 +1,13 @@
-/// Defines complexes (groups of core categories) and their glossing methods.
-use super::{
-    Affiliation, Aspect, Category, Configuration, Effect, Essence, Extension, Level, Perspective,
-    Phase, Plexity, ReferentEffect, ReferentTarget, Separability, Similarity, Valence,
-};
-use crate::gloss::{Gloss, GlossFlags, GlossStatic};
+//! Defines complexes (groups of core categories) and their glossing methods.
 
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+use super::{
+    Affiliation, Aspect, CaseScope, Category, Configuration, Effect, Essence, Extension, Level,
+    Mood, Perspective, Phase, Plexity, ReferentEffect, ReferentTarget, Separability, Similarity,
+    Valence,
+};
+use crate::gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic};
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// A pair containing a Similarity and a Separability.
 pub struct SimilarityAndSeparability {
     /// The Similarity component of self.
@@ -186,26 +188,49 @@ impl Gloss for Ca {
             let mut output = String::new();
 
             for item in [
-                self.affiliation.gloss_static(flags),
-                self.configuration.gloss_static(flags),
-                self.extension.gloss_static(flags),
-                self.perspective.gloss_static(flags),
-                self.essence.gloss_static(flags),
+                self.affiliation.gloss_static_non_default(flags),
+                self.configuration.gloss_static_non_default(flags),
+                self.extension.gloss_static_non_default(flags),
+                self.perspective.gloss_static_non_default(flags),
+                self.essence.gloss_static_non_default(flags),
             ] {
-                if item != "" {
-                    if output != "" {
-                        output += ".";
-                    }
-
-                    output += item;
-                }
+                output.add_dotted(item);
             }
 
-            if output == "" {
-                "{Ca}".to_owned()
-            } else {
-                output
-            }
+            output
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+/// A non-aspectual Vn value.
+pub enum NonAspectualVn {
+    /// A variant containing a [`Valence`].
+    Valence(Valence),
+
+    /// A variant containing a [`Phase`].
+    Phase(Phase),
+
+    /// A variant containing an [`Effect`].
+    Effect(Effect),
+
+    /// A variant containing a [`Level`].
+    Level(Level),
+}
+
+impl Default for NonAspectualVn {
+    fn default() -> Self {
+        Self::Valence(Valence::MNO)
+    }
+}
+
+impl GlossStatic for NonAspectualVn {
+    fn gloss_static(&self, flags: GlossFlags) -> &'static str {
+        match self {
+            Self::Valence(value) => value.gloss_static(flags),
+            Self::Phase(value) => value.gloss_static(flags),
+            Self::Effect(value) => value.gloss_static(flags),
+            Self::Level(value) => value.gloss_static(flags),
         }
     }
 }
@@ -267,5 +292,54 @@ impl Gloss for Referent {
         }
 
         output
+    }
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+/// A mood or case-scope value. This contains _either_ a mood _or_ a case-scope, not an arbitrary
+/// thing which could be either depending on its corresponding formative's type.
+///
+/// If you need something which could become a [`Mood`] or a [`CaseScope`] depending on the relation
+/// of a nearby formative, consider
+/// [`ArbitraryMoodOrCaseScope`][crate::category::ArbitraryMoodOrCaseScope] instead.
+pub enum MoodOrCaseScope {
+    /// A mood.
+    Mood(Mood),
+
+    /// A case-scope.
+    CaseScope(CaseScope),
+}
+
+impl GlossStatic for MoodOrCaseScope {
+    fn gloss_static(&self, flags: GlossFlags) -> &'static str {
+        match self {
+            Self::Mood(mood) => mood.gloss_static(flags),
+            Self::CaseScope(case_scope) => case_scope.gloss_static(flags),
+        }
+    }
+}
+
+impl MoodOrCaseScope {
+    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`.
+    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
+    /// string is returned.
+    pub fn gloss_static_non_fac_ccn(&self, flags: GlossFlags) -> &'static str {
+        if flags.matches(GlossFlags::SHOW_DEFAULTS)
+            || !matches!(
+                self,
+                Self::Mood(Mood::FAC) | Self::CaseScope(CaseScope::CCN)
+            )
+        {
+            self.gloss_static(flags)
+        } else {
+            ""
+        }
+    }
+
+    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`].
+    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
+    /// string is returned.
+    pub fn gloss_non_fac_ccn(&self, flags: GlossFlags) -> String {
+        self.gloss_static_non_fac_ccn(flags).to_owned()
     }
 }

@@ -46,10 +46,8 @@ pub type GeneralFormativeCore = FormativeCore<GeneralFormativeRoot, Option<Stem>
 
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident, $stem:ident, $stem_pat:pat, $stem_expr:expr, $stem_value:expr) => {
-        impl AsGeneral for $specific {
-            type Output = GeneralFormativeCore;
-
-            fn as_general(self) -> Self::Output {
+        impl AsGeneral<GeneralFormativeCore> for $specific {
+            fn as_general(self) -> GeneralFormativeCore {
                 #[allow(unused_variables)]
                 let Self {
                     root,

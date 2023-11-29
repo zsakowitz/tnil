@@ -2,14 +2,14 @@
 //! crate::category. All conversions are provided both as inherent `const fn`s, and lossless
 //! conversions are also implemented as `From` and `Into` implementations.
 
-use crate::{AsGeneral, TryAsGeneral, TryAsSpecific};
+use crate::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
 
 use super::{
-    Affiliation, AppositiveCase, Aspect, Ca, CaShortcut, Case, CaseScope, Configuration,
-    DestructuredConfiguration, Effect, Essence, Extension, Illocution, IllocutionOrValidation,
-    Level, Mood, NonDefaultCaseScope, NonDefaultMood, Perspective, Phase, Plexity,
-    ReferentialAffixPerspective, Separability, Similarity, SimilarityAndSeparability, ThematicCase,
-    Valence, Validation, Vn,
+    Affiliation, AppositiveCase, ArbitraryMoodOrCaseScope, Aspect, Ca, CaShortcut, Case, CaseScope,
+    Configuration, DestructuredConfiguration, Effect, Essence, Extension, Illocution,
+    IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn, NonDefaultCaseScope,
+    NonDefaultMood, Perspective, Phase, Plexity, ReferentialAffixPerspective, Separability,
+    Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
 };
 
 impl Configuration {
@@ -384,10 +384,8 @@ impl TryAsSpecific<ReferentialAffixPerspective> for Perspective {
     }
 }
 
-impl AsGeneral for ReferentialAffixPerspective {
-    type Output = Perspective;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Perspective> for ReferentialAffixPerspective {
+    fn as_general(self) -> Perspective {
         match self {
             ReferentialAffixPerspective::M => Perspective::M,
             ReferentialAffixPerspective::G => Perspective::G,
@@ -402,11 +400,15 @@ impl From<ReferentialAffixPerspective> for Perspective {
     }
 }
 
-impl AsGeneral for Valence {
-    type Output = Vn;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Vn> for Valence {
+    fn as_general(self) -> Vn {
         Vn::Valence(self)
+    }
+}
+
+impl AsGeneral<NonAspectualVn> for Valence {
+    fn as_general(self) -> NonAspectualVn {
+        NonAspectualVn::Valence(self)
     }
 }
 
@@ -416,11 +418,21 @@ impl From<Valence> for Vn {
     }
 }
 
-impl AsGeneral for Phase {
-    type Output = Vn;
+impl From<Valence> for NonAspectualVn {
+    fn from(value: Valence) -> Self {
+        NonAspectualVn::Valence(value)
+    }
+}
 
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Vn> for Phase {
+    fn as_general(self) -> Vn {
         Vn::Phase(self)
+    }
+}
+
+impl AsGeneral<NonAspectualVn> for Phase {
+    fn as_general(self) -> NonAspectualVn {
+        NonAspectualVn::Phase(self)
     }
 }
 
@@ -430,11 +442,21 @@ impl From<Phase> for Vn {
     }
 }
 
-impl AsGeneral for Effect {
-    type Output = Vn;
+impl From<Phase> for NonAspectualVn {
+    fn from(value: Phase) -> Self {
+        NonAspectualVn::Phase(value)
+    }
+}
 
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Vn> for Effect {
+    fn as_general(self) -> Vn {
         Vn::Effect(self)
+    }
+}
+
+impl AsGeneral<NonAspectualVn> for Effect {
+    fn as_general(self) -> NonAspectualVn {
+        NonAspectualVn::Effect(self)
     }
 }
 
@@ -444,11 +466,21 @@ impl From<Effect> for Vn {
     }
 }
 
-impl AsGeneral for Level {
-    type Output = Vn;
+impl From<Effect> for NonAspectualVn {
+    fn from(value: Effect) -> Self {
+        NonAspectualVn::Effect(value)
+    }
+}
 
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Vn> for Level {
+    fn as_general(self) -> Vn {
         Vn::Level(self)
+    }
+}
+
+impl AsGeneral<NonAspectualVn> for Level {
+    fn as_general(self) -> NonAspectualVn {
+        NonAspectualVn::Level(self)
     }
 }
 
@@ -458,10 +490,14 @@ impl From<Level> for Vn {
     }
 }
 
-impl AsGeneral for Aspect {
-    type Output = Vn;
+impl From<Level> for NonAspectualVn {
+    fn from(value: Level) -> Self {
+        NonAspectualVn::Level(value)
+    }
+}
 
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Vn> for Aspect {
+    fn as_general(self) -> Vn {
         Vn::Aspect(self)
     }
 }
@@ -584,6 +620,96 @@ impl TryAsSpecific<Aspect> for Vn {
     }
 }
 
+impl NonAspectualVn {
+    /// Returns `true` if this [`NonAspectualVn`] contains a [`Valence`], otherwise returns `false`.
+    pub const fn is_valence(self) -> bool {
+        matches!(self, Self::Valence(_))
+    }
+
+    /// Returns `true` if this [`NonAspectualVn`] contains a [`Phase`], otherwise returns `false`.
+    pub const fn is_phase(self) -> bool {
+        matches!(self, Self::Phase(_))
+    }
+
+    /// Returns `true` if this [`NonAspectualVn`] contains a [`Effect`], otherwise returns `false`.
+    pub const fn is_effect(self) -> bool {
+        matches!(self, Self::Effect(_))
+    }
+
+    /// Returns `true` if this [`NonAspectualVn`] contains a [`Level`], otherwise returns `false`.
+    pub const fn is_level(self) -> bool {
+        matches!(self, Self::Level(_))
+    }
+
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Valence`], otherwise returns [`None`].
+    pub const fn as_valence(self) -> Option<Valence> {
+        match self {
+            Self::Valence(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Phase`], otherwise returns [`None`].
+    pub const fn as_phase(self) -> Option<Phase> {
+        match self {
+            Self::Phase(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains an [`Effect`], otherwise returns [`None`].
+    pub const fn as_effect(self) -> Option<Effect> {
+        match self {
+            Self::Effect(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Level`], otherwise returns [`None`].
+    pub const fn as_level(self) -> Option<Level> {
+        match self {
+            Self::Level(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl TryAsSpecific<Valence> for NonAspectualVn {
+    fn try_as_specific(self) -> Option<Valence> {
+        match self {
+            Self::Valence(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl TryAsSpecific<Phase> for NonAspectualVn {
+    fn try_as_specific(self) -> Option<Phase> {
+        match self {
+            Self::Phase(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl TryAsSpecific<Effect> for NonAspectualVn {
+    fn try_as_specific(self) -> Option<Effect> {
+        match self {
+            Self::Effect(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl TryAsSpecific<Level> for NonAspectualVn {
+    fn try_as_specific(self) -> Option<Level> {
+        match self {
+            Self::Level(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
 impl Illocution {
     /// Converts `self` into an [`IllocutionOrValidation`], or returns [`Err`] if it isn't possible.
     pub const fn as_ivl(self) -> Option<IllocutionOrValidation> {
@@ -601,10 +727,8 @@ impl Illocution {
     }
 }
 
-impl TryAsGeneral for Illocution {
-    type Output = IllocutionOrValidation;
-
-    fn try_as_general(self) -> Option<Self::Output> {
+impl TryAsGeneral<IllocutionOrValidation> for Illocution {
+    fn try_as_general(self) -> Option<IllocutionOrValidation> {
         self.as_ivl()
     }
 }
@@ -626,10 +750,8 @@ impl Validation {
     }
 }
 
-impl AsGeneral for Validation {
-    type Output = IllocutionOrValidation;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<IllocutionOrValidation> for Validation {
+    fn as_general(self) -> IllocutionOrValidation {
         self.as_ivl()
     }
 }
@@ -685,9 +807,7 @@ impl TryAsSpecific<Validation> for IllocutionOrValidation {
     }
 }
 
-impl AsGeneral for ThematicCase {
-    type Output = Case;
-
+impl AsGeneral<Case> for ThematicCase {
     fn as_general(self) -> Case {
         match self {
             Self::THM => Case::THM,
@@ -709,10 +829,8 @@ impl From<ThematicCase> for Case {
     }
 }
 
-impl AsGeneral for AppositiveCase {
-    type Output = Case;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Case> for AppositiveCase {
+    fn as_general(self) -> Case {
         match self {
             Self::POS => Case::POS,
             Self::PRP => Case::PRP,
@@ -779,10 +897,8 @@ impl TryAsSpecific<AppositiveCase> for Case {
     }
 }
 
-impl AsGeneral for NonDefaultMood {
-    type Output = Mood;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<Mood> for NonDefaultMood {
+    fn as_general(self) -> Mood {
         match self {
             Self::SUB => Mood::SUB,
             Self::ASM => Mood::ASM,
@@ -799,9 +915,47 @@ impl From<NonDefaultMood> for Mood {
     }
 }
 
-impl AsGeneral for NonDefaultCaseScope {
-    type Output = CaseScope;
+impl AsGeneral<MoodOrCaseScope> for NonDefaultMood {
+    fn as_general(self) -> MoodOrCaseScope {
+        let this: Mood = self.as_general();
+        this.as_general()
+    }
+}
 
+impl TryAsSpecific<NonDefaultMood> for MoodOrCaseScope {
+    fn try_as_specific(self) -> Option<NonDefaultMood> {
+        let this: Mood = self.try_as_specific()?;
+        this.try_as_specific()
+    }
+}
+
+impl From<NonDefaultMood> for MoodOrCaseScope {
+    fn from(value: NonDefaultMood) -> Self {
+        value.as_general()
+    }
+}
+
+impl AsGeneral<MoodOrCaseScope> for NonDefaultCaseScope {
+    fn as_general(self) -> MoodOrCaseScope {
+        let this: CaseScope = self.as_general();
+        this.as_general()
+    }
+}
+
+impl TryAsSpecific<NonDefaultCaseScope> for MoodOrCaseScope {
+    fn try_as_specific(self) -> Option<NonDefaultCaseScope> {
+        let this: CaseScope = self.try_as_specific()?;
+        this.try_as_specific()
+    }
+}
+
+impl From<NonDefaultCaseScope> for MoodOrCaseScope {
+    fn from(value: NonDefaultCaseScope) -> Self {
+        value.as_general()
+    }
+}
+
+impl AsGeneral<CaseScope> for NonDefaultCaseScope {
     fn as_general(self) -> CaseScope {
         match self {
             Self::CCA => CaseScope::CCA,
@@ -845,9 +999,7 @@ impl TryAsSpecific<NonDefaultCaseScope> for CaseScope {
     }
 }
 
-impl AsGeneral for CaShortcut {
-    type Output = Ca;
-
+impl AsGeneral<Ca> for CaShortcut {
     fn as_general(self) -> Ca {
         match self {
             Self::Default => Ca {
@@ -991,6 +1143,174 @@ impl TryAsSpecific<CaShortcut> for Ca {
             } => Some(CaShortcut::PRX_RPV),
 
             _ => None,
+        }
+    }
+}
+
+impl AsGeneral<MoodOrCaseScope> for Mood {
+    fn as_general(self) -> MoodOrCaseScope {
+        MoodOrCaseScope::Mood(self)
+    }
+}
+
+impl From<Mood> for MoodOrCaseScope {
+    fn from(value: Mood) -> Self {
+        Self::Mood(value)
+    }
+}
+
+impl TryAsSpecific<Mood> for MoodOrCaseScope {
+    fn try_as_specific(self) -> Option<Mood> {
+        match self {
+            Self::Mood(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<MoodOrCaseScope> for CaseScope {
+    fn as_general(self) -> MoodOrCaseScope {
+        MoodOrCaseScope::CaseScope(self)
+    }
+}
+
+impl From<CaseScope> for MoodOrCaseScope {
+    fn from(value: CaseScope) -> Self {
+        Self::CaseScope(value)
+    }
+}
+
+impl TryAsSpecific<CaseScope> for MoodOrCaseScope {
+    fn try_as_specific(self) -> Option<CaseScope> {
+        match self {
+            Self::CaseScope(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<ArbitraryMoodOrCaseScope> for Mood {
+    fn as_general(self) -> ArbitraryMoodOrCaseScope {
+        match self {
+            Self::FAC => ArbitraryMoodOrCaseScope::FAC_CCN,
+            Self::SUB => ArbitraryMoodOrCaseScope::SUB_CCA,
+            Self::ASM => ArbitraryMoodOrCaseScope::ASM_CCS,
+            Self::SPC => ArbitraryMoodOrCaseScope::SPC_CCQ,
+            Self::COU => ArbitraryMoodOrCaseScope::COU_CCP,
+            Self::HYP => ArbitraryMoodOrCaseScope::HYP_CCV,
+        }
+    }
+}
+
+impl From<Mood> for ArbitraryMoodOrCaseScope {
+    fn from(value: Mood) -> Self {
+        value.as_general()
+    }
+}
+
+impl AsSpecific<Mood> for ArbitraryMoodOrCaseScope {
+    fn as_specific(self) -> Mood {
+        match self {
+            Self::FAC_CCN => Mood::FAC,
+            Self::SUB_CCA => Mood::SUB,
+            Self::ASM_CCS => Mood::ASM,
+            Self::SPC_CCQ => Mood::SPC,
+            Self::COU_CCP => Mood::COU,
+            Self::HYP_CCV => Mood::HYP,
+        }
+    }
+}
+
+impl AsGeneral<ArbitraryMoodOrCaseScope> for CaseScope {
+    fn as_general(self) -> ArbitraryMoodOrCaseScope {
+        match self {
+            Self::CCN => ArbitraryMoodOrCaseScope::FAC_CCN,
+            Self::CCA => ArbitraryMoodOrCaseScope::SUB_CCA,
+            Self::CCS => ArbitraryMoodOrCaseScope::ASM_CCS,
+            Self::CCQ => ArbitraryMoodOrCaseScope::SPC_CCQ,
+            Self::CCP => ArbitraryMoodOrCaseScope::COU_CCP,
+            Self::CCV => ArbitraryMoodOrCaseScope::HYP_CCV,
+        }
+    }
+}
+
+impl From<CaseScope> for ArbitraryMoodOrCaseScope {
+    fn from(value: CaseScope) -> Self {
+        value.as_general()
+    }
+}
+
+impl AsSpecific<CaseScope> for ArbitraryMoodOrCaseScope {
+    fn as_specific(self) -> CaseScope {
+        match self {
+            Self::FAC_CCN => CaseScope::CCN,
+            Self::SUB_CCA => CaseScope::CCA,
+            Self::ASM_CCS => CaseScope::CCS,
+            Self::SPC_CCQ => CaseScope::CCQ,
+            Self::COU_CCP => CaseScope::CCP,
+            Self::HYP_CCV => CaseScope::CCV,
+        }
+    }
+}
+
+impl AsGeneral<ArbitraryMoodOrCaseScope> for NonDefaultMood {
+    fn as_general(self) -> ArbitraryMoodOrCaseScope {
+        match self {
+            Self::SUB => ArbitraryMoodOrCaseScope::SUB_CCA,
+            Self::ASM => ArbitraryMoodOrCaseScope::ASM_CCS,
+            Self::SPC => ArbitraryMoodOrCaseScope::SPC_CCQ,
+            Self::COU => ArbitraryMoodOrCaseScope::COU_CCP,
+            Self::HYP => ArbitraryMoodOrCaseScope::HYP_CCV,
+        }
+    }
+}
+
+impl From<NonDefaultMood> for ArbitraryMoodOrCaseScope {
+    fn from(value: NonDefaultMood) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<NonDefaultMood> for ArbitraryMoodOrCaseScope {
+    fn try_as_specific(self) -> Option<NonDefaultMood> {
+        match self {
+            Self::FAC_CCN => None,
+            Self::SUB_CCA => Some(NonDefaultMood::SUB),
+            Self::ASM_CCS => Some(NonDefaultMood::ASM),
+            Self::SPC_CCQ => Some(NonDefaultMood::SPC),
+            Self::COU_CCP => Some(NonDefaultMood::COU),
+            Self::HYP_CCV => Some(NonDefaultMood::HYP),
+        }
+    }
+}
+
+impl AsGeneral<ArbitraryMoodOrCaseScope> for NonDefaultCaseScope {
+    fn as_general(self) -> ArbitraryMoodOrCaseScope {
+        match self {
+            Self::CCA => ArbitraryMoodOrCaseScope::SUB_CCA,
+            Self::CCS => ArbitraryMoodOrCaseScope::ASM_CCS,
+            Self::CCQ => ArbitraryMoodOrCaseScope::SPC_CCQ,
+            Self::CCP => ArbitraryMoodOrCaseScope::COU_CCP,
+            Self::CCV => ArbitraryMoodOrCaseScope::HYP_CCV,
+        }
+    }
+}
+
+impl From<NonDefaultCaseScope> for ArbitraryMoodOrCaseScope {
+    fn from(value: NonDefaultCaseScope) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<NonDefaultCaseScope> for ArbitraryMoodOrCaseScope {
+    fn try_as_specific(self) -> Option<NonDefaultCaseScope> {
+        match self {
+            Self::FAC_CCN => None,
+            Self::SUB_CCA => Some(NonDefaultCaseScope::CCA),
+            Self::ASM_CCS => Some(NonDefaultCaseScope::CCS),
+            Self::SPC_CCQ => Some(NonDefaultCaseScope::CCQ),
+            Self::COU_CCP => Some(NonDefaultCaseScope::CCP),
+            Self::HYP_CCV => Some(NonDefaultCaseScope::CCV),
         }
     }
 }

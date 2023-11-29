@@ -2,8 +2,8 @@
 
 use crate::{
     category::{
-        Case, CaseScope, IllocutionOrValidation, Mood, NominalMode, NonDefaultCaseScope,
-        NonDefaultMood,
+        Case, CaseScope, IllocutionOrValidation, Mood, MoodOrCaseScope, NominalMode,
+        NonDefaultCaseScope, NonDefaultMood,
     },
     AsGeneral, TryAsSpecific,
 };
@@ -36,7 +36,10 @@ pub enum Relation<CaseScopeType, MoodType> {
     },
 }
 
-impl<CaseScopeType: Default, MoodType> Default for Relation<CaseScopeType, MoodType> {
+impl<CaseScopeType, MoodType> Default for Relation<CaseScopeType, MoodType>
+where
+    CaseScopeType: Default,
+{
     fn default() -> Self {
         Self::Nominal {
             mode: NominalMode::NOM,
@@ -52,9 +55,7 @@ pub type NormalRelation = Relation<CaseScope, Mood>;
 /// A formative relation that cannot contain a default case-scope or mood.
 pub type NonDefaultRelation = Relation<NonDefaultCaseScope, NonDefaultMood>;
 
-impl AsGeneral for NonDefaultRelation {
-    type Output = NormalRelation;
-
+impl AsGeneral<NormalRelation> for NonDefaultRelation {
     /// Converts `self` into a [`NormalRelation`].
     fn as_general(self) -> NormalRelation {
         match self {
@@ -106,5 +107,22 @@ impl TryAsSpecific<NonDefaultRelation> for NormalRelation {
                 ivl,
             },
         })
+    }
+}
+
+impl NormalRelation {
+    /// Gets the mood or case-scope of this relation.
+    pub fn mood_or_case_scope(&self) -> MoodOrCaseScope {
+        match self {
+            Self::Nominal { case_scope, .. } => case_scope.as_general(),
+            Self::Verbal { mood, .. } => mood.as_general(),
+        }
+    }
+}
+
+impl NonDefaultRelation {
+    /// Gets the mood or case-scope of this relation.
+    pub fn mood_or_case_scope(&self) -> MoodOrCaseScope {
+        self.as_general().mood_or_case_scope()
     }
 }

@@ -150,10 +150,8 @@ pub enum GeneralFormativeRoot {
 
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident) => {
-        impl AsGeneral for $specific {
-            type Output = GeneralFormativeRoot;
-
-            fn as_general(self) -> Self::Output {
+        impl AsGeneral<GeneralFormativeRoot> for $specific {
+            fn as_general(self) -> GeneralFormativeRoot {
                 GeneralFormativeRoot::$variant(self)
             }
         }

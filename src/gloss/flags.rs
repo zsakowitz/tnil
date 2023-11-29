@@ -37,21 +37,21 @@ impl GlossFlags {
     /// If the `FORMAT_MARKDOWN` flag is not specified, this flag does nothing.
     pub const FORMAT_DISCORD_MARKDOWN: Self = Self(1 << 3);
 
-    #[cfg(feature = "sheet-root-data")]
-    /// A [`GlossFlags`] instance with only the `use_sheet_root_data` flag enabled.
-    ///
-    /// If passed to `.gloss()`, this will replace roots with their values as specified in the
-    /// collaborative Ithkuil IV Roots and Affixes spreadsheet, found at
-    /// https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
-    pub const USE_SHEET_ROOT_DATA: Self = Self(1 << 4);
-
     #[cfg(feature = "sheet-affix-data")]
     /// A [`GlossFlags`] instance with only the `use_sheet_affix_data` flag enabled.
     ///
     /// If passed to `.gloss()`, this will replace affixes with their values as specified in the
     /// collaborative Ithkuil IV Roots and Affixes spreadsheet, found at
     /// https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
-    pub const USE_SHEET_AFFIX_DATA: Self = Self(1 << 5);
+    pub const USE_SHEET_AFFIX_DATA: Self = Self(1 << 4);
+
+    #[cfg(feature = "sheet-root-data")]
+    /// A [`GlossFlags`] instance with only the `use_sheet_root_data` flag enabled.
+    ///
+    /// If passed to `.gloss()`, this will replace roots with their values as specified in the
+    /// collaborative Ithkuil IV Roots and Affixes spreadsheet, found at
+    /// https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
+    pub const USE_SHEET_ROOT_DATA: Self = Self(1 << 5);
 
     #[cfg(feature = "lexicon-json-root-data")]
     /// A [`GlossFlags`] instance with only the `use_lexicon_json_root_data` flag enabled.
@@ -66,10 +66,10 @@ impl GlossFlags {
     ///
     /// If passed to `.gloss()`, this will replace roots with their values as specified in the
     /// lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
-    pub const USE_COMBINED_ROOT_DATA: Self = Self(1 << 4 | 1 << 6);
+    pub const USE_COMBINED_ROOT_DATA: Self = Self(1 << 5 | 1 << 6);
 
     /// Checks if `self` contains the flags specified in `other`.
-    pub const fn matches(&self, other: GlossFlags) -> bool {
+    pub const fn matches(self, other: GlossFlags) -> bool {
         self.0 & other.0 == other.0
     }
 }

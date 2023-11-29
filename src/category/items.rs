@@ -12,8 +12,8 @@ macro_rules! item {
     ) => {
         paste! {
             #[repr(u8)]
-            #[doc = "Represents a " $enum_name " value."]
             #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[doc = "Represents a " $enum_name " value."]
             pub enum $enum_name {
                 #[default]
                 $(
@@ -31,8 +31,8 @@ macro_rules! item {
     ) => {
         paste! {
             #[repr(u8)]
-            #[doc = "Represents a " $enum_name " value."]
             #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[doc = "Represents a " $enum_name " value."]
             pub enum $enum_name {
                 $(
                     #[doc = "The " $variant " (" $name ") " $enum_name "."]
@@ -136,7 +136,7 @@ category!(
     (NOM, "Nominal", "nominal"),
     (T1, "Type-1 Concatenated", "type_one"),
     (T2, "Type-2 Concatenated", "type_two"),
-    (UNF, "Unframed Verb", "unframed_verb"),
+    (FRM, "Framed Verb", "framed_verb"),
 );
 
 category!(
@@ -236,6 +236,7 @@ category!(
 );
 
 category!(
+    #no_default,
     Similarity,
     (S, "Similar", "similar"),
     (D, "Dissimilar", "dissimilar"),
@@ -243,6 +244,7 @@ category!(
 );
 
 category!(
+    #no_default,
     Separability,
     (S, "Separate", "separate"),
     (C, "Connected", "connected"),
@@ -294,6 +296,7 @@ category!(
 );
 
 category!(
+    #no_default,
     Phase,
     (PUN, "Punctual", "punctual"),
     (ITR, "Iterative", "iterative"),
@@ -308,6 +311,7 @@ category!(
 
 #[rustfmt::skip]
 custom_abbr_category!(
+    #no_default,
     Effect,
     (BEN1,    "1:BEN",   "Beneficial to Speaker",    "beneficial_to_speaker"),
     (BEN2,    "2:BEN",   "Beneficial to Addressee",  "beneficial_to_addressee"),
@@ -321,6 +325,7 @@ custom_abbr_category!(
 );
 
 category!(
+    #no_default,
     Level,
     (MIN, "Minimal", "minimal"),
     (SBE, "Subequative", "subequative"),
@@ -334,6 +339,7 @@ category!(
 );
 
 category!(
+    #no_default,
     Aspect,
     (RTR, "Retrospective", "retrospective"),
     (PRS, "Prospective", "prospective"),
@@ -414,6 +420,7 @@ category!(
 );
 
 custom_abbr_category!(
+    #no_default,
     ReferentTarget,
     (M1, "1m", "Speaker", "speaker"),
     (M2, "2m", "Monadic Addressee", "monadic_addressee"),
@@ -496,6 +503,7 @@ category!(
 );
 
 category!(
+    #no_default,
     AppositiveCase,
     (POS, "Possessive", "possessive"),
     (PRP, "Proprietive", "proprietive"),
@@ -586,12 +594,162 @@ custom_category!(
     (Inverse, "ia", "Inverse Accessor", "ia", "inverse_accessor"),
 );
 
+custom_category!(
+    ModularAdjunctMode,
+    (Full, "Full", "Full", "", ""),
+    (Parent, "Parent", "Parent", "{parent}", "{parent}"),
+    (Concatenated, "Concat", "Concat", "{concat.}", "{concat.}"),
+);
+
+custom_category!(
+    ModularAdjunctScope,
+    (
+        Formative,
+        "Formative",
+        "Formative",
+        "{form.}",
+        "{scope over formative}"
+    ),
+    (
+        MCS,
+        "MCS",
+        "Mood/Case-Scope",
+        "{mcs}",
+        "{scope over mood/case-scope}"
+    ),
+    (
+        UnderAdjacent,
+        "UnderAdj",
+        "Under Adjacent",
+        "{under adj.}",
+        "{scope over formative, but not adjacent adjuncts}"
+    ),
+    (
+        OverAdjacent,
+        "OverAdj",
+        "Over Adjacent",
+        "{over adj.}",
+        "{scope over formative and adjacent adjuncts}"
+    ),
+);
+
+custom_category!(
+    SuppletiveAdjunctMode,
+    (CAR, "CAR", "Carrier", "[CAR]", "[carrier]"),
+    (QUO, "QUO", "Quotative", "[QUO]", "[quotative]"),
+    (NAM, "NAM", "Naming", "[NAM]", "[naming]"),
+    (PHR, "PHR", "Phrasal", "[PHR]", "[phrasal]"),
+);
+
+category!(
+    RegisterCategory,
+    (NRR, "Narrative", "narrative"),
+    (DSV, "Discursive", "discursive"),
+    (PNT, "Parenthetical", "parenthetical"),
+    (SPF, "Specificative", "specificative"),
+    (EXM, "Exemplificative", "exemplificative"),
+    (CGT, "Cogitant", "cogitant"),
+    (END, "End", "end"),
+);
+
+category!(
+    #no_default,
+    Bias,
+    (ACC, "Accidental", "accidental"),
+    (ACH, "Archetypal", "archetypal"),
+    (ADS, "Admissive", "admissive"),
+    (ANN, "Annunciative", "annunciative"),
+    (ANP, "Anticipative", "anticipative"),
+    (APB, "Approbative", "approbative"),
+    (APH, "Apprehensive", "apprehensive"),
+    (ARB, "Arbitrary", "arbitrary"),
+    (ATE, "Attentive", "attentive"),
+    (CMD, "Comedic", "comedic"),
+    (CNV, "Contensive", "contensive"),
+    (COI, "Coincidental", "coincidental"),
+    (CRP, "Corruptive", "corruptive"),
+    (CRR, "Corrective", "corrective"),
+    (CTP, "Contemptive", "contemptive"),
+    (CTV, "Contemplative", "contemplative"),
+    (DCC, "Disconcertive", "disconcertive"),
+    (DEJ, "Dejective", "dejective"),
+    (DES, "Desperative", "desperative"),
+    (DFD, "Diffident", "diffident"),
+    (DIS, "Dismissive", "dismissive"),
+    (DLC, "Delectative", "delectative"),
+    (DOL, "Dolorous", "dolorous"),
+    (DPB, "Disapprobative", "disapprobative"),
+    (DRS, "Derisive", "derisive"),
+    (DUB, "Dubitative", "dubitative"),
+    (EUH, "Euphoric", "euphoric"),
+    (EUP, "Euphemistic", "euphemistic"),
+    (EXA, "Exasperative", "exasperative"),
+    (EXG, "Exigent", "exigent"),
+    (FOR, "Fortuitous", "fortuitous"),
+    (FSC, "Fascinative", "fascinative"),
+    (GRT, "Gratificative", "gratificative"),
+    (IDG, "Indignative", "indignative"),
+    (IFT, "Infatuative", "infatuative"),
+    (IPL, "Implicative", "implicative"),
+    (IPT, "Impatient", "impatient"),
+    (IRO, "Ironic", "ironic"),
+    (ISP, "Insipid", "insipid"),
+    (IVD, "Invidious", "invidious"),
+    (MAN, "Mandatory", "mandatory"),
+    (MNF, "Manifestive", "manifestive"),
+    (OPT, "Optimal", "optimal"),
+    (PES, "Pessimistic", "pessimistic"),
+    (PPT, "Propitious", "propitious"),
+    (PPX, "Perplexive", "perplexive"),
+    (PPV, "Propositive", "propositive"),
+    (PSC, "Prosaic", "prosaic"),
+    (PSM, "Presumptive", "presumptive"),
+    (RAC, "Reactive", "reactive"),
+    (RFL, "Reflective", "reflective"),
+    (RSG, "Resignative", "resignative"),
+    (RPU, "Repulsive", "repulsive"),
+    (RVL, "Revelative", "revelative"),
+    (SAT, "Satiative", "satiative"),
+    (SGS, "Suggestive", "suggestive"),
+    (SKP, "Skeptical", "skeptical"),
+    (SOL, "Solicitative", "solicitative"),
+    (STU, "Stupefactive", "stupefactive"),
+    (TRP, "Trepidative", "trepidative"),
+    (VEX, "Vexative", "vexative"),
+);
+
+/// HACK: Using a module here allows lints to be allowed properly, which we want need in order to
+/// have variants ending in `_END`. The variants are named as such because PntEnd frankly looks
+/// disgusting, and PNTEnd looks worse. Also, we get consistency with @ırburučpaızya, which is nice.
+#[allow(non_camel_case_types)]
+mod register {
+    use super::{paste, Category, GlossFlags, GlossStatic};
+
+    category!(
+        #no_default,
+        Register,
+        (DSV, "Discursive Start", "discursive"),
+        (DSV_END, "Discursive End", "discursive_end"),
+        (PNT, "Parenthetical Start", "parenthetical"),
+        (PNT_END, "Parenthetical End", "parenthetical_end"),
+        (SPF, "Specificative Start", "specificative"),
+        (SPF_END, "Specificative End", "specificative_end"),
+        (EXM, "Exemplificative Start", "exemplificative"),
+        (EXM_END, "Exemplificative End", "exemplificative_end"),
+        (CGT, "Cogitant Start", "cogitant"),
+        (CGT_END, "Cogitant End", "cogitant_end"),
+        (END, "End", "end"),
+    );
+}
+
+pub use register::*;
+
 /// Represents a AffixShortcut value.
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AffixShortcut {
     #[default]
-    /// The None (None) AffixShortcut.
+    /// An absence of an affix shortcut.
     None,
 
     /// The NEG4 (NEG/4) AffixShortcut.
@@ -658,9 +816,8 @@ impl Category for AffixShortcut {
 /// Represents a CaShortcut value.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CaShortcut {
-    #[default]
-
     /// The Default (Default) CaShortcut.
+    #[default]
     Default,
 
     /// The PRX (Proximal) CaShortcut.
@@ -721,6 +878,73 @@ impl Category for CaShortcut {
             Self::A => "Abstract",
             Self::G_RPV => "Agglomerative + Representative",
             Self::PRX_RPV => "Proximal + Representative",
+        }
+    }
+}
+
+#[repr(u8)]
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+/// Represents a ArbitraryMoodOrCaseScope value.
+pub enum ArbitraryMoodOrCaseScope {
+    #[default]
+    /// The FAC_CCN (Factual/Natural) ArbitraryMoodOrCaseScope.
+    FAC_CCN,
+    /// The SUB_CCA (Subjunctive/Antecedent) ArbitraryMoodOrCaseScope.
+    SUB_CCA,
+    /// The ASM_CCS (Assumptive/Subaltern) ArbitraryMoodOrCaseScope.
+    ASM_CCS,
+    /// The SPC_CCQ (Speculative/Qualifier) ArbitraryMoodOrCaseScope.
+    SPC_CCQ,
+    /// The COU_CCP (Counterfactive/Precedent) ArbitraryMoodOrCaseScope.
+    COU_CCP,
+    /// The HYP_CCV (Hypothetical/Successive) ArbitraryMoodOrCaseScope.
+    HYP_CCV,
+}
+
+impl GlossStatic for ArbitraryMoodOrCaseScope {
+    fn gloss_static(&self, flags: GlossFlags) -> &'static str {
+        if flags.matches(GlossFlags::LONG) {
+            match self {
+                Self::FAC_CCN => "factual/natural",
+                Self::SUB_CCA => "subjunctive/antecedent",
+                Self::ASM_CCS => "assumptive/subaltern",
+                Self::SPC_CCQ => "speculative/qualifier",
+                Self::COU_CCP => "counterfactive/precedent",
+                Self::HYP_CCV => "hypothetical/successive",
+            }
+        } else {
+            match self {
+                Self::FAC_CCN => "FAC/CCN",
+                Self::SUB_CCA => "SUB/CCA",
+                Self::ASM_CCS => "ASM/CCS",
+                Self::SPC_CCQ => "SPC/CCQ",
+                Self::COU_CCP => "COU/CCP",
+                Self::HYP_CCV => "HYP/CCV",
+            }
+        }
+    }
+}
+
+impl Category for ArbitraryMoodOrCaseScope {
+    fn abbr(self) -> &'static str {
+        match self {
+            Self::FAC_CCN => "FAC_CCN",
+            Self::SUB_CCA => "SUB_CCA",
+            Self::ASM_CCS => "ASM_CCS",
+            Self::SPC_CCQ => "SPC_CCQ",
+            Self::COU_CCP => "COU_CCP",
+            Self::HYP_CCV => "HYP_CCV",
+        }
+    }
+    fn name(self) -> &'static str {
+        match self {
+            Self::FAC_CCN => "Factual/Natural",
+            Self::SUB_CCA => "Subjunctive/Antecedent",
+            Self::ASM_CCS => "Assumptive/Subaltern",
+            Self::SPC_CCQ => "Speculative/Qualifier",
+            Self::COU_CCP => "Counterfactive/Precedent",
+            Self::HYP_CCV => "Hypothetical/Successive",
         }
     }
 }

@@ -11,6 +11,7 @@ pub mod affix;
 mod as_general;
 pub mod category;
 pub mod gloss;
+mod macros;
 pub mod word;
 
 pub use as_general::*;

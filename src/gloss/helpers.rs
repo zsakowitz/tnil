@@ -28,6 +28,10 @@ impl Sealed for String {}
 impl GlossHelpers for String {
     #[inline(always)]
     fn add_with_separator(&mut self, separator: &str, value: &str) {
+        if value.is_empty() {
+            return;
+        }
+
         if !self.is_empty() {
             *self += separator;
         }
@@ -35,35 +39,3 @@ impl GlossHelpers for String {
         *self += value;
     }
 }
-
-// TODO: Do we still need this
-// /// Pushes `"-$segment1.$segment2.$segment3...` to `output`, omitting empty segments and omitting
-// /// the whole item if all segments are empty.
-// #[macro_export]
-// macro_rules! add_dotted_segments_with_dash {
-//     ($output:expr) => {
-//         compile_error!("`add_dotted_segments_with_dash!()` needs at least one segment");
-//     };
-
-//     ($output:expr, $($x:expr),+ $(,)?) => {{
-//         let output: &mut String = &mut $output;
-
-//         let mut has_added_segment = false;
-
-//         $(match &$x {
-//             "" => {}
-//             value => {
-//                 if has_added_segment {
-//                     output += ".";
-//                 } else {
-//                     output += "-";
-//                     has_added_segment = true;
-//                 }
-
-//                 output += value;
-//             }
-//         };)+
-//     }};
-// }
-
-// pub use add_dotted_segments_with_dash;

@@ -35,7 +35,7 @@ pub trait GlossStatic {
     /// memory.
     fn gloss_static(&self, flags: GlossFlags) -> &'static str;
 
-    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`].
+    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`.
     /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is the default value of
     /// its type, an empty string is returned.
     ///
@@ -62,10 +62,6 @@ impl<T: GlossStatic> Gloss for T {
     where
         Self: Default + PartialEq,
     {
-        if flags.matches(GlossFlags::SHOW_DEFAULTS) || *self != Self::default() {
-            self.gloss_static(flags).to_owned()
-        } else {
-            String::new()
-        }
+        self.gloss_static_non_default(flags).to_owned()
     }
 }

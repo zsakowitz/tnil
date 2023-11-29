@@ -1,5 +1,4 @@
-//! Formatives are the core word type of Ithkuil, representing all standalone words other than
-//! pronouns.
+//! Provides types for working with formatives.
 //!
 //! ## Representation
 //!

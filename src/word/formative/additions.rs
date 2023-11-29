@@ -63,9 +63,6 @@ pub struct CnShortcutAdditions<AffixShortcutType, SpecificationType> {
 
     /// The context of this formative.
     pub context: Context,
-
-    /// The slot V affixes of this formative.
-    pub slot_v_affixes: AffixList,
 }
 
 /// Additions for normal and numeric Cn-shortcut formatives.
@@ -167,6 +164,7 @@ macro_rules! as_general_impl {
         $specific:ident,
         $general:ident,
         $($ca_name:ident)?,
+        $($slot_v_affixes_name:ident)?,
         $affix_shortcut_name:ident,
         $specification_name:ident,
         $affix_shortcut:tt,
@@ -176,9 +174,7 @@ macro_rules! as_general_impl {
     ) => {
         paste! {
             #[allow(unused_parens)]
-            impl AsGeneral for $specific {
-                type Output = $general;
-
+            impl AsGeneral<$general> for $specific {
                 fn as_general(self) -> $general {
                     #[allow(unused_variables)]
                     let Self {
@@ -187,7 +183,7 @@ macro_rules! as_general_impl {
                         context,
                         function,
                         relation,
-                        slot_v_affixes,
+                        $($slot_v_affixes_name,)?
                         $specification_name,
                     } = self;
 
@@ -197,7 +193,7 @@ macro_rules! as_general_impl {
                         context,
                         function,
                         relation,
-                        slot_v_affixes,
+                        $($slot_v_affixes_name,)?
                         specification: $specification,
                     }
                 }
@@ -220,7 +216,7 @@ macro_rules! as_general_impl {
                         context,
                         function,
                         relation,
-                        slot_v_affixes,
+                        $($slot_v_affixes_name,)?
                         $specification_name: $specification,
                     } = self {
                         Some($specific {
@@ -229,7 +225,7 @@ macro_rules! as_general_impl {
                             context,
                             function,
                             relation,
-                            slot_v_affixes,
+                            $($slot_v_affixes_name,)?
                             $specification_name: $specification_value,
                         })
                     } else {
@@ -245,6 +241,7 @@ as_general_impl!(
     NormalNonShortcutAdditions,
     GeneralNonShortcutAdditions,
     ca,
+    slot_v_affixes,
     affix_shortcut,
     specification,
     (Some(affix_shortcut)),
@@ -257,6 +254,7 @@ as_general_impl!(
     ReferentialNonShortcutAdditions, // the specific type
     GeneralNonShortcutAdditions,     // the general type
     ca,                              // the Ca field, or empty if the type has no Ca field
+    slot_v_affixes,                  // the slot V affixes field, or empty if the type has none
     affix_shortcut,                  // the affix shortcut field (because macro hygiene)
     specification,                   // the specification field (because macro hygiene)
     None,                            // the general value to put in `affix_shortcut`
@@ -272,6 +270,7 @@ as_general_impl!(
     AffixualNonShortcutAdditions,
     GeneralNonShortcutAdditions,
     ca,
+    slot_v_affixes,
     affix_shortcut,
     specification,
     None,
@@ -284,6 +283,7 @@ as_general_impl!(
     NormalCnShortcutAdditions,
     GeneralCnShortcutAdditions,
     , // Cn shortcut additions don't have Ca slots, so we pass nothing here
+    , // Cn shortcut additions also don't have slot V affixes
     affix_shortcut,
     specification,
     (Some(affix_shortcut)),
@@ -295,6 +295,7 @@ as_general_impl!(
 as_general_impl!(
     ReferentialCnShortcutAdditions,
     GeneralCnShortcutAdditions,
+    ,
     ,
     affix_shortcut,
     specification,
@@ -308,6 +309,7 @@ as_general_impl!(
     AffixualCnShortcutAdditions,
     GeneralCnShortcutAdditions,
     ,
+    ,
     affix_shortcut,
     specification,
     None,
@@ -316,10 +318,8 @@ as_general_impl!(
     (),
 );
 
-impl AsGeneral for NormalFormativeAdditions {
-    type Output = GeneralFormativeAdditions;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<GeneralFormativeAdditions> for NormalFormativeAdditions {
+    fn as_general(self) -> GeneralFormativeAdditions {
         match self {
             Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
             Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
@@ -346,10 +346,8 @@ impl TryAsSpecific<NormalFormativeAdditions> for GeneralFormativeAdditions {
     }
 }
 
-impl AsGeneral for ReferentialFormativeAdditions {
-    type Output = GeneralFormativeAdditions;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<GeneralFormativeAdditions> for ReferentialFormativeAdditions {
+    fn as_general(self) -> GeneralFormativeAdditions {
         match self {
             Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
             Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
@@ -376,10 +374,8 @@ impl TryAsSpecific<ReferentialFormativeAdditions> for GeneralFormativeAdditions 
     }
 }
 
-impl AsGeneral for AffixualFormativeAdditions {
-    type Output = GeneralFormativeAdditions;
-
-    fn as_general(self) -> Self::Output {
+impl AsGeneral<GeneralFormativeAdditions> for AffixualFormativeAdditions {
+    fn as_general(self) -> GeneralFormativeAdditions {
         match self {
             Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
             Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
