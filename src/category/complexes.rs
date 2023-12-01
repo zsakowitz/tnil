@@ -1,9 +1,11 @@
 //! Defines complexes (groups of core categories) and their glossing methods.
 
+use vec1::Vec1;
+
 use super::{
     Affiliation, Aspect, CaseScope, Category, Configuration, Effect, Essence, Extension, Level,
-    Mood, Perspective, Phase, Plexity, ReferentEffect, ReferentTarget, Separability, Similarity,
-    Valence,
+    Mood, Perspective, Phase, Plexity, ReferentEffect, ReferentTarget, ReferentialAffixPerspective,
+    Separability, Similarity, Valence,
 };
 use crate::gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic};
 
@@ -273,29 +275,6 @@ impl GlossStatic for Vn {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-/// A referent with a target and effect.
-pub struct Referent {
-    /// The target of this referent.
-    target: ReferentTarget,
-
-    /// The effect of this referent.
-    effect: ReferentEffect,
-}
-
-impl Gloss for Referent {
-    fn gloss(&self, flags: GlossFlags) -> String {
-        let mut output = self.target.gloss(flags);
-
-        if self.effect != ReferentEffect::NEU || flags.matches(GlossFlags::SHOW_DEFAULTS) {
-            output += ".";
-            output += self.effect.gloss_static(flags);
-        }
-
-        output
-    }
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// A mood or case-scope value. This contains _either_ a mood _or_ a case-scope, not an arbitrary
 /// thing which could be either depending on its corresponding formative's type.
 ///
@@ -343,3 +322,87 @@ impl MoodOrCaseScope {
         self.gloss_static_non_fac_ccn(flags).to_owned()
     }
 }
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+/// A referent with a target and effect.
+pub struct Referent {
+    /// The target of this referent.
+    target: ReferentTarget,
+
+    /// The effect of this referent.
+    effect: ReferentEffect,
+}
+
+impl Gloss for Referent {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        let mut output = self.target.gloss(flags);
+
+        if self.effect != ReferentEffect::NEU || flags.matches(GlossFlags::SHOW_DEFAULTS) {
+            output += ".";
+            output += self.effect.gloss_static(flags);
+        }
+
+        output
+    }
+}
+
+/// A list of referents with a perspective.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ReferentList<PerspectiveType> {
+    /// The referents of this referent list.
+    referents: Vec1<Referent>,
+
+    /// The perspective of this referent list.
+    perspective: PerspectiveType,
+}
+
+impl<PerspectiveType> Gloss for ReferentList<PerspectiveType>
+where
+    PerspectiveType: Default + GlossStatic + PartialEq,
+{
+    fn gloss(&self, flags: GlossFlags) -> String {
+        let needs_brackets = self.referents.len() != 1
+            || self.perspective != PerspectiveType::default()
+            || flags.matches(GlossFlags::SHOW_DEFAULTS);
+
+        let mut output = String::new();
+
+        if needs_brackets {
+            output += "[";
+        }
+
+        let mut is_first_segment = true;
+
+        for referent in &self.referents {
+            if !is_first_segment {
+                output += "+";
+            }
+
+            is_first_segment = false;
+
+            output += &referent.gloss(flags);
+        }
+
+        if self.perspective != PerspectiveType::default()
+            || flags.matches(GlossFlags::SHOW_DEFAULTS)
+        {
+            if !is_first_segment {
+                output += "+";
+            }
+
+            output += self.perspective.gloss_static(flags);
+        }
+
+        if needs_brackets {
+            output += "]";
+        }
+
+        output
+    }
+}
+
+/// A list of referents used in referentials.
+pub type NormalReferentList = ReferentList<Perspective>;
+
+/// A list of referents used in referential affixes.
+pub type AffixualReferentList = ReferentList<ReferentialAffixPerspective>;

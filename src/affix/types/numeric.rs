@@ -1,22 +1,40 @@
-use crate::gloss::{Gloss, GlossFlags};
+use crate::{
+    category::{AffixDegree, AffixType},
+    gloss::{Gloss, GlossFlags, GlossStatic},
+};
 
 /// A numeric adjunct.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[non_exhaustive]
+#[non_exhaustive] // TODO: Remove non_exhaustive once we decide how to work with decimals.
 pub struct NumericAffix {
     /// The integer part of this number.
     pub integer_part: u64,
+
+    /// The type of this affix.
+    pub r#type: AffixType,
+
+    /// The degree of this affix.
+    pub degree: AffixDegree,
 }
 
 impl NumericAffix {
-    /// Constructs a new [`NumericAffix`].
-    pub const fn new(integer_part: u64) -> Self {
-        Self { integer_part }
+    /// Creates a new [`NumericAffix`] instance from a Cs form, affix degree, and affix type.
+    pub fn new(integer_part: u64, r#type: AffixType, degree: AffixDegree) -> Self {
+        Self {
+            integer_part,
+            degree,
+            r#type,
+        }
     }
 }
 
 impl Gloss for NumericAffix {
     fn gloss(&self, _flags: GlossFlags) -> String {
-        self.integer_part.to_string()
+        let mut output = "‘".to_owned();
+        output += &self.integer_part.to_string();
+        output += "’/";
+        output += self.degree.gloss_static(GlossFlags::NONE);
+        output += self.r#type.gloss_static(GlossFlags::NONE);
+        output
     }
 }

@@ -41,8 +41,6 @@
 
 pub mod additions;
 pub mod core;
-mod formative;
+pub(super) mod formative;
 pub mod relation;
 pub mod root;
-
-pub use formative::*;

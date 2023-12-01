@@ -4,6 +4,8 @@
 /// Creates a [`NormalRelation`][crate::word::formative::relation::NormalRelation] using more
 /// concise syntax that writing out the enum and its fields in full.
 ///
+/// # Examples
+///
 /// ```
 /// # use tnil::relation;
 /// # use tnil::word::formative::relation::NormalRelation;
@@ -53,6 +55,8 @@ macro_rules! relation {
 #[macro_export]
 /// Creates a [`Ca`][crate::category::Ca] using more concise syntax that writing it out in full.
 /// Also works in `const` contexts.
+///
+/// # Examples
 ///
 /// ```
 /// # use tnil::ca;
@@ -142,3 +146,38 @@ help: any and all segments may be omitted") };
         ca!(@ $($x)*)
     };
 }
+
+/// See actual usage for examples.
+macro_rules! invalid_tokens_error {
+    (
+        #[doc = $doc:literal]
+        enum $name:ident {
+            $($variant:ident = $message:literal,)+
+        }
+    ) => {
+        #[doc = "Returned when "]
+        #[doc = $doc]
+        #[doc = " cannot be parsed due to an invalid sequence of tokens."]
+        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+        pub enum $name {
+            $(
+                #[doc = "Represents the error \""]
+                #[doc = $message]
+                #[doc = "\"."]
+                $variant
+            ),+
+        }
+
+        impl ::std::fmt::Display for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                f.write_str(match self {
+                    $(Self::$variant => $message),+
+                })
+            }
+        }
+
+        impl ::std::error::Error for $name {}
+    };
+}
+
+pub(crate) use invalid_tokens_error;

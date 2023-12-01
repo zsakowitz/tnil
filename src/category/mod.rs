@@ -5,6 +5,7 @@ mod conversions;
 mod items;
 
 pub use complexes::*;
+pub use conversions::*;
 pub use items::*;
 
 /// Marks types as grammatical categories.

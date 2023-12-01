@@ -1,6 +1,31 @@
 use super::GlossFlags;
 
 /// Allows types to be glossed.
+///
+/// Glosses should be done in the style of @ırburučpaızya, or in a style consistent with the other
+/// glossing functionality of this crate. In particular, these conventions are followed:
+///
+/// - If root meanings are known (e.g. "dog" for zv), they are enclosed in “rounded double
+///   quotes”. Otherwise, roots are represented lowercase in bold or as plain Cr forms.
+///
+/// - If affix meanings are known (e.g. "large" for x/7), they are enclosed in ‘rounded single
+///   quotes’ followed by one of `₁₂₃` indicating the affix type. If the value is not known, the
+///   syntax cs₂/7 is used, where cs is replaced by the Cs form, the subscript is replaced with the
+///   affix type, and /7 is replaced with the corresponding degree. The Cs form should be in bold if
+///   possible.
+///
+/// - Category names are abbreviated UPPERCASE when glossed without the `GlossFlags::LONG` flag and
+///   unabbreviated lowercase when glossed with the `GlossFlags::LONG` flag.
+///
+/// - Multiple categories represented within a single slot are separated by `.`. The exception is
+///   affixes, which are separated by `-` when multiple are present.
+///
+/// - Multiple categories spanning multiple slots are separated by `-`.
+///
+/// - Affixes other than plain affixes (e.g. case-stackers, case-accessors, or Ca-stackers) are
+///   shown in parentheses.
+///
+/// - Multiple referents in a single slot are separated with `+` and surrounded by `[...]`.
 pub trait Gloss {
     /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`].
     ///

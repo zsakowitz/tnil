@@ -45,6 +45,12 @@
 //! - **To be the definitive source of Ithkuil syntax.** If this crate's behavior differs from the
 //!   official morphology document (currently v1.3.2) in any way, it is an issue in this crate, not
 //!   the morphology document.
+//!
+//! - **To achieve exact compatiability with @ırburučpaızya.** This crate has similar, but not
+//!   identical behavior to [IthkuilGloss](https://github.com/ngoriyasjil/IthkuilGloss). This is
+//!   intentional; they are not the same crate and will have different behavior. Note however that
+//!   both adhere to the same general syntax ([] for referentials, . for segments in a slot, - for
+//!   different slots, double apostrophes for roots and single apostrophes for affixes, and so on).
 
 #![forbid(
     unsafe_code,
@@ -58,6 +64,7 @@ mod as_general;
 pub mod category;
 pub mod gloss;
 mod macros;
+pub mod romanize;
 pub mod word;
 
 pub use as_general::*;

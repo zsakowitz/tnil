@@ -2,14 +2,19 @@
 //! crate::category. All conversions are provided both as inherent `const fn`s, and lossless
 //! conversions are also implemented as `From` and `Into` implementations.
 
-use crate::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
-
 use super::{
-    Affiliation, AppositiveCase, ArbitraryMoodOrCaseScope, Aspect, Ca, CaShortcut, Case, CaseScope,
-    Configuration, DestructuredConfiguration, Effect, Essence, Extension, Illocution,
-    IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn, NonDefaultCaseScope,
-    NonDefaultMood, Perspective, Phase, Plexity, ReferentialAffixPerspective, Separability,
-    Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
+    Affiliation, AffixDegree, AffixType, AppositiveCase, ArbitraryMoodOrCaseScope, Aspect, Bias,
+    Ca, CaShortcut, Case, CaseScope, Configuration, DestructuredConfiguration, Effect, Essence,
+    Extension, Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn,
+    NonDefaultCaseScope, NonDefaultMood, Perspective, Phase, Plexity, ReferentialAffixPerspective,
+    Separability, Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
+    VowelFormDegree, VowelFormSequence,
+};
+use crate::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
+use std::{
+    error::Error,
+    fmt::{self, Display},
+    str::FromStr,
 };
 
 impl Configuration {
@@ -1311,6 +1316,133 @@ impl TryAsSpecific<NonDefaultCaseScope> for ArbitraryMoodOrCaseScope {
             Self::SPC_CCQ => Some(NonDefaultCaseScope::CCQ),
             Self::COU_CCP => Some(NonDefaultCaseScope::CCP),
             Self::HYP_CCV => Some(NonDefaultCaseScope::CCV),
+        }
+    }
+}
+
+impl From<AffixDegree> for VowelFormDegree {
+    fn from(value: AffixDegree) -> Self {
+        match value {
+            AffixDegree::D0 => VowelFormDegree::D0,
+            AffixDegree::D1 => VowelFormDegree::D1,
+            AffixDegree::D2 => VowelFormDegree::D2,
+            AffixDegree::D3 => VowelFormDegree::D3,
+            AffixDegree::D4 => VowelFormDegree::D4,
+            AffixDegree::D5 => VowelFormDegree::D5,
+            AffixDegree::D6 => VowelFormDegree::D6,
+            AffixDegree::D7 => VowelFormDegree::D7,
+            AffixDegree::D8 => VowelFormDegree::D8,
+            AffixDegree::D9 => VowelFormDegree::D9,
+        }
+    }
+}
+
+impl From<VowelFormDegree> for AffixDegree {
+    fn from(value: VowelFormDegree) -> Self {
+        match value {
+            VowelFormDegree::D0 => AffixDegree::D0,
+            VowelFormDegree::D1 => AffixDegree::D1,
+            VowelFormDegree::D2 => AffixDegree::D2,
+            VowelFormDegree::D3 => AffixDegree::D3,
+            VowelFormDegree::D4 => AffixDegree::D4,
+            VowelFormDegree::D5 => AffixDegree::D5,
+            VowelFormDegree::D6 => AffixDegree::D6,
+            VowelFormDegree::D7 => AffixDegree::D7,
+            VowelFormDegree::D8 => AffixDegree::D8,
+            VowelFormDegree::D9 => AffixDegree::D9,
+        }
+    }
+}
+
+impl From<AffixType> for VowelFormSequence {
+    fn from(value: AffixType) -> Self {
+        match value {
+            AffixType::T1 => VowelFormSequence::S1,
+            AffixType::T2 => VowelFormSequence::S2,
+            AffixType::T3 => VowelFormSequence::S3,
+        }
+    }
+}
+
+/// An error returned when a bias cannot be parsed because its consonant form is invalid.
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ParseBiasError;
+
+impl Display for ParseBiasError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("expected a valid bias consonant form")
+    }
+}
+
+impl Error for ParseBiasError {}
+
+impl FromStr for Bias {
+    type Err = ParseBiasError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "lf" => Ok(Bias::ACC),
+            "mçt" => Ok(Bias::ACH),
+            "lļ" => Ok(Bias::ADS),
+            "drr" => Ok(Bias::ANN),
+            "lst" => Ok(Bias::ANP),
+            "řs" => Ok(Bias::APB),
+            "vvz" => Ok(Bias::APH),
+            "xtļ" => Ok(Bias::ARB),
+            "ňj" => Ok(Bias::ATE),
+            "pļļ" => Ok(Bias::CMD),
+            "rrj" => Ok(Bias::CNV),
+            "ššč" => Ok(Bias::COI),
+            "gžž" => Ok(Bias::CRP),
+            "ňţ" => Ok(Bias::CRR),
+            "kšš" => Ok(Bias::CTP),
+            "gvv" => Ok(Bias::CTV),
+            "gzj" => Ok(Bias::DCC),
+            "žžg" => Ok(Bias::DEJ),
+            "mřř" => Ok(Bias::DES),
+            "cč" => Ok(Bias::DFD),
+            "kff" => Ok(Bias::DIS),
+            "żmm" => Ok(Bias::DLC),
+            "řřx" => Ok(Bias::DOL),
+            "ffx" => Ok(Bias::DPB),
+            "pfc" => Ok(Bias::DRS),
+            "mmf" => Ok(Bias::DUB),
+            "gzz" => Ok(Bias::EUH),
+            "vvt" => Ok(Bias::EUP),
+            "kçç" => Ok(Bias::EXA),
+            "rrs" => Ok(Bias::EXG),
+            "lzp" => Ok(Bias::FOR),
+            "žžj" => Ok(Bias::FSC),
+            "mmh" => Ok(Bias::GRT),
+            "pšš" => Ok(Bias::IDG),
+            "vvr" => Ok(Bias::IFT),
+            "vll" => Ok(Bias::IPL),
+            "žžv" => Ok(Bias::IPT),
+            "mmž" => Ok(Bias::IRO),
+            "lçp" => Ok(Bias::ISP),
+            "řřn" => Ok(Bias::IVD),
+            "msk" => Ok(Bias::MAN),
+            "pss" => Ok(Bias::MNF),
+            "ççk" => Ok(Bias::OPT),
+            "ksp" => Ok(Bias::PES),
+            "mll" => Ok(Bias::PPT),
+            "llh" => Ok(Bias::PPX),
+            "sl" => Ok(Bias::PPV),
+            "žžt" => Ok(Bias::PSC),
+            "nnţ" => Ok(Bias::PSM),
+            "kll" => Ok(Bias::RAC),
+            "llm" => Ok(Bias::RFL),
+            "msf" => Ok(Bias::RSG),
+            "šštļ" => Ok(Bias::RPU),
+            "mmļ" => Ok(Bias::RVL),
+            "ļţ" => Ok(Bias::SAT),
+            "ltç" => Ok(Bias::SGS),
+            "rnž" => Ok(Bias::SKP),
+            "ňňs" => Ok(Bias::SOL),
+            "ļļč" => Ok(Bias::STU),
+            "llč" => Ok(Bias::TRP),
+            "ksk" => Ok(Bias::VEX),
+            _ => Err(ParseBiasError),
         }
     }
 }

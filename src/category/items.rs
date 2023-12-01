@@ -196,6 +196,71 @@ custom_category!(
     (D9, "D9", "Degree 9", "9", "degree_nine"),
 );
 
+custom_category!(
+    VowelFormSequence,
+    (S1, "S1", "Sequence 1", "₁", "seq_one"),
+    (S2, "S2", "Sequence 2", "₂", "seq_two"),
+    (S3, "S3", "Sequence 3", "₃", "seq_three"),
+    (S4, "S4", "Sequence 4", "₄", "seq_four"),
+);
+
+custom_category!(
+    VowelFormDegree,
+    (D0, "D0", "Degree 0", "0", "degree_zero"),
+    (D1, "D1", "Degree 1", "1", "degree_one"),
+    (D2, "D2", "Degree 2", "2", "degree_two"),
+    (D3, "D3", "Degree 3", "3", "degree_three"),
+    (D4, "D4", "Degree 4", "4", "degree_four"),
+    (D5, "D5", "Degree 5", "5", "degree_five"),
+    (D6, "D6", "Degree 6", "6", "degree_six"),
+    (D7, "D7", "Degree 7", "7", "degree_seven"),
+    (D8, "D8", "Degree 8", "8", "degree_eight"),
+    (D9, "D9", "Degree 9", "9", "degree_nine"),
+);
+
+custom_category!(
+    HFormSequence,
+    (S0, "S0", "Sequence 0 (default)", "₀", "seq_zero"),
+    (SW, "SW", "Sequence W (w, hw, ...)", "ᵥᵥ", "seq_w"),
+    (SY, "SY", "Sequence Y (y, hy, ...)", "ᵧ", "seq_y"),
+);
+
+custom_category!(
+    HFormDegree,
+    (D1, "D1", "Degree 1", "1", "degree_one"),
+    (D2, "D2", "Degree 2", "2", "degree_two"),
+    (D3, "D3", "Degree 3", "3", "degree_three"),
+    (D4, "D4", "Degree 4", "4", "degree_four"),
+    (D5, "D5", "Degree 5", "5", "degree_five"),
+    (D6, "D6", "Degree 6", "6", "degree_six"),
+);
+
+custom_category!(
+    Stress,
+    (
+        Monosyllabic,
+        "MONO",
+        "Monosyllabic",
+        "{mono.}",
+        "{monosyllabic stress}"
+    ),
+    (Ultimate, "ULTI", "Ultimate", "{ult.}", "{ultimate stress}"),
+    (
+        Penultimate,
+        "PENU",
+        "Penultimate",
+        "{penu.}",
+        "{penultimate stress}"
+    ),
+    (
+        Antepenultimate,
+        "ANTE",
+        "Antepenultimate",
+        "{ante.}",
+        "{antepenultimate stress}"
+    ),
+);
+
 category!(
     Affiliation,
     (CSL, "Consolidative", "consolidative"),

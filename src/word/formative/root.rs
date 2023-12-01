@@ -1,13 +1,11 @@
 //! Provides different formative root types.
 
-use vec1::Vec1;
-
 use crate::{
-    affix::NumericAffix,
     category::{AffixDegree, Referent},
     gloss::{Gloss, GlossFlags, GlossStatic},
     AsGeneral, TryAsSpecific,
 };
+use vec1::Vec1;
 
 /// A normal formative root.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -39,23 +37,25 @@ impl Gloss for NormalFormativeRoot {
 
 /// A numeric formative root.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive] // TODO: Remove non_exhaustive once we decide how to work with decimals.
 pub struct NumericFormativeRoot {
-    /// The value of this root.
-    value: NumericAffix,
+    /// The integer part of this root.
+    pub integer_part: u64,
 }
 
 impl NumericFormativeRoot {
     /// Creates a new [`NumericRoot`] from an integer part.
     pub const fn new(integer_part: u64) -> Self {
-        NumericFormativeRoot {
-            value: NumericAffix::new(integer_part),
-        }
+        NumericFormativeRoot { integer_part }
     }
 }
 
 impl Gloss for NumericFormativeRoot {
-    fn gloss(&self, flags: GlossFlags) -> String {
-        self.value.gloss(flags)
+    fn gloss(&self, _flags: GlossFlags) -> String {
+        let mut output = "“".to_owned();
+        output += &self.integer_part.to_string();
+        output += "”";
+        output
     }
 }
 
@@ -148,6 +148,17 @@ pub enum GeneralFormativeRoot {
     Affixual(AffixualFormativeRoot),
 }
 
+impl Gloss for GeneralFormativeRoot {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        match self {
+            Self::Normal(value) => value.gloss(flags),
+            Self::Numeric(value) => value.gloss(flags),
+            Self::Referential(value) => value.gloss(flags),
+            Self::Affixual(value) => value.gloss(flags),
+        }
+    }
+}
+
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident) => {
         impl AsGeneral<GeneralFormativeRoot> for $specific {
@@ -171,17 +182,6 @@ macro_rules! as_general_impl {
             }
         }
     };
-}
-
-impl Gloss for GeneralFormativeRoot {
-    fn gloss(&self, flags: GlossFlags) -> String {
-        match self {
-            Self::Normal(value) => value.gloss(flags),
-            Self::Numeric(value) => value.gloss(flags),
-            Self::Referential(value) => value.gloss(flags),
-            Self::Affixual(value) => value.gloss(flags),
-        }
-    }
 }
 
 as_general_impl!(NormalFormativeRoot, Normal);

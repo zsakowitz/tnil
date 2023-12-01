@@ -20,7 +20,7 @@ impl PlainAffix {
     /// Creates a new [`PlainAffix`] instance from a Cs form, affix degree, and affix type.
     pub fn new(cs: impl Into<String>, r#type: AffixType, degree: AffixDegree) -> Self {
         Self {
-            cs: cs.try_into().unwrap(),
+            cs: cs.into(),
             degree,
             r#type,
         }
