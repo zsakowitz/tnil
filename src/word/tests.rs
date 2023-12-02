@@ -4,12 +4,14 @@ use super::{
 };
 use crate::{
     gloss::Gloss,
+    romanize::parse::FromTokenStream,
     word::{GeneralFormative, NumericAdjunct},
 };
 
 #[test]
 fn test() {
     fn assert_gloss<T: Gloss>() {}
+    fn assert_is_word<T: FromTokenStream + Gloss>() {}
 
     assert_gloss::<Formative>();
     assert_gloss::<GeneralFormative>();
@@ -17,11 +19,12 @@ fn test() {
     assert_gloss::<SuppletiveReferential>();
     assert_gloss::<GeneralReferential>();
     assert_gloss::<AffixualAdjunct>();
-    assert_gloss::<BiasAdjunct>();
-    assert_gloss::<MCSAdjunct>();
     assert_gloss::<ModularAdjunct>();
-    assert_gloss::<NumericAdjunct>();
-    assert_gloss::<ParsingAdjunct>();
-    assert_gloss::<RegisterAdjunct>();
-    assert_gloss::<SuppletiveAdjunct>();
+
+    assert_is_word::<MCSAdjunct>();
+    assert_is_word::<ParsingAdjunct>();
+    assert_is_word::<RegisterAdjunct>();
+    assert_is_word::<SuppletiveAdjunct>();
+    assert_is_word::<BiasAdjunct>();
+    assert_is_word::<NumericAdjunct>();
 }

@@ -1,8 +1,8 @@
 use crate::{
     gloss::{Gloss, GlossFlags},
-    macros::invalid_tokens_error,
+    macros::invalid_type_error,
     romanize::{
-        parse::{FromTokenStream, FromTokensError, Result},
+        parse::{FromTokenStream, Result},
         stream::TokenStream,
         token::NumeralForm,
     },
@@ -26,29 +26,24 @@ impl Gloss for NumericAdjunct {
     }
 }
 
-invalid_tokens_error!(
+invalid_type_error!(
     /// a numeric adjunct
-    enum NumericTokensError {
-        ExpectedNumeral = "numeric adjuncts should have a single numeral form",
-        TooManyTokens = "too many tokens",
+    enum NumericTokenError {
+        ExpectedNn,
+        TooManyTokens,
     }
 );
 
 impl FromTokenStream for NumericAdjunct {
-    type TypeErr = NumericTokensError;
+    type TypeErr = NumericTokenError;
     type ValueErr = Infallible;
 
     fn from_token_stream(mut stream: TokenStream) -> Result<Self, Self::TypeErr, Self::ValueErr> {
-        let numeral: NumeralForm = stream
-            .next()
-            .ok_or(FromTokensError::Type(NumericTokensError::ExpectedNumeral))?;
-
-        if !stream.is_done() {
-            return Err(FromTokensError::Type(NumericTokensError::TooManyTokens));
-        }
-
+        // Numeric adjunct: Nn
+        let nn: NumeralForm = stream.next_or_err(NumericTokenError::ExpectedNn)?;
+        stream.done_or_err(NumericTokenError::TooManyTokens)?;
         Ok(NumericAdjunct {
-            integer_part: numeral.integer_part,
+            integer_part: nn.integer_part,
         })
     }
 }

@@ -277,9 +277,17 @@ impl Error for TokenizeWordError {}
 /// "malëuţřait" will by default place "ţ" as the core of an affix with a "ř" bottom extension, but
 /// "malëuţř_ait" will place "ţ" as the top extension and "ř" as the core.
 ///
+/// If the input word has a final glottal stop, it will be turned in a [`Token::GlottalStop`] at the
+/// end of the [`Vec<Token>`].
+///
 /// The input is assumed to be [`normalize`]d and have no stress markings (e.g. "walá" is invalid
 /// input and will likely throw an error).
 pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
+    let (word, has_word_final_glottal_stop) = match word.strip_suffix('\'') {
+        Some(value) => (value, true),
+        None => (word, false),
+    };
+
     let word = word.to_owned();
 
     #[derive(Clone, Copy)]
@@ -314,6 +322,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                     }
 
                     CurrentToken::V => tokens.push(match &current[..] {
+                        "'" => Token::GlottalStop,
                         "ë" => Token::Schwa(Schwa),
                         "üa" => Token::ÜA(ÜA),
                         vowel_form => Token::Vowel(match vowel_form.parse() {
@@ -374,6 +383,10 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
     }
 
     push_current_token!();
+
+    if has_word_final_glottal_stop {
+        tokens.push(Token::GlottalStop);
+    }
 
     Ok(tokens)
 }

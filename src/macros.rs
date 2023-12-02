@@ -147,31 +147,69 @@ help: any and all segments may be omitted") };
     };
 }
 
-/// See actual usage for examples.
-macro_rules! invalid_tokens_error {
+#[doc(hidden)]
+macro_rules! __token_message {
+    (ExpectedCb) => {
+        "expected a Cb bias form (e.g. pļļ, lçp, kšš)"
+    };
+    (ExpectedCp) => {
+        "expected a Cp suppletive adjunct form (hl/hm/hn/hň)"
+    };
+    (ExpectedCy) => {
+        "expected a Cy mood/case-scope adjunct vowel form (e.g. a, oi, iu)"
+    };
+    (ExpectedNn) => {
+        "expected a Nn numeric form (e.g. 4, 23, 7832)"
+    };
+    (ExpectedVc) => {
+        "expected a Vc case form (e.g. ü, ai, io)"
+    };
+    (ExpectedHh) => {
+        "expected a single ‘h’ at the beginning of a register"
+    };
+    (ExpectedHr) => {
+        "expected ‘hr’ at the beginning of a mood/case-scope adjunct"
+    };
+    (ExpectedVm) => {
+        "expected a Vm register form (e.g. a, o, ei)"
+    };
+    (ExpectedVp) => {
+        "expected a Vp parsing adjunct (a/e/o/u)"
+    };
+    (ExpectedGs) => {
+        "expected a word-final glottal stop"
+    };
+    (TooManyTokens) => {
+        "too many tokens"
+    };
+}
+
+/// See usage for macro syntax.
+///
+/// Variants are managed by the `__token_message` macro. Variants other those specified there are
+/// not allowed.
+macro_rules! invalid_type_error {
     (
         #[doc = $doc:literal]
         enum $name:ident {
-            $($variant:ident = $message:literal,)+
+            $($variant:ident,)+
         }
     ) => {
-        #[doc = "Returned when "]
-        #[doc = $doc]
-        #[doc = " cannot be parsed due to an invalid sequence of tokens."]
-        #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-        pub enum $name {
-            $(
-                #[doc = "Represents the error \""]
-                #[doc = $message]
-                #[doc = "\"."]
-                $variant
-            ),+
+        ::paste::paste! {
+            #[doc = "Returned when " $doc " cannot be parsed due to an invalid sequence of tokens."]
+            #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            pub enum $name {
+                $(
+                    #[doc = "Represents the error `" $variant "`."]
+                    $variant,
+                )+
+            }
         }
 
         impl ::std::fmt::Display for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 f.write_str(match self {
-                    $(Self::$variant => $message),+
+                    $(Self::$variant => $crate::macros::__token_message!($variant)),+
                 })
             }
         }
@@ -180,4 +218,4 @@ macro_rules! invalid_tokens_error {
     };
 }
 
-pub(crate) use invalid_tokens_error;
+pub(crate) use {__token_message, invalid_type_error};

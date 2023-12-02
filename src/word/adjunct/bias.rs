@@ -1,13 +1,14 @@
 //! Contains types related to bias adjuncts.
 
+use std::convert::Infallible;
+
 use crate::{
-    category::{Bias, ParseBiasError},
+    category::Bias,
     gloss::{GlossFlags, GlossStatic},
-    macros::invalid_tokens_error,
+    macros::invalid_type_error,
     romanize::{
-        parse::{FromTokenStream, FromTokensError, Result},
+        parse::{FromTokenStream, Result},
         stream::TokenStream,
-        token::ConsonantForm,
     },
 };
 
@@ -24,29 +25,22 @@ impl GlossStatic for BiasAdjunct {
     }
 }
 
-invalid_tokens_error!(
+invalid_type_error!(
     /// a bias adjunct
-    enum BiasTokensError {
-        ExpectedConsonant = "bias adjuncts should have a single consonant form",
-        TooManyTokens = "too many tokens",
+    enum BiasTokenError {
+        ExpectedCb,
+        TooManyTokens,
     }
 );
 
 impl FromTokenStream for BiasAdjunct {
-    type TypeErr = BiasTokensError;
-    type ValueErr = ParseBiasError;
+    type TypeErr = BiasTokenError;
+    type ValueErr = Infallible;
 
     fn from_token_stream(mut stream: TokenStream) -> Result<Self, Self::TypeErr, Self::ValueErr> {
-        let bias: ConsonantForm = stream
-            .next()
-            .ok_or(FromTokensError::Type(BiasTokensError::ExpectedConsonant))?;
-
-        if !stream.is_done() {
-            return Err(FromTokensError::Type(BiasTokensError::TooManyTokens));
-        }
-
-        let bias = bias.source.parse().map_err(FromTokensError::Value)?;
-
+        // Bias adjunct: Cb
+        let bias = stream.next_or_err(BiasTokenError::ExpectedCb)?;
+        stream.done_or_err(BiasTokenError::TooManyTokens)?;
         Ok(BiasAdjunct { bias })
     }
 }

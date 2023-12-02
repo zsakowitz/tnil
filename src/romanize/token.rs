@@ -6,7 +6,10 @@ use std::{
     str::FromStr,
 };
 
-use crate::category::{HFormDegree, HFormSequence, VowelFormDegree, VowelFormSequence};
+use crate::category::{
+    Bias, Case, CaseScope, HFormDegree, HFormSequence, Mood, MoodOrCaseScope, Register, Stress,
+    SuppletiveAdjunctMode, VowelFormDegree, VowelFormSequence,
+};
 
 /// A consonant form.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -46,7 +49,15 @@ pub struct HForm {
     pub degree: HFormDegree,
 }
 
-/// A consonant form that is either W or Y.
+/// A consonant form consisting of a single "h".
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Hh;
+
+/// A consonant form consisting of "hr".
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Hr;
+
+/// A consonant form that is either "w" or "y".
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum WYForm {
     /// A consonant form consisting of a lone W.
@@ -63,6 +74,10 @@ pub struct NumeralForm {
     /// The integral part of this numeral.
     pub integer_part: u64,
 }
+
+/// A glottal stop without any corresponding vowels, or a word-final glottal stop.
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct GlottalStop;
 
 /// A generic token.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -84,6 +99,9 @@ pub enum Token {
 
     /// A numeral form.
     Numeral(NumeralForm),
+
+    /// A glottal stop without any corresponding vowels, or a word-final glottal stop.
+    GlottalStop,
 }
 
 /// An error returned when an invalid vowel form is parsed.
@@ -208,27 +226,15 @@ impl FromStr for HForm {
     }
 }
 
-mod sealed {
-    pub trait Sealed {}
-}
-
-use sealed::Sealed;
-
 /// A trait implemented by tokens allowing them to be parsed by `Token::parse()`.
-pub trait TokenType: Sized + Sealed {
+pub trait FromToken {
     /// Tries to parse a token as a `Self`, returning [`None`] in the event of failure.
-    fn try_from_token(token: &Token) -> Option<Self>;
+    fn try_from_token(token: &Token) -> Option<Self>
+    where
+        Self: Sized;
 }
 
-impl Sealed for ConsonantForm {}
-impl Sealed for VowelForm {}
-impl Sealed for ÜA {}
-impl Sealed for Schwa {}
-impl Sealed for HForm {}
-impl Sealed for WYForm {}
-impl Sealed for NumeralForm {}
-
-impl TokenType for ConsonantForm {
+impl FromToken for ConsonantForm {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::Consonant(value) => Some(value.clone()),
@@ -237,7 +243,7 @@ impl TokenType for ConsonantForm {
     }
 }
 
-impl TokenType for VowelForm {
+impl FromToken for VowelForm {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::Vowel(value) => Some(*value),
@@ -246,7 +252,7 @@ impl TokenType for VowelForm {
     }
 }
 
-impl TokenType for ÜA {
+impl FromToken for ÜA {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::ÜA(value) => Some(*value),
@@ -255,7 +261,7 @@ impl TokenType for ÜA {
     }
 }
 
-impl TokenType for Schwa {
+impl FromToken for Schwa {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::Schwa(value) => Some(*value),
@@ -264,7 +270,7 @@ impl TokenType for Schwa {
     }
 }
 
-impl TokenType for HForm {
+impl FromToken for HForm {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::H(value) => Some(*value),
@@ -273,7 +279,31 @@ impl TokenType for HForm {
     }
 }
 
-impl TokenType for WYForm {
+impl FromToken for Hh {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::H(HForm {
+                sequence: HFormSequence::S0,
+                degree: HFormDegree::D1,
+            }) => Some(Self),
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for Hr {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::H(HForm {
+                sequence: HFormSequence::S0,
+                degree: HFormDegree::D3,
+            }) => Some(Self),
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for WYForm {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::H(HForm {
@@ -291,10 +321,146 @@ impl TokenType for WYForm {
     }
 }
 
-impl TokenType for NumeralForm {
+impl FromToken for NumeralForm {
     fn try_from_token(token: &Token) -> Option<Self> {
         match token {
             Token::Numeral(value) => Some(*value),
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for GlottalStop {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::GlottalStop => Some(Self),
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for Bias {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::Consonant(value) => match Bias::from_str(&value.source) {
+                Ok(value) => Some(value),
+                Err(_) => None,
+            },
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for SuppletiveAdjunctMode {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::H(HForm {
+                sequence: HFormSequence::S0,
+                degree,
+            }) => match degree {
+                HFormDegree::D2 => Some(SuppletiveAdjunctMode::CAR),
+                HFormDegree::D4 => Some(SuppletiveAdjunctMode::QUO),
+                HFormDegree::D5 => Some(SuppletiveAdjunctMode::NAM),
+                HFormDegree::D6 => Some(SuppletiveAdjunctMode::PHR),
+                _ => None,
+            },
+
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for Case {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::Vowel(VowelForm {
+                has_glottal_stop,
+                sequence,
+                degree,
+            }) if *degree != VowelFormDegree::D0 => {
+                let degree = *degree as u8;
+                let sequence = 9 * (*sequence as u8);
+                let shift = 36 * (*has_glottal_stop as u8);
+                Case::from_variant(shift + sequence + degree)
+            }
+
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for Register {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::Vowel(VowelForm {
+                has_glottal_stop: false,
+                sequence,
+                degree,
+            }) => match (sequence, degree) {
+                (VowelFormSequence::S1, VowelFormDegree::D1) => Some(Register::DSV),
+                (VowelFormSequence::S1, VowelFormDegree::D3) => Some(Register::PNT),
+                (VowelFormSequence::S1, VowelFormDegree::D4) => Some(Register::SPF),
+                (VowelFormSequence::S1, VowelFormDegree::D7) => Some(Register::EXM),
+                (VowelFormSequence::S1, VowelFormDegree::D9) => Some(Register::CGT),
+                (VowelFormSequence::S2, VowelFormDegree::D1) => Some(Register::DSV_END),
+                (VowelFormSequence::S2, VowelFormDegree::D3) => Some(Register::PNT_END),
+                (VowelFormSequence::S2, VowelFormDegree::D8) => Some(Register::SPF_END),
+                (VowelFormSequence::S2, VowelFormDegree::D7) => Some(Register::EXM_END),
+                (VowelFormSequence::S2, VowelFormDegree::D9) => Some(Register::CGT_END),
+                (VowelFormSequence::S1, VowelFormDegree::D8) => Some(Register::END),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for Stress {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::Vowel(VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree,
+            }) => match degree {
+                VowelFormDegree::D1 => Some(Stress::Monosyllabic),
+                VowelFormDegree::D3 => Some(Stress::Ultimate),
+                VowelFormDegree::D7 => Some(Stress::Penultimate),
+                VowelFormDegree::D9 => Some(Stress::Antepenultimate),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+}
+
+impl FromToken for MoodOrCaseScope {
+    fn try_from_token(token: &Token) -> Option<Self> {
+        use VowelFormDegree as D;
+        use VowelFormSequence as S;
+
+        match token {
+            Token::Vowel(VowelForm {
+                has_glottal_stop: false,
+                sequence,
+                degree,
+            }) => match (sequence, degree) {
+                (S::S1, D::D1) => Some(MoodOrCaseScope::Mood(Mood::FAC)),
+                (S::S1, D::D3) => Some(MoodOrCaseScope::Mood(Mood::SUB)),
+                (S::S1, D::D4) => Some(MoodOrCaseScope::Mood(Mood::ASM)),
+                (S::S1, D::D7) => Some(MoodOrCaseScope::Mood(Mood::SPC)),
+                (S::S1, D::D6) => Some(MoodOrCaseScope::Mood(Mood::COU)),
+                (S::S1, D::D9) => Some(MoodOrCaseScope::Mood(Mood::HYP)),
+
+                (S::S2, D::D1) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCN)),
+                (S::S2, D::D3) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCA)),
+                (S::S2, D::D8) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCS)),
+                (S::S2, D::D7) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCQ)),
+                (S::S1, D::D8) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCP)),
+                (S::S2, D::D9) => Some(MoodOrCaseScope::CaseScope(CaseScope::CCV)),
+
+                _ => None,
+            },
             _ => None,
         }
     }

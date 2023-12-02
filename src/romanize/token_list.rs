@@ -1,8 +1,8 @@
 //! Defines a [`TokenList`] type which can be used to parse Ithkuil tokens and stress markings.
 
 use super::{
-    token::Token,
     stream::TokenStream,
+    token::Token,
     transform::{
         detect_stress, normalize, tokenize, unstress_vowels, StressError, TokenizeWordError,
     },
