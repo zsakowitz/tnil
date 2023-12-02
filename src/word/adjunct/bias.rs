@@ -1,14 +1,11 @@
 //! Contains types related to bias adjuncts.
 
-use std::convert::Infallible;
-
 use crate::{
     category::Bias,
     gloss::{GlossFlags, GlossStatic},
-    macros::invalid_type_error,
     romanize::{
-        parse::{FromTokenStream, Result},
-        stream::TokenStream,
+        stream::FromTokenStream,
+        stream::{ParseError, TokenStream},
     },
 };
 
@@ -25,22 +22,10 @@ impl GlossStatic for BiasAdjunct {
     }
 }
 
-invalid_type_error!(
-    /// a bias adjunct
-    enum BiasTokenError {
-        ExpectedCb,
-        TooManyTokens,
-    }
-);
-
 impl FromTokenStream for BiasAdjunct {
-    type TypeErr = BiasTokenError;
-    type ValueErr = Infallible;
-
-    fn from_token_stream(mut stream: TokenStream) -> Result<Self, Self::TypeErr, Self::ValueErr> {
-        // Bias adjunct: Cb
-        let bias = stream.next_or_err(BiasTokenError::ExpectedCb)?;
-        stream.done_or_err(BiasTokenError::TooManyTokens)?;
-        Ok(BiasAdjunct { bias })
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        Ok(BiasAdjunct {
+            bias: stream.parse()?,
+        })
     }
 }

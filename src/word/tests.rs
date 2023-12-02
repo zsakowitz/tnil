@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     gloss::Gloss,
-    romanize::parse::FromTokenStream,
+    romanize::stream::FromTokenStream,
     word::{GeneralFormative, NumericAdjunct},
 };
 
@@ -19,8 +19,8 @@ fn test() {
     assert_gloss::<SuppletiveReferential>();
     assert_gloss::<GeneralReferential>();
     assert_gloss::<AffixualAdjunct>();
-    assert_gloss::<ModularAdjunct>();
 
+    assert_is_word::<ModularAdjunct>();
     assert_is_word::<MCSAdjunct>();
     assert_is_word::<ParsingAdjunct>();
     assert_is_word::<RegisterAdjunct>();

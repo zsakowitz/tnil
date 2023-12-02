@@ -1,15 +1,9 @@
 //! Contains types related to suppletive adjuncts.
 
-use std::convert::Infallible;
-
 use crate::{
     category::{Case, SuppletiveAdjunctMode},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
-    macros::invalid_type_error,
-    romanize::{
-        parse::{FromTokenStream, Result},
-        stream::TokenStream,
-    },
+    romanize::stream::{FromTokenStream, ParseError, TokenStream},
 };
 
 /// A suppletive adjunct.
@@ -30,24 +24,11 @@ impl Gloss for SuppletiveAdjunct {
     }
 }
 
-invalid_type_error!(
-    /// a suppletive adjunct
-    enum SuppletiveTokenError {
-        ExpectedCp,
-        ExpectedVc,
-        TooManyTokens,
-    }
-);
-
 impl FromTokenStream for SuppletiveAdjunct {
-    type TypeErr = SuppletiveTokenError;
-    type ValueErr = Infallible;
-
-    fn from_token_stream(mut stream: TokenStream) -> Result<Self, Self::TypeErr, Self::ValueErr> {
-        // Suppletive adjunct: Cp Vc
-        let mode = stream.next_or_err(SuppletiveTokenError::ExpectedCp)?;
-        let case = stream.next_or_err(SuppletiveTokenError::ExpectedVc)?;
-        stream.done_or_err(SuppletiveTokenError::TooManyTokens)?;
-        Ok(SuppletiveAdjunct { mode, case })
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        Ok(SuppletiveAdjunct {
+            mode: stream.parse()?,
+            case: stream.parse()?,
+        })
     }
 }

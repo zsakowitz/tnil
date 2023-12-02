@@ -1,13 +1,10 @@
 use crate::{
     gloss::{Gloss, GlossFlags},
-    macros::invalid_type_error,
     romanize::{
-        parse::{FromTokenStream, Result},
-        stream::TokenStream,
+        stream::{FromTokenStream, ParseError, TokenStream},
         token::NumeralForm,
     },
 };
-use std::convert::Infallible;
 
 /// A numeric adjunct.
 #[non_exhaustive] // TODO: Remove this once we deal with decimals.
@@ -26,22 +23,10 @@ impl Gloss for NumericAdjunct {
     }
 }
 
-invalid_type_error!(
-    /// a numeric adjunct
-    enum NumericTokenError {
-        ExpectedNn,
-        TooManyTokens,
-    }
-);
-
 impl FromTokenStream for NumericAdjunct {
-    type TypeErr = NumericTokenError;
-    type ValueErr = Infallible;
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let nn: NumeralForm = stream.parse()?;
 
-    fn from_token_stream(mut stream: TokenStream) -> Result<Self, Self::TypeErr, Self::ValueErr> {
-        // Numeric adjunct: Nn
-        let nn: NumeralForm = stream.next_or_err(NumericTokenError::ExpectedNn)?;
-        stream.done_or_err(NumericTokenError::TooManyTokens)?;
         Ok(NumericAdjunct {
             integer_part: nn.integer_part,
         })

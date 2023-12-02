@@ -4,6 +4,7 @@ use crate::{
     affix::RegularAffix,
     category::{AffixualAdjunctMode, AffixualAdjunctScope},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    romanize::stream::{FromTokenStream, ParseError, TokenStream},
 };
 use vec1::Vec1;
 
@@ -70,5 +71,13 @@ impl Gloss for AffixualAdjunct {
                 output
             }
         }
+    }
+}
+
+impl FromTokenStream for AffixualAdjunct {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        // affixual adjunct: VxCs (Vs)
+        // affixual adjunct: (ë) CsVx Cz VxCs... (Vz)
+        todo!()
     }
 }

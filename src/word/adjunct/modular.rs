@@ -3,9 +3,13 @@
 use crate::{
     category::{
         ArbitraryMoodOrCaseScope, Aspect, ModularAdjunctMode, ModularAdjunctScope, NonAspectualVn,
-        Valence, Vn,
+        Stress, Valence, Vn,
     },
     gloss::{Gloss, GlossFlags, GlossHelpers},
+    romanize::{
+        segment::{VnCm, VnCn},
+        stream::{FromTokenStream, ParseError, TokenStream},
+    },
 };
 
 /// A modular adjunct.
@@ -117,6 +121,39 @@ impl Gloss for ModularAdjunct {
                     output
                 }
             }
+        }
+    }
+}
+
+impl FromTokenStream for ModularAdjunct {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let mode: ModularAdjunctMode = stream.parse()?;
+
+        let Some(VnCn { vn: vn1, cn }): Option<VnCn> = stream.parse().ok() else {
+            return Ok(ModularAdjunct::Aspect {
+                mode,
+                aspect: stream.parse()?,
+            });
+        };
+
+        let vn2: Option<VnCm> = stream.parse().ok();
+
+        match stream.stress() {
+            Some(Stress::Ultimate) => Ok(ModularAdjunct::Scoped {
+                mode,
+                vn1,
+                cn,
+                vn2: vn2.map(|x| x.vn),
+                scope: stream.parse()?,
+            }),
+            Some(Stress::Antepenultimate) => return Err(ParseError::AntepenultimateStress),
+            _ => Ok(ModularAdjunct::NonScoped {
+                mode,
+                vn1,
+                cn,
+                vn2: vn2.map(|x| x.vn),
+                vn3: stream.parse()?,
+            }),
         }
     }
 }

@@ -10,7 +10,7 @@ use super::{
     Separability, Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
     VowelFormDegree, VowelFormSequence,
 };
-use crate::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
+use crate::{romanize::token::VowelForm, AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
 use std::{
     error::Error,
     fmt::{self, Display},
@@ -1520,6 +1520,208 @@ impl Case {
             69 => Some(Self::ELP),
             71 => Some(Self::PLM),
             _ => None,
+        }
+    }
+}
+
+impl Aspect {
+    /// Creates an [`Aspect`] from a vowel form.
+    pub const fn from_vowel_form(vn: VowelForm) -> Option<Self> {
+        use VowelFormDegree as D;
+        use VowelFormSequence as S;
+
+        match (vn.sequence, vn.degree) {
+            (S::S1, D::D1) => Some(Aspect::RTR),
+            (S::S1, D::D2) => Some(Aspect::PRS),
+            (S::S1, D::D3) => Some(Aspect::HAB),
+            (S::S1, D::D4) => Some(Aspect::PRG),
+            (S::S1, D::D5) => Some(Aspect::IMM),
+            (S::S1, D::D6) => Some(Aspect::PCS),
+            (S::S1, D::D7) => Some(Aspect::REG),
+            (S::S1, D::D8) => Some(Aspect::SMM),
+            (S::S1, D::D9) => Some(Aspect::ATP),
+
+            (S::S2, D::D1) => Some(Aspect::RSM),
+            (S::S2, D::D2) => Some(Aspect::CSS),
+            (S::S2, D::D3) => Some(Aspect::PAU),
+            (S::S2, D::D4) => Some(Aspect::RGR),
+            (S::S2, D::D5) => Some(Aspect::PCL),
+            (S::S2, D::D6) => Some(Aspect::CNT),
+            (S::S2, D::D7) => Some(Aspect::ICS),
+            (S::S2, D::D8) => Some(Aspect::EXP),
+            (S::S2, D::D9) => Some(Aspect::IRP),
+
+            (S::S3, D::D1) => Some(Aspect::PMP),
+            (S::S3, D::D2) => Some(Aspect::CLM),
+            (S::S3, D::D3) => Some(Aspect::DLT),
+            (S::S3, D::D4) => Some(Aspect::TMP),
+            (S::S3, D::D5) => Some(Aspect::XPD),
+            (S::S3, D::D6) => Some(Aspect::LIM),
+            (S::S3, D::D7) => Some(Aspect::EPD),
+            (S::S3, D::D8) => Some(Aspect::PTC),
+            (S::S3, D::D9) => Some(Aspect::PPR),
+
+            (S::S4, D::D1) => Some(Aspect::DCL),
+            (S::S4, D::D2) => Some(Aspect::CCL),
+            (S::S4, D::D3) => Some(Aspect::CUL),
+            (S::S4, D::D4) => Some(Aspect::IMD),
+            (S::S4, D::D5) => Some(Aspect::TRD),
+            (S::S4, D::D6) => Some(Aspect::TNS),
+            (S::S4, D::D7) => Some(Aspect::ITC),
+            (S::S4, D::D8) => Some(Aspect::MTV),
+            (S::S4, D::D9) => Some(Aspect::SQN),
+
+            _ => None,
+        }
+    }
+}
+
+impl NonAspectualVn {
+    /// Creates a [`NonAspectualVn`] from a vowel form.
+    pub const fn from_vowel_form(vn: VowelForm) -> Option<Self> {
+        use VowelFormDegree as D;
+        use VowelFormSequence as S;
+
+        match (vn.sequence, vn.degree) {
+            (S::S1, D::D1) => Some(Self::Valence(Valence::MNO)),
+            (S::S1, D::D2) => Some(Self::Valence(Valence::PRL)),
+            (S::S1, D::D3) => Some(Self::Valence(Valence::CRO)),
+            (S::S1, D::D4) => Some(Self::Valence(Valence::RCP)),
+            (S::S1, D::D5) => Some(Self::Valence(Valence::CPL)),
+            (S::S1, D::D6) => Some(Self::Valence(Valence::DUP)),
+            (S::S1, D::D7) => Some(Self::Valence(Valence::DEM)),
+            (S::S1, D::D8) => Some(Self::Valence(Valence::CNG)),
+            (S::S1, D::D9) => Some(Self::Valence(Valence::PTI)),
+
+            (S::S2, D::D1) => Some(Self::Phase(Phase::PUN)),
+            (S::S2, D::D2) => Some(Self::Phase(Phase::ITR)),
+            (S::S2, D::D3) => Some(Self::Phase(Phase::REP)),
+            (S::S2, D::D4) => Some(Self::Phase(Phase::ITM)),
+            (S::S2, D::D5) => Some(Self::Phase(Phase::RCT)),
+            (S::S2, D::D6) => Some(Self::Phase(Phase::FRE)),
+            (S::S2, D::D7) => Some(Self::Phase(Phase::FRG)),
+            (S::S2, D::D8) => Some(Self::Phase(Phase::VAC)),
+            (S::S2, D::D9) => Some(Self::Phase(Phase::FLC)),
+
+            (S::S3, D::D1) => Some(Self::Effect(Effect::BEN1)),
+            (S::S3, D::D2) => Some(Self::Effect(Effect::BEN2)),
+            (S::S3, D::D3) => Some(Self::Effect(Effect::BEN3)),
+            (S::S3, D::D4) => Some(Self::Effect(Effect::BENSELF)),
+            (S::S3, D::D5) => Some(Self::Effect(Effect::UNK)),
+            (S::S3, D::D6) => Some(Self::Effect(Effect::DETSELF)),
+            (S::S3, D::D7) => Some(Self::Effect(Effect::DET3)),
+            (S::S3, D::D8) => Some(Self::Effect(Effect::DET2)),
+            (S::S3, D::D9) => Some(Self::Effect(Effect::DET1)),
+
+            (S::S4, D::D1) => Some(Self::Level(Level::MIN)),
+            (S::S4, D::D2) => Some(Self::Level(Level::SBE)),
+            (S::S4, D::D3) => Some(Self::Level(Level::IFR)),
+            (S::S4, D::D4) => Some(Self::Level(Level::DFC)),
+            (S::S4, D::D5) => Some(Self::Level(Level::EQU)),
+            (S::S4, D::D6) => Some(Self::Level(Level::SUR)),
+            (S::S4, D::D7) => Some(Self::Level(Level::SPL)),
+            (S::S4, D::D8) => Some(Self::Level(Level::SPQ)),
+            (S::S4, D::D9) => Some(Self::Level(Level::MAX)),
+
+            _ => None,
+        }
+    }
+}
+
+impl Vn {
+    /// Creates a [`Vn`] from a vowel form.
+    pub const fn from_vowel_form(vn: VowelForm, is_aspect: bool) -> Option<Self> {
+        use VowelFormDegree as D;
+        use VowelFormSequence as S;
+
+        if is_aspect {
+            match (vn.sequence, vn.degree) {
+                (S::S1, D::D1) => Some(Self::Aspect(Aspect::RTR)),
+                (S::S1, D::D2) => Some(Self::Aspect(Aspect::PRS)),
+                (S::S1, D::D3) => Some(Self::Aspect(Aspect::HAB)),
+                (S::S1, D::D4) => Some(Self::Aspect(Aspect::PRG)),
+                (S::S1, D::D5) => Some(Self::Aspect(Aspect::IMM)),
+                (S::S1, D::D6) => Some(Self::Aspect(Aspect::PCS)),
+                (S::S1, D::D7) => Some(Self::Aspect(Aspect::REG)),
+                (S::S1, D::D8) => Some(Self::Aspect(Aspect::SMM)),
+                (S::S1, D::D9) => Some(Self::Aspect(Aspect::ATP)),
+
+                (S::S2, D::D1) => Some(Self::Aspect(Aspect::RSM)),
+                (S::S2, D::D2) => Some(Self::Aspect(Aspect::CSS)),
+                (S::S2, D::D3) => Some(Self::Aspect(Aspect::PAU)),
+                (S::S2, D::D4) => Some(Self::Aspect(Aspect::RGR)),
+                (S::S2, D::D5) => Some(Self::Aspect(Aspect::PCL)),
+                (S::S2, D::D6) => Some(Self::Aspect(Aspect::CNT)),
+                (S::S2, D::D7) => Some(Self::Aspect(Aspect::ICS)),
+                (S::S2, D::D8) => Some(Self::Aspect(Aspect::EXP)),
+                (S::S2, D::D9) => Some(Self::Aspect(Aspect::IRP)),
+
+                (S::S3, D::D1) => Some(Self::Aspect(Aspect::PMP)),
+                (S::S3, D::D2) => Some(Self::Aspect(Aspect::CLM)),
+                (S::S3, D::D3) => Some(Self::Aspect(Aspect::DLT)),
+                (S::S3, D::D4) => Some(Self::Aspect(Aspect::TMP)),
+                (S::S3, D::D5) => Some(Self::Aspect(Aspect::XPD)),
+                (S::S3, D::D6) => Some(Self::Aspect(Aspect::LIM)),
+                (S::S3, D::D7) => Some(Self::Aspect(Aspect::EPD)),
+                (S::S3, D::D8) => Some(Self::Aspect(Aspect::PTC)),
+                (S::S3, D::D9) => Some(Self::Aspect(Aspect::PPR)),
+
+                (S::S4, D::D1) => Some(Self::Aspect(Aspect::DCL)),
+                (S::S4, D::D2) => Some(Self::Aspect(Aspect::CCL)),
+                (S::S4, D::D3) => Some(Self::Aspect(Aspect::CUL)),
+                (S::S4, D::D4) => Some(Self::Aspect(Aspect::IMD)),
+                (S::S4, D::D5) => Some(Self::Aspect(Aspect::TRD)),
+                (S::S4, D::D6) => Some(Self::Aspect(Aspect::TNS)),
+                (S::S4, D::D7) => Some(Self::Aspect(Aspect::ITC)),
+                (S::S4, D::D8) => Some(Self::Aspect(Aspect::MTV)),
+                (S::S4, D::D9) => Some(Self::Aspect(Aspect::SQN)),
+
+                _ => None,
+            }
+        } else {
+            match (vn.sequence, vn.degree) {
+                (S::S1, D::D1) => Some(Self::Valence(Valence::MNO)),
+                (S::S1, D::D2) => Some(Self::Valence(Valence::PRL)),
+                (S::S1, D::D3) => Some(Self::Valence(Valence::CRO)),
+                (S::S1, D::D4) => Some(Self::Valence(Valence::RCP)),
+                (S::S1, D::D5) => Some(Self::Valence(Valence::CPL)),
+                (S::S1, D::D6) => Some(Self::Valence(Valence::DUP)),
+                (S::S1, D::D7) => Some(Self::Valence(Valence::DEM)),
+                (S::S1, D::D8) => Some(Self::Valence(Valence::CNG)),
+                (S::S1, D::D9) => Some(Self::Valence(Valence::PTI)),
+
+                (S::S2, D::D1) => Some(Self::Phase(Phase::PUN)),
+                (S::S2, D::D2) => Some(Self::Phase(Phase::ITR)),
+                (S::S2, D::D3) => Some(Self::Phase(Phase::REP)),
+                (S::S2, D::D4) => Some(Self::Phase(Phase::ITM)),
+                (S::S2, D::D5) => Some(Self::Phase(Phase::RCT)),
+                (S::S2, D::D6) => Some(Self::Phase(Phase::FRE)),
+                (S::S2, D::D7) => Some(Self::Phase(Phase::FRG)),
+                (S::S2, D::D8) => Some(Self::Phase(Phase::VAC)),
+                (S::S2, D::D9) => Some(Self::Phase(Phase::FLC)),
+
+                (S::S3, D::D1) => Some(Self::Effect(Effect::BEN1)),
+                (S::S3, D::D2) => Some(Self::Effect(Effect::BEN2)),
+                (S::S3, D::D3) => Some(Self::Effect(Effect::BEN3)),
+                (S::S3, D::D4) => Some(Self::Effect(Effect::BENSELF)),
+                (S::S3, D::D5) => Some(Self::Effect(Effect::UNK)),
+                (S::S3, D::D6) => Some(Self::Effect(Effect::DETSELF)),
+                (S::S3, D::D7) => Some(Self::Effect(Effect::DET3)),
+                (S::S3, D::D8) => Some(Self::Effect(Effect::DET2)),
+                (S::S3, D::D9) => Some(Self::Effect(Effect::DET1)),
+
+                (S::S4, D::D1) => Some(Self::Level(Level::MIN)),
+                (S::S4, D::D2) => Some(Self::Level(Level::SBE)),
+                (S::S4, D::D3) => Some(Self::Level(Level::IFR)),
+                (S::S4, D::D4) => Some(Self::Level(Level::DFC)),
+                (S::S4, D::D5) => Some(Self::Level(Level::EQU)),
+                (S::S4, D::D6) => Some(Self::Level(Level::SUR)),
+                (S::S4, D::D7) => Some(Self::Level(Level::SPL)),
+                (S::S4, D::D8) => Some(Self::Level(Level::SPQ)),
+                (S::S4, D::D9) => Some(Self::Level(Level::MAX)),
+
+                _ => None,
+            }
         }
     }
 }
