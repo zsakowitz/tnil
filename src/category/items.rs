@@ -5,6 +5,16 @@ use crate::{
 };
 use paste::paste;
 
+macro_rules! replace_expr {
+    ($_t:tt $sub:expr) => {
+        $sub
+    };
+}
+
+macro_rules! count_tts {
+    ($($tts:tt)*) => {<[()]>::len(&[$(replace_expr!($tts ())),*])};
+}
+
 macro_rules! item {
     (
         $enum_name:ident,
@@ -56,6 +66,11 @@ macro_rules! custom_category {
             $enum_name,
             $(($variant $(= $value)?, $abbr, $name, $short_gloss, $long_gloss),)+
         );
+
+        impl $enum_name {
+            /// All items in this category.
+            pub const ALL_ITEMS: [Self; count_tts!($($variant)+)] = [$(Self::$variant,)+];
+        }
 
         impl GlossStatic for $enum_name {
             fn gloss_static(&self, flags: GlossFlags) -> &'static str {

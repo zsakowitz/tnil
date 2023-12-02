@@ -146,3 +146,99 @@ help: any and all segments may be omitted") };
         ca!(@ $($x)*)
     };
 }
+
+#[macro_export]
+/// Creates a [`Ca`][crate::category::Ca] using more concise syntax that writing it out in full.
+/// Also works in `const` contexts.
+///
+/// # Examples
+///
+/// ```
+/// # use tnil::{ca, ca_pat};
+/// # use tnil::category::{Ca, Affiliation, Configuration, Extension, Perspective, Essence};
+/// fn affiliation_if_standalone(ca: Ca) -> &'static str {
+///     match ca {
+///         ca_pat!(CSL) => "CSL",
+///         ca_pat!(ASO) => "ASO",
+///         ca_pat!(COA) => "COA",
+///         ca_pat!(VAR) => "VAR",
+///         _ => "not just affiliation",
+///     }
+/// }
+///
+/// # fn main() {
+/// assert_eq!(affiliation_if_standalone(ca!(ASO)), "ASO");
+/// assert_eq!(affiliation_if_standalone(ca!(COA, DPX)), "not just affiliation");
+/// assert_eq!(affiliation_if_standalone(ca!(VAR, M)), "VAR");
+/// # }
+/// ```
+macro_rules! ca_pat {
+    (@ CSL $($x:ident)*) => { ca_pat!($crate::category::Affiliation::CSL, @ $($x)*) };
+    (@ ASO $($x:ident)*) => { ca_pat!($crate::category::Affiliation::ASO, @ $($x)*) };
+    (@ COA $($x:ident)*) => { ca_pat!($crate::category::Affiliation::COA, @ $($x)*) };
+    (@ VAR $($x:ident)*) => { ca_pat!($crate::category::Affiliation::VAR, @ $($x)*) };
+    (@     $($x:ident)*) => { ca_pat!($crate::category::Affiliation::CSL, @ $($x)*) };
+
+    ($affiliation:pat, @ UPX $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::UPX, @ $($x)*) };
+    ($affiliation:pat, @ MSS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MSS, @ $($x)*) };
+    ($affiliation:pat, @ MSC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MSC, @ $($x)*) };
+    ($affiliation:pat, @ MSF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MSF, @ $($x)*) };
+    ($affiliation:pat, @ MDS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MDS, @ $($x)*) };
+    ($affiliation:pat, @ MDC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MDC, @ $($x)*) };
+    ($affiliation:pat, @ MDF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MDF, @ $($x)*) };
+    ($affiliation:pat, @ MFS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MFS, @ $($x)*) };
+    ($affiliation:pat, @ MFC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MFC, @ $($x)*) };
+    ($affiliation:pat, @ MFF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::MFF, @ $($x)*) };
+    ($affiliation:pat, @ DPX $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DPX, @ $($x)*) };
+    ($affiliation:pat, @ DSS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DSS, @ $($x)*) };
+    ($affiliation:pat, @ DSC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DSC, @ $($x)*) };
+    ($affiliation:pat, @ DSF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DSF, @ $($x)*) };
+    ($affiliation:pat, @ DDS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DDS, @ $($x)*) };
+    ($affiliation:pat, @ DDC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DDC, @ $($x)*) };
+    ($affiliation:pat, @ DDF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DDF, @ $($x)*) };
+    ($affiliation:pat, @ DFS $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DFS, @ $($x)*) };
+    ($affiliation:pat, @ DFC $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DFC, @ $($x)*) };
+    ($affiliation:pat, @ DFF $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::DFF, @ $($x)*) };
+    ($affiliation:pat, @     $($x:ident)*) => { ca_pat!($affiliation, $crate::category::Configuration::UPX, @ $($x)*) };
+
+
+    ($affiliation:pat, $configuration:pat, @ DEL $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::DEL, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @ PRX $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::PRX, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @ ICP $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::ICP, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @ ATV $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::ATV, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @ GRA $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::GRA, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @ DPL $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::DPL, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, @     $($x:ident)*) => { ca_pat!($affiliation, $configuration, $crate::category::Extension::DEL, @ $($x)*) };
+
+    ($affiliation:pat, $configuration:pat, $extension:pat, @ M $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $crate::category::Perspective::M, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, @ G $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $crate::category::Perspective::G, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, @ N $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $crate::category::Perspective::N, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, @ A $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $crate::category::Perspective::A, @ $($x)*) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, @   $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $crate::category::Perspective::M, @ $($x)*) };
+
+    ($affiliation:pat, $configuration:pat, $extension:pat, $perspective:pat, @ NRM $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $perspective, $crate::category::Essence::NRM, @) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, $perspective:pat, @ RPV $($x:ident)*) => { ca_pat!($affiliation, $configuration, $extension, $perspective, $crate::category::Essence::RPV, @) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, $perspective:pat, @                 ) => { ca_pat!($affiliation, $configuration, $extension, $perspective, $crate::category::Essence::NRM, @) };
+    ($affiliation:pat, $configuration:pat, $extension:pat, $perspective:pat, @     $($x:ident)*) => { compile_error!("either tokens specified in incorrect order or invalid tokens were specified
+help: specify affiliation, configuration, extension, perspective, and essence in that order
+help: make sure to separate them with commas
+help: any and all segments may be omitted") };
+
+    ($affiliation:pat, $configuration:pat, $extension:pat, $perspective:pat, $essence:pat, @) => {
+        $crate::category::Ca {
+            affiliation: $affiliation,
+            configuration: $configuration,
+            extension: $extension,
+            perspective: $perspective,
+            essence: $essence,
+        }
+    };
+
+    ($($x:ident),+ ,) => {
+        ca_pat!(@ $($x),+)
+    };
+
+    ($($x:ident),*) => {
+        ca_pat!(@ $($x)*)
+    };
+}
