@@ -18,8 +18,8 @@ fn test() {
     assert_gloss::<NormalReferential>();
     assert_gloss::<SuppletiveReferential>();
     assert_gloss::<GeneralReferential>();
-    assert_gloss::<AffixualAdjunct>();
 
+    assert_is_word::<AffixualAdjunct>();
     assert_is_word::<ModularAdjunct>();
     assert_is_word::<MCSAdjunct>();
     assert_is_word::<ParsingAdjunct>();

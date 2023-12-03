@@ -4,6 +4,7 @@ use crate::{
     category::MoodOrCaseScope,
     gloss::{GlossFlags, GlossStatic},
     romanize::{
+        flags::FromTokenFlags,
         stream::{FromTokenStream, ParseError, TokenStream},
         token::Hr,
     },
@@ -23,11 +24,11 @@ impl GlossStatic for MCSAdjunct {
 }
 
 impl FromTokenStream for MCSAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        stream.parse::<Hr>()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        stream.parse::<Hr>(flags)?;
 
         Ok(MCSAdjunct {
-            mcs: stream.parse()?,
+            mcs: stream.parse(flags)?,
         })
     }
 }

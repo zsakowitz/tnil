@@ -4,6 +4,7 @@ use crate::{
     category::Register,
     gloss::{Gloss, GlossFlags},
     romanize::{
+        flags::FromTokenFlags,
         stream::{FromTokenStream, ParseError, TokenStream},
         token::Hh,
     },
@@ -23,11 +24,11 @@ impl Gloss for RegisterAdjunct {
 }
 
 impl FromTokenStream for RegisterAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        stream.parse::<Hh>()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        stream.parse::<Hh>(flags)?;
 
         Ok(RegisterAdjunct {
-            register: stream.parse()?,
+            register: stream.parse(flags)?,
         })
     }
 }

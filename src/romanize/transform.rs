@@ -17,7 +17,7 @@
 //!
 //! None of these functions are hyper-optimized. The replacement ones in particular ([`normalize`]
 //! and [`unstress_vowels`]) could definitely be implemented more efficiently. But it's good enough,
-//! and replacing text isn't the slow part of the program anyway.
+//! and replacing text probably isn't the slow part of the program anyway.
 
 use crate::{
     category::Stress,

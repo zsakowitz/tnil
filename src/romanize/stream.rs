@@ -1,6 +1,6 @@
 //! Contains types and traits used to parse Ithkuil from token streams.
 
-use super::{token::Token, token_list::TokenList};
+use super::{flags::FromTokenFlags, token::Token, token_list::TokenList};
 use crate::category::Stress;
 use std::{error::Error, fmt};
 
@@ -24,11 +24,13 @@ impl<'a> TokenStream<'a> {
     }
 
     /// Gets the stress of the corresponding [`TokenList`].
+    #[must_use]
     pub const fn stress(&self) -> Option<Stress> {
         self.list.stress
     }
 
     /// Returns the next token as a specialized token type.
+    #[must_use]
     pub fn next<T: TokenType>(&mut self) -> Option<T> {
         if self.is_done() {
             return None;
@@ -40,6 +42,7 @@ impl<'a> TokenStream<'a> {
     }
 
     /// Returns the next token.
+    #[must_use]
     pub fn next_any(&mut self) -> Option<&Token> {
         if self.is_done() {
             return None;
@@ -50,6 +53,7 @@ impl<'a> TokenStream<'a> {
     }
 
     /// Returns the next token without advancing the stream.
+    #[must_use]
     pub fn peek(&mut self) -> Option<&Token> {
         if self.is_done() {
             return None;
@@ -59,11 +63,13 @@ impl<'a> TokenStream<'a> {
     }
 
     /// Parses an item.
-    pub fn parse<T: FromTokenStream>(&mut self) -> Result<T, ParseError> {
-        T::parse(self)
+    #[must_use]
+    pub fn parse<T: FromTokenStream>(&mut self, flags: FromTokenFlags) -> Result<T, ParseError> {
+        T::parse(self, flags)
     }
 
     /// Returns a slice into the remaining tokens.
+    #[must_use]
     pub fn tokens_left(self) -> &'a [Token] {
         &self.list.tokens[self.start..self.end]
     }
@@ -76,17 +82,17 @@ pub trait FromTokenStream: Sized {
     /// The [`TokenStream`] will advance correctly if an [`Ok`] is returned, but will advance an
     /// unspecified number of tokens if an [`Err`] is returned. If an [`Err`] is detected, it is
     /// best to reset the underlying [`TokenStream`]'s `start` and `end` indices.
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError>;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError>;
 
     /// Creates this item from a [`TokenStream`], returning [`Err`] if it fails.
     ///
     /// The [`TokenStream`] will advance correctly if an [`Ok`] is returned and will advance no
     /// tokens if an [`Err`] is returned.
-    fn parse(stream: &mut TokenStream) -> Result<Self, ParseError> {
+    fn parse(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let start = stream.start;
         let end = stream.end;
 
-        match Self::parse_volatile(stream) {
+        match Self::parse_volatile(stream, flags) {
             Ok(value) => Ok(value),
             Err(error) => {
                 stream.start = start;
@@ -143,14 +149,16 @@ parse_error_defn!(match self {
     ExpectedHr => "expected ‘hr’ at the beginning of a mood/case-scope adjunct",
     ExpectedNn => "expected a Nn numeric form (e.g. 4, 23, 7832)",
     ExpectedVc => "expected a Vc case form (e.g. ü, ai, io)",
-    ExpectedVh => "expected a Vh modular adjunct scope form (a/e/i/o/u)",
+    ExpectedVh => "expected a Vh modular adjunct scope (a/e/i/o/u)",
     ExpectedVm => "expected a Vm register type (e.g. a, o, ei)",
     ExpectedVn => "expected a Vn form (e.g. a, ou, ie)",
     ExpectedVp => "expected a Vp parsing adjunct type (a/e/o/u)",
     ExpectedVs => "expected a Vs single-affix adjunct scope (a/u/e/i/o/ö)",
     ExpectedVz => "expected a Vz multiple-affix adjunct scope (a/u/e/i/o/ö)",
     ExpectedVx => "expected a Vx form (e.g. a, ou, ie)",
+    ExpectedCsOrVx => "expected a Cs or Vx form (e.g. a, kb, ie)",
     AntepenultimateStress => "antepenultimate stress cannot appear except in formatives",
+    GlottalizedVh => "Vh modular adjunct scopes cannot have glottal stops",
     GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
     GlottalizedVs => "Vs single-affix adjunct scopes cannot have glottal stops",
     GlottalizedVz => "Vz multiple-affix adjunct scopes cannot have glottal stops",

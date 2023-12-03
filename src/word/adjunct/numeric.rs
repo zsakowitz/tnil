@@ -1,6 +1,7 @@
 use crate::{
     gloss::{Gloss, GlossFlags},
     romanize::{
+        flags::FromTokenFlags,
         stream::{FromTokenStream, ParseError, TokenStream},
         token::NumeralForm,
     },
@@ -24,8 +25,8 @@ impl Gloss for NumericAdjunct {
 }
 
 impl FromTokenStream for NumericAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        let nn: NumeralForm = stream.parse()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let nn: NumeralForm = stream.parse(flags)?;
 
         Ok(NumericAdjunct {
             integer_part: nn.integer_part,

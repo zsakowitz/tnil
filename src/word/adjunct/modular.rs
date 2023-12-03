@@ -7,6 +7,7 @@ use crate::{
     },
     gloss::{Gloss, GlossFlags, GlossHelpers},
     romanize::{
+        flags::FromTokenFlags,
         segment::{VnCm, VnCn},
         stream::{FromTokenStream, ParseError, TokenStream},
     },
@@ -126,17 +127,17 @@ impl Gloss for ModularAdjunct {
 }
 
 impl FromTokenStream for ModularAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        let mode: ModularAdjunctMode = stream.parse()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let mode: ModularAdjunctMode = stream.parse(flags)?;
 
-        let Some(VnCn { vn: vn1, cn }): Option<VnCn> = stream.parse().ok() else {
+        let Some(VnCn { vn: vn1, cn }): Option<VnCn> = stream.parse(flags).ok() else {
             return Ok(ModularAdjunct::Aspect {
                 mode,
-                aspect: stream.parse()?,
+                aspect: stream.parse(flags)?,
             });
         };
 
-        let vn2: Option<VnCm> = stream.parse().ok();
+        let vn2: Option<VnCm> = stream.parse(flags).ok();
 
         match stream.stress() {
             Some(Stress::Ultimate) => Ok(ModularAdjunct::Scoped {
@@ -144,7 +145,7 @@ impl FromTokenStream for ModularAdjunct {
                 vn1,
                 cn,
                 vn2: vn2.map(|x| x.vn),
-                scope: stream.parse()?,
+                scope: stream.parse(flags)?,
             }),
             Some(Stress::Antepenultimate) => return Err(ParseError::AntepenultimateStress),
             _ => Ok(ModularAdjunct::NonScoped {
@@ -152,7 +153,7 @@ impl FromTokenStream for ModularAdjunct {
                 vn1,
                 cn,
                 vn2: vn2.map(|x| x.vn),
-                vn3: stream.parse()?,
+                vn3: stream.parse(flags)?,
             }),
         }
     }

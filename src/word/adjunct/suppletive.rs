@@ -3,7 +3,10 @@
 use crate::{
     category::{Case, SuppletiveAdjunctMode},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
-    romanize::stream::{FromTokenStream, ParseError, TokenStream},
+    romanize::{
+        flags::FromTokenFlags,
+        stream::{FromTokenStream, ParseError, TokenStream},
+    },
 };
 
 /// A suppletive adjunct.
@@ -25,10 +28,10 @@ impl Gloss for SuppletiveAdjunct {
 }
 
 impl FromTokenStream for SuppletiveAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         Ok(SuppletiveAdjunct {
-            mode: stream.parse()?,
-            case: stream.parse()?,
+            mode: stream.parse(flags)?,
+            case: stream.parse(flags)?,
         })
     }
 }

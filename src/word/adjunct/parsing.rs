@@ -4,6 +4,7 @@ use crate::{
     category::Stress,
     gloss::{GlossFlags, GlossStatic},
     romanize::{
+        flags::FromTokenFlags,
         stream::{FromTokenStream, ParseError, TokenStream},
         token::GlottalStop,
     },
@@ -23,9 +24,9 @@ impl GlossStatic for ParsingAdjunct {
 }
 
 impl FromTokenStream for ParsingAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        let stress = stream.parse()?;
-        stream.parse::<GlottalStop>()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let stress = stream.parse(flags)?;
+        stream.parse::<GlottalStop>(flags)?;
         Ok(ParsingAdjunct { stress })
     }
 }

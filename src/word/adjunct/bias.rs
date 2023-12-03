@@ -4,6 +4,7 @@ use crate::{
     category::Bias,
     gloss::{GlossFlags, GlossStatic},
     romanize::{
+        flags::FromTokenFlags,
         stream::FromTokenStream,
         stream::{ParseError, TokenStream},
     },
@@ -23,9 +24,9 @@ impl GlossStatic for BiasAdjunct {
 }
 
 impl FromTokenStream for BiasAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         Ok(BiasAdjunct {
-            bias: stream.parse()?,
+            bias: stream.parse(flags)?,
         })
     }
 }

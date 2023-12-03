@@ -3,6 +3,7 @@ use crate::{
     category::{AffixualAdjunctMode, AffixualAdjunctScope, Stress},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
+        flags::FromTokenFlags,
         segment::{Vs, VxCs},
         stream::{FromTokenStream, ParseError, TokenStream},
     },
@@ -31,9 +32,9 @@ impl Gloss for SingleAffixAdjunct {
 }
 
 impl FromTokenStream for SingleAffixAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
-        let VxCs { affix } = stream.parse()?;
-        let Vs { scope } = stream.parse()?;
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let VxCs { affix } = stream.parse(flags)?;
+        let Vs { scope } = stream.parse(flags)?;
         let mode = match stream.stress() {
             Some(Stress::Ultimate) => AffixualAdjunctMode::Concatenated,
             Some(Stress::Antepenultimate) => return Err(ParseError::AntepenultimateStress),

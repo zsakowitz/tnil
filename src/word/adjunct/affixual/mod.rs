@@ -9,7 +9,11 @@ pub use single::*;
 use self::{multiple::MultipleAffixAdjunct, single::SingleAffixAdjunct};
 use crate::{
     gloss::{Gloss, GlossFlags},
-    romanize::stream::{FromTokenStream, ParseError, TokenStream},
+    romanize::{
+        flags::FromTokenFlags,
+        stream::{FromTokenStream, ParseError, TokenStream},
+        token::Token,
+    },
 };
 
 /// An affixual adjunct.
@@ -32,12 +36,13 @@ impl Gloss for AffixualAdjunct {
 }
 
 impl FromTokenStream for AffixualAdjunct {
-    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.peek() {
-            _ => todo!(),
+            Some(Token::Vowel(_)) => Ok(AffixualAdjunct::Single(stream.parse(flags)?)),
+            Some(Token::Schwa(_) | Token::Consonant(_)) => {
+                Ok(AffixualAdjunct::Multiple(stream.parse(flags)?))
+            }
+            _ => Err(ParseError::ExpectedCsOrVx),
         }
-
-        // affixual adjunct: VxCs (Vs)
-        // affixual adjunct: (ë) CsVx Cz VxCs... (Vz)
     }
 }
