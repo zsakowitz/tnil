@@ -5,7 +5,8 @@ use super::{
     stream::TokenStream,
     stream::{FromTokenStream, ParseError, TokenType},
     token::{
-        ConsonantForm, GlottalStop, HForm, Hh, Hr, NumeralForm, Schwa, Token, VowelForm, WYForm, ÜA,
+        GlottalStop, HForm, Hh, Hr, NumeralForm, OwnedConsonantForm, Schwa, Token, VowelForm,
+        WYForm, ÜA,
     },
 };
 use crate::category::{
@@ -14,7 +15,7 @@ use crate::category::{
     Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree, VowelFormSequence,
 };
 
-impl TokenType for ConsonantForm {
+impl TokenType for OwnedConsonantForm {
     fn parse(token: &Token) -> Option<Self> {
         match token {
             Token::Consonant(value) => Some(value.clone()),
@@ -122,7 +123,7 @@ impl FromTokenStream for Hr {
 impl FromTokenStream for Bias {
     fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Consonant(value)) => match value.source.parse() {
+            Some(Token::Consonant(value)) => match value.0.parse() {
                 Ok(value) => Ok(value),
                 Err(_) => Err(ParseError::ExpectedCb),
             },
@@ -159,7 +160,7 @@ impl FromTokenStream for Case {
                 sequence,
                 degree,
             })) if *degree != VowelFormDegree::D0 => {
-                let degree = *degree as u8;
+                let degree = *degree as u8 - 1;
                 let sequence = 9 * (*sequence as u8);
                 let shift = 36 * (*has_glottal_stop as u8);
 
@@ -360,7 +361,7 @@ pub struct Cm {
 impl FromTokenStream for Cm {
     fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Consonant(ConsonantForm { source })) => match &source[..] {
+            Some(Token::Consonant(OwnedConsonantForm(source))) => match &source[..] {
                 "n" => Ok(Self { is_aspect: false }),
                 "ň" => Ok(Self { is_aspect: true }),
                 _ => Err(ParseError::ExpectedCm),

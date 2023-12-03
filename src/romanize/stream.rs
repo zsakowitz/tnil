@@ -120,6 +120,8 @@ macro_rules! parse_error_defn {
 }
 
 parse_error_defn!(match self {
+    ExpectedCa => "expected an ungeminated Ca form (e.g. r, lňn, řţgw)",
+    ExpectedCaGeminated => "expected a geminated Ca form (e.g. rr, lňňn, řţţgw)",
     ExpectedCb => "expected a Cb bias (e.g. pļļ, lçp, kšš)",
     ExpectedCn => "expected a Cn mood/case-scope (e.g. h, hm, hňw)",
     ExpectedCm => "expected a Cm form (n/ň)",
@@ -136,6 +138,8 @@ parse_error_defn!(match self {
     ExpectedVn => "expected a Vn form (e.g. a, ou, ie)",
     ExpectedVp => "expected a Vp parsing adjunct type (a/e/o/u)",
     ExpectedVx => "expected a Vx affix degree (e.g. a, ou, ie)",
-    GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
     AntepenultimateStress => "antepenultimate stress cannot appear except in formatives",
+    GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
+    ReferentEmpty => "expected at least one referent",
+    ReferentInvalid => "invalid referent list",
 });

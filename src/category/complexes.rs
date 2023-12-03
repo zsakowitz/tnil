@@ -1,5 +1,7 @@
 //! Defines complexes (groups of core categories) and their glossing methods.
 
+use std::str::FromStr;
+
 use vec1::Vec1;
 
 use super::{
@@ -7,7 +9,10 @@ use super::{
     Mood, Perspective, Phase, Plexity, ReferentEffect, ReferentTarget, ReferentialAffixPerspective,
     Separability, Similarity, Valence,
 };
-use crate::gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic};
+use crate::{
+    gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    romanize::stream::ParseError,
+};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// A pair containing a Similarity and a Separability.
@@ -406,3 +411,243 @@ pub type NormalReferentList = ReferentList<Perspective>;
 
 /// A list of referents used in referential affixes.
 pub type AffixualReferentList = ReferentList<ReferentialAffixPerspective>;
+
+impl FromStr for NormalReferentList {
+    type Err = ParseError;
+
+    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
+        let mut perspective = Perspective::M;
+
+        for (form, form_perspective) in [
+            ("tļ", Perspective::G),
+            ("ļ", Perspective::G),
+            ("ç", Perspective::N),
+            ("x", Perspective::N),
+            ("w", Perspective::A),
+            ("y", Perspective::A),
+        ] {
+            if s.starts_with(form) {
+                s = &s[form.len()..];
+                perspective = form_perspective;
+                break;
+            }
+
+            if s.ends_with(form) {
+                s = &s[..s.len() - form.len()];
+                perspective = form_perspective;
+                break;
+            }
+        }
+
+        if s.is_empty() {
+            return Err(ParseError::ReferentEmpty);
+        }
+
+        let mut referents = vec![];
+        let mut chars: Vec<_> = s.chars().collect();
+        chars.reverse();
+
+        macro_rules! referent {
+            ($effect:ident, $target:ident) => {
+                Referent {
+                    effect: ReferentEffect::$effect,
+                    target: ReferentTarget::$target,
+                }
+            };
+        }
+
+        macro_rules! alternate_referent {
+            ($char:pat, $default:expr, $alt:expr) => {
+                match chars.last() {
+                    None => $default,
+
+                    Some($char) => {
+                        chars.pop();
+                        $alt
+                    }
+
+                    Some(_) => $default,
+                }
+            };
+        }
+
+        loop {
+            let referent = match chars.pop() {
+                None => break,
+
+                Some('l') => alternate_referent!('l', referent!(NEU, M1), referent!(NEU, Obv)),
+                Some('r') => alternate_referent!('r', referent!(BEN, M1), referent!(BEN, Obv)),
+                Some('ř') => alternate_referent!('ř', referent!(DET, M1), referent!(DET, Obv)),
+
+                Some('s') => referent!(NEU, M2),
+                Some('š') => referent!(BEN, M2),
+                Some('ž') => referent!(DET, M2),
+
+                Some('n') => alternate_referent!('n', referent!(NEU, P2), referent!(BEN, PVS)),
+                Some('t') => alternate_referent!('h', referent!(BEN, P2), referent!(NEU, Rdp)),
+                Some('d') => referent!(DET, P2),
+
+                Some('m') => alternate_referent!('m', referent!(NEU, MA), referent!(NEU, PVS)),
+                Some('p') => alternate_referent!('h', referent!(BEN, MA), referent!(BEN, Rdp)),
+                Some('b') => referent!(DET, MA),
+
+                Some('ň') => alternate_referent!('ň', referent!(NEU, PA), referent!(DET, PVS)),
+                Some('k') => alternate_referent!('h', referent!(BEN, PA), referent!(DET, Rdp)),
+                Some('g') => referent!(DET, PA),
+
+                Some('z') => referent!(NEU, MI),
+                Some('ţ') => referent!(BEN, MI),
+                Some('ḑ') => referent!(DET, MI),
+
+                Some('ż') => referent!(NEU, PI),
+                Some('f') => referent!(BEN, PI),
+                Some('v') => referent!(DET, PI),
+
+                Some('c') => referent!(NEU, Mx),
+                Some('č') => referent!(BEN, Mx),
+                Some('j') => referent!(DET, Mx),
+
+                Some(_) => return Err(ParseError::ReferentInvalid),
+            };
+
+            referents.push(referent);
+        }
+
+        match Vec1::try_from_vec(referents) {
+            Ok(referents) => Ok(Self {
+                referents,
+                perspective,
+            }),
+            Err(_) => Err(ParseError::ReferentEmpty),
+        }
+    }
+}
+
+impl FromStr for AffixualReferentList {
+    type Err = ParseError;
+
+    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
+        let mut perspective = ReferentialAffixPerspective::M;
+
+        for (form, form_perspective) in [
+            ("tļ", ReferentialAffixPerspective::G),
+            ("ļ", ReferentialAffixPerspective::G),
+            ("ç", ReferentialAffixPerspective::N),
+            ("x", ReferentialAffixPerspective::N),
+        ] {
+            if s.starts_with(form) {
+                s = &s[form.len()..];
+                perspective = form_perspective;
+                break;
+            }
+        }
+
+        if matches!(perspective, ReferentialAffixPerspective::M) {
+            for (form, form_perspective, condition) in [
+                ("tļ", ReferentialAffixPerspective::G, true),
+                ("ļ", ReferentialAffixPerspective::G, !s.ends_with("tļ")),
+                (
+                    "ç",
+                    ReferentialAffixPerspective::N,
+                    match s.chars().nth_back(1) {
+                        None => false,
+                        Some('l' | 'r' | 'ř' | 'm' | 'n' | 'ň') => false,
+                        Some(_) => true,
+                    },
+                ),
+                ("x", ReferentialAffixPerspective::N, true),
+            ] {
+                if condition && s.ends_with(form) {
+                    s = &s[..s.len() - form.len()];
+                    perspective = form_perspective;
+                    break;
+                }
+            }
+        }
+
+        if s.is_empty() {
+            return Err(ParseError::ReferentEmpty);
+        }
+
+        let mut referents = Vec::new();
+        let mut chars: Vec<_> = s.chars().collect();
+        chars.reverse();
+
+        /// A shortcut for a full referent.
+        macro_rules! referent {
+            ($effect:ident, $target:ident) => {
+                Referent {
+                    effect: ReferentEffect::$effect,
+                    target: ReferentTarget::$target,
+                }
+            };
+        }
+
+        /// Matches one of two referents depending on whether the next character of the input string
+        /// matches a given pattern.
+        macro_rules! alternate_referent {
+            ($char:pat, $default:expr, $alt:expr) => {
+                match chars.last() {
+                    None => $default,
+
+                    Some($char) => {
+                        chars.pop();
+                        $alt
+                    }
+
+                    Some(_) => $default,
+                }
+            };
+        }
+
+        loop {
+            let referent = match chars.pop() {
+                None => break,
+
+                Some('l') => alternate_referent!('ç', referent!(NEU, M1), referent!(NEU, Obv)),
+                Some('r') => alternate_referent!('ç', referent!(BEN, M1), referent!(BEN, Obv)),
+                Some('ř') => alternate_referent!('ç', referent!(DET, M1), referent!(DET, Obv)),
+
+                Some('s') => referent!(NEU, M2),
+                Some('š') => referent!(BEN, M2),
+                Some('ž') => referent!(DET, M2),
+
+                Some('n') => alternate_referent!('ç', referent!(NEU, P2), referent!(BEN, PVS)),
+                Some('t') => alternate_referent!('h', referent!(BEN, P2), referent!(NEU, Rdp)),
+                Some('d') => referent!(DET, P2),
+
+                Some('m') => alternate_referent!('ç', referent!(NEU, MA), referent!(NEU, PVS)),
+                Some('p') => alternate_referent!('h', referent!(BEN, MA), referent!(BEN, Rdp)),
+                Some('b') => referent!(DET, MA),
+
+                Some('ň') => alternate_referent!('ç', referent!(NEU, PA), referent!(DET, PVS)),
+                Some('k') => alternate_referent!('h', referent!(BEN, PA), referent!(DET, Rdp)),
+                Some('g') => referent!(DET, PA),
+
+                Some('z') => referent!(NEU, MI),
+                Some('ţ') => referent!(BEN, MI),
+                Some('ḑ') => referent!(DET, MI),
+
+                Some('ż') => referent!(NEU, PI),
+                Some('f') => referent!(BEN, PI),
+                Some('v') => referent!(DET, PI),
+
+                Some('c') => referent!(NEU, Mx),
+                Some('č') => referent!(BEN, Mx),
+                Some('j') => referent!(DET, Mx),
+
+                Some(_) => return Err(ParseError::ReferentInvalid),
+            };
+
+            referents.push(referent);
+        }
+
+        match Vec1::try_from_vec(referents) {
+            Ok(referents) => Ok(Self {
+                referents,
+                perspective,
+            }),
+            Err(_) => Err(ParseError::ReferentEmpty),
+        }
+    }
+}

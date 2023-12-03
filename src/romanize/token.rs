@@ -1,18 +1,17 @@
 //! Contains types for various tokens.
 
+pub use super::consonant::*;
 use crate::category::{HFormDegree, HFormSequence, VowelFormDegree, VowelFormSequence};
 use std::{
     error::Error,
-    fmt::{self, Display},
+    fmt,
+    ops::{Deref, DerefMut},
     str::FromStr,
 };
 
-/// A consonant form.
+/// An owned consonant form.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ConsonantForm {
-    /// The consonants in this form.
-    pub source: String,
-}
+pub struct OwnedConsonantForm(pub String);
 
 /// A normal vowel form.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -79,7 +78,7 @@ pub struct GlottalStop;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Token {
     /// A consonant form.
-    Consonant(ConsonantForm),
+    Consonant(OwnedConsonantForm),
 
     /// A normal vowel form.
     Vowel(VowelForm),
@@ -104,7 +103,7 @@ pub enum Token {
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ParseVowelFormError;
 
-impl Display for ParseVowelFormError {
+impl fmt::Display for ParseVowelFormError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid vowel form")
     }
@@ -186,7 +185,7 @@ impl FromStr for VowelForm {
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ParseHFormError;
 
-impl Display for ParseHFormError {
+impl fmt::Display for ParseHFormError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid h-form")
     }
@@ -222,42 +221,16 @@ impl FromStr for HForm {
     }
 }
 
-impl ConsonantForm {
-    /// Creates a new `ConsonantForm`.
-    pub fn new(source: impl Into<String>) -> Self {
-        Self {
-            source: source.into(),
-        }
+impl Deref for OwnedConsonantForm {
+    type Target = ConsonantForm;
+
+    fn deref(&self) -> &Self::Target {
+        ConsonantForm::new(&self.0)
     }
+}
 
-    /// Checks if this consonant form contains a geminate.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use tnil::romanize::token::ConsonantForm;
-    ///
-    /// let consonant_form = ConsonantForm::new("rrw");
-    /// assert!(consonant_form.is_geminate());
-    ///
-    /// let consonant_form = ConsonantForm::new("zv");
-    /// assert!(!consonant_form.is_geminate());
-    /// ```
-    pub fn is_geminate(&self) -> bool {
-        let mut chars = self.source.chars();
-
-        let Some(mut last_char) = chars.next() else {
-            return false;
-        };
-
-        for char in chars {
-            if char == last_char {
-                return true;
-            }
-
-            last_char = char;
-        }
-
-        false
+impl DerefMut for OwnedConsonantForm {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        (&mut self.0[..]).into()
     }
 }

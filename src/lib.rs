@@ -53,11 +53,11 @@
 //!   different slots, double apostrophes for roots and single apostrophes for affixes, and so on).
 
 #![forbid(
-    unsafe_code,
     missing_debug_implementations,
     missing_copy_implementations,
     missing_docs
 )]
+#![deny(unsafe_code, where_clauses_object_safety)]
 
 pub mod affix;
 mod as_general;

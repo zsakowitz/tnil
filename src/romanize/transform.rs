@@ -21,7 +21,7 @@
 
 use crate::{
     category::Stress,
-    romanize::token::{ConsonantForm, NumeralForm, Schwa, Token, ÜA},
+    romanize::token::{NumeralForm, OwnedConsonantForm, Schwa, Token, ÜA},
 };
 use std::{
     error::Error,
@@ -317,7 +317,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                                 Err(_) => return Err(TokenizeWordError::InvalidHForm),
                             }));
                         } else {
-                            tokens.push(Token::Consonant(ConsonantForm { source: current }));
+                            tokens.push(Token::Consonant(OwnedConsonantForm(current)));
                         }
                     }
 

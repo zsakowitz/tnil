@@ -10,4 +10,5 @@ lexicon-json-root-data = []
 
 [dependencies]
 paste = "1.0.14"
+regex = "1.10.2"
 vec1 = "1.10.1"

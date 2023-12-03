@@ -1,5 +1,6 @@
 //! Contains types for working with Ithkuil's romanization system.
 
+pub(self) mod consonant;
 pub mod segment;
 pub mod stream;
 pub mod token;
