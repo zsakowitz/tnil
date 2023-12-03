@@ -1,7 +1,7 @@
 use crate::{
     category::Category,
     gloss::{Gloss, GlossFlags, GlossStatic},
-    AsGeneral,
+    specificity::AsGeneral,
 };
 use paste::paste;
 
@@ -768,14 +768,14 @@ custom_category!(
         "{scope over mood/case-scope}"
     ),
     (
-        UnderAdjacent,
+        UnderAdj,
         "UnderAdj",
         "Under Adjacent",
         "{under adj.}",
         "{scope over formative, but not adjacent adjuncts}"
     ),
     (
-        OverAdjacent,
+        OverAdj,
         "OverAdj",
         "Over Adjacent",
         "{over adj.}",

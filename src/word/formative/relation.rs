@@ -5,7 +5,7 @@ use crate::{
         Case, CaseScope, IllocutionOrValidation, Mood, MoodOrCaseScope, NominalMode,
         NonDefaultCaseScope, NonDefaultMood,
     },
-    AsGeneral, TryAsSpecific,
+    specificity::{AsGeneral, TryAsSpecific},
 };
 
 /// A formative relation.

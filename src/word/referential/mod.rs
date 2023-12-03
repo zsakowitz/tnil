@@ -6,7 +6,7 @@ use crate::{
     affix::RegularAffix,
     category::{Case, Essence, NormalReferentList, Specification, SuppletiveAdjunctMode},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
-    AsGeneral, TryAsSpecific,
+    specificity::{AsGeneral, TryAsSpecific},
 };
 use aliases::*;
 

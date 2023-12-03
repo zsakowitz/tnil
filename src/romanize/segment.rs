@@ -9,10 +9,14 @@ use super::{
         WYForm, ÜA,
     },
 };
-use crate::category::{
-    ArbitraryMoodOrCaseScope, Aspect, Bias, Case, CaseScope, HFormDegree, HFormSequence,
-    ModularAdjunctMode, ModularAdjunctScope, Mood, MoodOrCaseScope, NonAspectualVn, Register,
-    Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree, VowelFormSequence,
+use crate::{
+    affix::RegularAffix,
+    category::{
+        AffixualAdjunctScope, ArbitraryMoodOrCaseScope, Aspect, Bias, Case, CaseScope, HFormDegree,
+        HFormSequence, ModularAdjunctMode, ModularAdjunctScope, Mood, MoodOrCaseScope,
+        NonAspectualVn, Register, Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree,
+        VowelFormSequence,
+    },
 };
 
 impl TokenType for OwnedConsonantForm {
@@ -314,8 +318,8 @@ impl FromTokenStream for ModularAdjunctScope {
         match degree {
             VowelFormDegree::D1 => Ok(ModularAdjunctScope::Formative),
             VowelFormDegree::D3 => Ok(ModularAdjunctScope::MCS),
-            VowelFormDegree::D4 | VowelFormDegree::D9 => Ok(ModularAdjunctScope::OverAdjacent),
-            VowelFormDegree::D7 => Ok(ModularAdjunctScope::UnderAdjacent),
+            VowelFormDegree::D4 | VowelFormDegree::D9 => Ok(ModularAdjunctScope::OverAdj),
+            VowelFormDegree::D7 => Ok(ModularAdjunctScope::UnderAdj),
             _ => Err(ParseError::ExpectedVh),
         }
     }
@@ -444,6 +448,231 @@ impl FromTokenStream for VnCnWithGlottalStop {
             vn: Vn::from_vowel_form(vn, cn.is_aspect).ok_or(ParseError::ExpectedVn)?,
             has_glottal_stop: vn.has_glottal_stop,
             cn: cn.mcs,
+        })
+    }
+}
+
+/// A VxCs pair with no glottal stop.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct VxCs {
+    /// The affix represented by this VxCs form.
+    pub affix: RegularAffix,
+}
+
+impl FromTokenStream for VxCs {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
+        if vx.has_glottal_stop {
+            return Err(ParseError::GlottalizedVx);
+        }
+        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        Ok(VxCs {
+            affix: RegularAffix::from_vxcs(vx, &cs)?,
+        })
+    }
+}
+
+/// A VxCs pair with an optional glottal stop.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct VxCsWithGlottalStop {
+    /// The affix represented by this VxCs form.
+    pub affix: RegularAffix,
+
+    /// Whether the Vx form had a glottal stop.
+    pub has_glottal_stop: bool,
+}
+
+impl FromTokenStream for VxCsWithGlottalStop {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
+        if vx.has_glottal_stop {
+            return Err(ParseError::GlottalizedVx);
+        }
+        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        Ok(Self {
+            affix: RegularAffix::from_vxcs(vx, &cs)?,
+            has_glottal_stop: vx.has_glottal_stop,
+        })
+    }
+}
+
+/// A CsVx pair with an optional glottal stop.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CsVxWithGlottalStop {
+    /// The affix represented by this CsVx form.
+    pub affix: RegularAffix,
+
+    /// Whether the Vx form had a glottal stop.
+    pub has_glottal_stop: bool,
+}
+
+impl FromTokenStream for CsVxWithGlottalStop {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
+        if vx.has_glottal_stop {
+            return Err(ParseError::GlottalizedVx);
+        }
+        Ok(Self {
+            affix: RegularAffix::from_vxcs(vx, &cs)?,
+            has_glottal_stop: vx.has_glottal_stop,
+        })
+    }
+}
+
+/// A Vs form.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Vs {
+    /// The scope marked by this Vs form.
+    pub scope: AffixualAdjunctScope,
+}
+
+impl FromTokenStream for Vs {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let Some(vowel_form): Option<VowelForm> = stream.next() else {
+            return Ok(Vs {
+                scope: AffixualAdjunctScope::VDom,
+            });
+        };
+
+        if vowel_form.has_glottal_stop {
+            return Err(ParseError::GlottalizedVs);
+        }
+
+        if vowel_form.sequence != VowelFormSequence::S1 {
+            return Err(ParseError::ExpectedVs);
+        }
+
+        match vowel_form.degree {
+            VowelFormDegree::D1 => Ok(Vs {
+                scope: AffixualAdjunctScope::VDom,
+            }),
+            VowelFormDegree::D9 => Ok(Vs {
+                scope: AffixualAdjunctScope::VSub,
+            }),
+            VowelFormDegree::D3 => Ok(Vs {
+                scope: AffixualAdjunctScope::VIIDom,
+            }),
+            VowelFormDegree::D4 => Ok(Vs {
+                scope: AffixualAdjunctScope::VIISub,
+            }),
+            VowelFormDegree::D7 => Ok(Vs {
+                scope: AffixualAdjunctScope::Formative,
+            }),
+            VowelFormDegree::D6 => Ok(Vs {
+                scope: AffixualAdjunctScope::OverAdj,
+            }),
+            _ => Err(ParseError::ExpectedVs),
+        }
+    }
+}
+
+/// A Vz form.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Vz {
+    /// The scope marked by this Vz form.
+    pub scope: Option<AffixualAdjunctScope>,
+}
+
+impl FromTokenStream for Vz {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let Some(vowel_form): Option<VowelForm> = stream.next() else {
+            return Ok(Vz { scope: None });
+        };
+
+        if vowel_form.has_glottal_stop {
+            return Err(ParseError::GlottalizedVz);
+        }
+
+        if matches!(
+            vowel_form,
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D1
+            }
+        ) {
+            return Ok(Vz { scope: None });
+        }
+
+        if vowel_form.sequence != VowelFormSequence::S1 {
+            return Err(ParseError::ExpectedVz);
+        }
+
+        match vowel_form.degree {
+            VowelFormDegree::D1 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::VDom),
+            }),
+            VowelFormDegree::D9 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::VSub),
+            }),
+            VowelFormDegree::D3 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::VIIDom),
+            }),
+            VowelFormDegree::D4 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::VIISub),
+            }),
+            VowelFormDegree::D7 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::Formative),
+            }),
+            VowelFormDegree::D6 => Ok(Vz {
+                scope: Some(AffixualAdjunctScope::OverAdj),
+            }),
+            _ => Err(ParseError::ExpectedVz),
+        }
+    }
+}
+
+/// A CsVxCz triplet. These must be parsed together because the value of Cz is influenced by whether
+/// the Vx form has a glottal stop or not.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CsVxCz {
+    /// The affix marked by the CsVx pair.
+    pub affix: RegularAffix,
+
+    /// The scope marked by the Cz form.
+    pub scope: AffixualAdjunctScope,
+}
+
+impl FromTokenStream for CsVxCz {
+    fn parse_volatile(stream: &mut TokenStream) -> Result<Self, ParseError> {
+        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
+        let cz: HForm = stream.next().ok_or(ParseError::ExpectedCz)?;
+        Ok(Self {
+            affix: RegularAffix::from_vxcs(vx, &cs)?,
+            scope: match vx.has_glottal_stop {
+                false => match cz {
+                    HForm {
+                        sequence: HFormSequence::S0,
+                        degree: HFormDegree::D1,
+                    } => AffixualAdjunctScope::VDom,
+                    HForm {
+                        sequence: HFormSequence::SW,
+                        degree: HFormDegree::D2,
+                    } => AffixualAdjunctScope::Formative,
+                    _ => return Err(ParseError::ExpectedCz),
+                },
+                true => match cz {
+                    HForm {
+                        sequence: HFormSequence::S0,
+                        degree: HFormDegree::D1,
+                    } => AffixualAdjunctScope::VSub,
+                    HForm {
+                        sequence: HFormSequence::S0,
+                        degree: HFormDegree::D2,
+                    } => AffixualAdjunctScope::VIIDom,
+                    HForm {
+                        sequence: HFormSequence::S0,
+                        degree: HFormDegree::D3,
+                    } => AffixualAdjunctScope::VIISub,
+                    HForm {
+                        sequence: HFormSequence::SW,
+                        degree: HFormDegree::D2,
+                    } => AffixualAdjunctScope::OverAdj,
+                    _ => return Err(ParseError::ExpectedCz),
+                },
+            },
         })
     }
 }

@@ -39,13 +39,22 @@ impl<'a> TokenStream<'a> {
         Some(token)
     }
 
-    /// Returns the next token as a specialized token type.
+    /// Returns the next token.
     pub fn next_any(&mut self) -> Option<&Token> {
         if self.is_done() {
             return None;
         }
         let token = self.list.tokens.get(self.start)?;
         self.start += 1;
+        Some(token)
+    }
+
+    /// Returns the next token without advancing the stream.
+    pub fn peek(&mut self) -> Option<&Token> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.list.tokens.get(self.start)?;
         Some(token)
     }
 
@@ -128,6 +137,7 @@ parse_error_defn!(match self {
     ExpectedCp => "expected a Cp suppletive adjunct mode (hl/hm/hn/hň)",
     ExpectedCs => "expected a Cs affix form (e.g. t, kb, ltř)",
     ExpectedCy => "expected a Cy mood/case-scope adjunct vowel (e.g. a, oi, iu)",
+    ExpectedCz => "expected a Cz multiple-affix adjunct scope (h/’h/’hl/’hr/’hw/’hw)",
     ExpectedGs => "expected a word-final glottal stop",
     ExpectedHh => "expected a single ‘h’ at the beginning of a register",
     ExpectedHr => "expected ‘hr’ at the beginning of a mood/case-scope adjunct",
@@ -137,9 +147,14 @@ parse_error_defn!(match self {
     ExpectedVm => "expected a Vm register type (e.g. a, o, ei)",
     ExpectedVn => "expected a Vn form (e.g. a, ou, ie)",
     ExpectedVp => "expected a Vp parsing adjunct type (a/e/o/u)",
-    ExpectedVx => "expected a Vx affix degree (e.g. a, ou, ie)",
+    ExpectedVs => "expected a Vs single-affix adjunct scope (a/u/e/i/o/ö)",
+    ExpectedVz => "expected a Vz multiple-affix adjunct scope (a/u/e/i/o/ö)",
+    ExpectedVx => "expected a Vx form (e.g. a, ou, ie)",
     AntepenultimateStress => "antepenultimate stress cannot appear except in formatives",
     GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
+    GlottalizedVs => "Vs single-affix adjunct scopes cannot have glottal stops",
+    GlottalizedVz => "Vz multiple-affix adjunct scopes cannot have glottal stops",
+    GlottalizedVx => "Vx forms cannot have glottal stops except in formatives",
     ReferentEmpty => "expected at least one referent",
     ReferentInvalid => "invalid referent list",
 });

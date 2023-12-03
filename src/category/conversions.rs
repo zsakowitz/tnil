@@ -10,7 +10,10 @@ use super::{
     Separability, Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
     VowelFormDegree, VowelFormSequence,
 };
-use crate::{romanize::token::VowelForm, AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific};
+use crate::{
+    romanize::token::VowelForm,
+    specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
+};
 use std::{
     error::Error,
     fmt::{self, Display},

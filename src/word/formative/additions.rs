@@ -4,7 +4,7 @@ use super::relation::{NonDefaultRelation, NormalRelation};
 use crate::{
     affix::AffixList,
     category::{AffixShortcut, Ca, CaShortcut, Context, Function, Specification},
-    AsGeneral, TryAsSpecific,
+    specificity::{AsGeneral, TryAsSpecific},
 };
 use paste::paste;
 

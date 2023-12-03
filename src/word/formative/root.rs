@@ -3,7 +3,7 @@
 use crate::{
     category::{AffixDegree, Referent},
     gloss::{Gloss, GlossFlags, GlossStatic},
-    AsGeneral, TryAsSpecific,
+    specificity::{AsGeneral, TryAsSpecific},
 };
 use vec1::Vec1;
 

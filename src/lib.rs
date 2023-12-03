@@ -60,11 +60,9 @@
 #![deny(unsafe_code, where_clauses_object_safety)]
 
 pub mod affix;
-mod as_general;
 pub mod category;
 pub mod gloss;
 mod macros;
 pub mod romanize;
+pub mod specificity;
 pub mod word;
-
-pub use as_general::*;

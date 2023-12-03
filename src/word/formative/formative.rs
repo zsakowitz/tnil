@@ -12,8 +12,8 @@ use super::{
 use crate::{
     category::{NominalMode, Version, Vn},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    specificity::{AsGeneral, TryAsSpecific},
     word::formative::{core::FormativeCore, relation::Relation},
-    AsGeneral, TryAsSpecific,
 };
 
 /// A formative.

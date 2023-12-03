@@ -7,7 +7,7 @@ use super::root::{
 use crate::{
     affix::AffixList,
     category::{Stem, Version, Vn},
-    AsGeneral, TryAsSpecific,
+    specificity::{AsGeneral, TryAsSpecific},
 };
 
 /// The core of a formative.
