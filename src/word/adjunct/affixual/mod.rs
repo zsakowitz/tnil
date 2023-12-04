@@ -38,8 +38,8 @@ impl Gloss for AffixualAdjunct {
 impl FromTokenStream for AffixualAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.peek() {
-            Some(Token::Vowel(_)) => Ok(AffixualAdjunct::Single(stream.parse(flags)?)),
-            Some(Token::Schwa(_) | Token::Consonant(_)) => {
+            Some(Token::V(_)) => Ok(AffixualAdjunct::Single(stream.parse(flags)?)),
+            Some(Token::Schwa(_) | Token::C(_)) => {
                 Ok(AffixualAdjunct::Multiple(stream.parse(flags)?))
             }
             _ => Err(ParseError::ExpectedCsOrVx),

@@ -317,7 +317,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                                 Err(_) => return Err(TokenizeWordError::InvalidHForm),
                             }));
                         } else {
-                            tokens.push(Token::Consonant(OwnedConsonantForm(current)));
+                            tokens.push(Token::C(OwnedConsonantForm(current)));
                         }
                     }
 
@@ -325,7 +325,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                         "'" => Token::GlottalStop,
                         "ë" => Token::Schwa(Schwa),
                         "üa" => Token::ÜA(ÜA),
-                        vowel_form => Token::Vowel(match vowel_form.parse() {
+                        vowel_form => Token::V(match vowel_form.parse() {
                             Ok(vowel_form) => vowel_form,
                             Err(_) => return Err(TokenizeWordError::InvalidVowelForm),
                         }),
@@ -333,7 +333,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
 
                     // TODO: add decimal support
                     CurrentToken::N => match current.parse() {
-                        Ok(value) => tokens.push(Token::Numeral(NumeralForm {
+                        Ok(value) => tokens.push(Token::N(NumeralForm {
                             integer_part: value,
                         })),
 

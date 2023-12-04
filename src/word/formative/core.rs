@@ -6,7 +6,7 @@ use super::root::{
 };
 use crate::{
     affix::AffixList,
-    category::{Stem, Version, Vn},
+    category::{Stem, Version},
     specificity::{AsGeneral, TryAsSpecific},
 };
 
@@ -24,9 +24,6 @@ pub struct FormativeCore<RootType, StemType> {
 
     /// The slot VII affixes of this formative.
     pub slot_vii_affixes: AffixList,
-
-    /// The Vn of this formative.
-    pub vn: Vn,
 }
 
 /// The core of a normal formative.
@@ -54,7 +51,6 @@ macro_rules! as_general_impl {
                     $stem,
                     version,
                     slot_vii_affixes,
-                    vn,
                 } = self;
 
                 GeneralFormativeCore {
@@ -62,7 +58,6 @@ macro_rules! as_general_impl {
                     $stem: $stem_expr,
                     version,
                     slot_vii_affixes,
-                    vn,
                 }
             }
         }
@@ -81,13 +76,11 @@ macro_rules! as_general_impl {
                         $stem: $stem_pat,
                         version,
                         slot_vii_affixes,
-                        vn,
                     } => Some($specific {
                         root,
                         $stem: $stem_value,
                         version,
                         slot_vii_affixes,
-                        vn,
                     }),
                     _ => None,
                 }

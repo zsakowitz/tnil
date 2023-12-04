@@ -3,7 +3,7 @@
 use super::relation::{NonDefaultRelation, NormalRelation};
 use crate::{
     affix::AffixList,
-    category::{AffixShortcut, Ca, CaShortcut, Context, Function, Specification},
+    category::{AffixShortcut, Ca, CaShortcut, Context, Function, Specification, Vn},
     specificity::{AsGeneral, TryAsSpecific},
 };
 use paste::paste;
@@ -31,6 +31,9 @@ pub struct NonShortcutAdditions<AffixShortcutType, SpecificationType> {
 
     /// The Ca of this formative.
     pub ca: Ca,
+
+    /// The Vn of this formative.
+    pub vn: Vn,
 }
 
 /// Additions for normal and numeric non-shortcut formatives.
@@ -89,6 +92,9 @@ pub struct CaShortcutAdditions {
 
     /// The Ca of this formative.
     pub ca: CaShortcut,
+
+    /// The Vn of this formative.
+    pub vn: Vn,
 }
 
 /// Additions to a normal or numeric formative.
@@ -165,6 +171,7 @@ macro_rules! as_general_impl {
         $general:ident,
         $($ca_name:ident)?,
         $($slot_v_affixes_name:ident)?,
+        $($vn_name:ident)?,
         $affix_shortcut_name:ident,
         $specification_name:ident,
         $affix_shortcut:tt,
@@ -180,6 +187,7 @@ macro_rules! as_general_impl {
                     let Self {
                         $affix_shortcut_name,
                         $($ca_name,)?
+                        $($vn_name,)?
                         context,
                         function,
                         relation,
@@ -190,6 +198,7 @@ macro_rules! as_general_impl {
                     $general {
                         affix_shortcut: $affix_shortcut,
                         $($ca_name,)?
+                        $($vn_name,)?
                         context,
                         function,
                         relation,
@@ -213,6 +222,7 @@ macro_rules! as_general_impl {
                     if let $general {
                         $affix_shortcut_name: $affix_shortcut,
                         $($ca_name,)?
+                        $($vn_name,)?
                         context,
                         function,
                         relation,
@@ -222,6 +232,7 @@ macro_rules! as_general_impl {
                         Some($specific {
                             $affix_shortcut_name: $affix_shortcut_value,
                             $($ca_name,)?
+                            $($vn_name,)?
                             context,
                             function,
                             relation,
@@ -242,6 +253,7 @@ as_general_impl!(
     GeneralNonShortcutAdditions,
     ca,
     slot_v_affixes,
+    vn,
     affix_shortcut,
     specification,
     (Some(affix_shortcut)),
@@ -255,6 +267,7 @@ as_general_impl!(
     GeneralNonShortcutAdditions,     // the general type
     ca,                              // the Ca field, or empty if the type has no Ca field
     slot_v_affixes,                  // the slot V affixes field, or empty if the type has none
+    vn,                              // the Vn field, or empty if the type has none
     affix_shortcut,                  // the affix shortcut field (because macro hygiene)
     specification,                   // the specification field (because macro hygiene)
     None,                            // the general value to put in `affix_shortcut`
@@ -271,6 +284,7 @@ as_general_impl!(
     GeneralNonShortcutAdditions,
     ca,
     slot_v_affixes,
+    vn,
     affix_shortcut,
     specification,
     None,
@@ -284,6 +298,7 @@ as_general_impl!(
     GeneralCnShortcutAdditions,
     , // Cn shortcut additions don't have Ca slots, so we pass nothing here
     , // Cn shortcut additions also don't have slot V affixes
+    , // Cn shortcut additions also don't have Vn forms
     affix_shortcut,
     specification,
     (Some(affix_shortcut)),
@@ -297,6 +312,7 @@ as_general_impl!(
     GeneralCnShortcutAdditions,
     ,
     ,
+    ,
     affix_shortcut,
     specification,
     None,
@@ -308,6 +324,7 @@ as_general_impl!(
 as_general_impl!(
     AffixualCnShortcutAdditions,
     GeneralCnShortcutAdditions,
+    ,
     ,
     ,
     affix_shortcut,

@@ -52,6 +52,29 @@ impl<'a> TokenStream<'a> {
         Some(token)
     }
 
+    /// Returns the next token from the end as a specialized token type.
+    #[must_use]
+    pub fn next_back<T: TokenType>(&mut self) -> Option<T> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.list.tokens.get(self.end - 1)?;
+        let token = T::parse(&token)?;
+        self.end += 1;
+        Some(token)
+    }
+
+    /// Returns the next token from the end.
+    #[must_use]
+    pub fn next_back_any(&mut self) -> Option<&Token> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.list.tokens.get(self.end - 1)?;
+        self.end -= 1;
+        Some(token)
+    }
+
     /// Returns the next token without advancing the stream.
     #[must_use]
     pub fn peek(&mut self) -> Option<&Token> {
@@ -59,6 +82,16 @@ impl<'a> TokenStream<'a> {
             return None;
         }
         let token = self.list.tokens.get(self.start)?;
+        Some(token)
+    }
+
+    /// Returns the next token from the back without advancing the stream.
+    #[must_use]
+    pub fn peek_back(&mut self) -> Option<&Token> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.list.tokens.get(self.end - 1)?;
         Some(token)
     }
 
@@ -149,6 +182,7 @@ parse_error_defn!(match self {
     ExpectedHr => "expected ‘hr’ at the beginning of a mood/case-scope adjunct",
     ExpectedNn => "expected a Nn numeric form (e.g. 4, 23, 7832)",
     ExpectedVc => "expected a Vc case form (e.g. ü, ai, io)",
+    ExpectedVc2 => "expected a Vc2 combination referential second case (e.g. o, ei, üa)",
     ExpectedVh => "expected a Vh modular adjunct scope (a/e/i/o/u)",
     ExpectedVm => "expected a Vm register type (e.g. a, o, ei)",
     ExpectedVn => "expected a Vn form (e.g. a, ou, ie)",
@@ -157,12 +191,18 @@ parse_error_defn!(match self {
     ExpectedVz => "expected a Vz multiple-affix adjunct scope (a/u/e/i/o/ö)",
     ExpectedVx => "expected a Vx form (e.g. a, ou, ie)",
     ExpectedCsOrVx => "expected a Cs or Vx form (e.g. a, kb, ie)",
+    ExpectedReferentSpecification => "expected combination referential specification (x/xt/xp/xx)",
+    ExpectedSuppletiveReferential => "expected suppletive referential head (a/üo)",
+    ExpectedWYSpecification => "expected w/y/x/xt/xp/xx to follow referent",
+
     AntepenultimateStress => "antepenultimate stress cannot appear except in formatives",
+    ComboReferentialWithSchwa => "combination referential cannot have ë mid-word",
     GlottalizedVh => "Vh modular adjunct scopes cannot have glottal stops",
     GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
     GlottalizedVs => "Vs single-affix adjunct scopes cannot have glottal stops",
     GlottalizedVz => "Vz multiple-affix adjunct scopes cannot have glottal stops",
     GlottalizedVx => "Vx forms cannot have glottal stops except in formatives",
     ReferentEmpty => "expected at least one referent",
+    ReferentExpected => "expected a referent (e.g. l, g, ňň)",
     ReferentInvalid => "invalid referent list",
 });

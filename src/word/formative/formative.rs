@@ -12,6 +12,11 @@ use super::{
 use crate::{
     category::{NominalMode, Version, Vn},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    romanize::{
+        flags::FromTokenFlags,
+        stream::{FromTokenStream, ParseError, TokenStream},
+        token::VowelForm,
+    },
     specificity::{AsGeneral, TryAsSpecific},
     word::formative::{core::FormativeCore, relation::Relation},
 };
@@ -104,7 +109,6 @@ struct FormativeGlossInput<'a> {
     stem: &'a str,
     version: Version,
     slot_vii: String,
-    vn: &'a Vn,
     root_type: RootType,
     additions: &'a GeneralFormativeAdditions,
 }
@@ -115,7 +119,6 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
         stem,
         version,
         slot_vii,
-        vn,
         root_type,
         additions,
     } = data;
@@ -126,35 +129,39 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
         Ca,
     }
 
-    let (shortcut_type, relation, ca, slot_v, function, specification, context) = match additions {
-        GeneralFormativeAdditions::Normal(data) => (
-            ShortcutType::Normal,
-            data.relation,
-            data.ca,
-            data.slot_v_affixes.gloss(flags),
-            data.function,
-            data.specification,
-            data.context,
-        ),
-        GeneralFormativeAdditions::CnShortcut(data) => (
-            ShortcutType::Cn,
-            data.relation.as_general(),
-            Default::default(),
-            String::new(),
-            data.function,
-            data.specification,
-            data.context,
-        ),
-        GeneralFormativeAdditions::CaShortcut(data) => (
-            ShortcutType::Ca,
-            data.relation,
-            data.ca.as_general(),
-            data.slot_v_affixes.gloss(flags),
-            Default::default(),
-            Default::default(),
-            Default::default(),
-        ),
-    };
+    let (shortcut_type, relation, ca, slot_v, function, specification, context, vn) =
+        match additions {
+            GeneralFormativeAdditions::Normal(data) => (
+                ShortcutType::Normal,
+                data.relation,
+                data.ca,
+                data.slot_v_affixes.gloss(flags),
+                data.function,
+                data.specification,
+                data.context,
+                Some(data.vn),
+            ),
+            GeneralFormativeAdditions::CnShortcut(data) => (
+                ShortcutType::Cn,
+                data.relation.as_general(),
+                Default::default(),
+                String::new(),
+                data.function,
+                data.specification,
+                data.context,
+                None,
+            ),
+            GeneralFormativeAdditions::CaShortcut(data) => (
+                ShortcutType::Ca,
+                data.relation,
+                data.ca.as_general(),
+                data.slot_v_affixes.gloss(flags),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Some(data.vn),
+            ),
+        };
 
     let (slot_vi, slot_viii) = match shortcut_type {
         ShortcutType::Normal => (
@@ -168,7 +175,10 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
                 }
             },
             {
-                let mut slot_viii = vn.gloss_non_default(flags);
+                let mut slot_viii = match vn {
+                    Some(vn) => vn.gloss_non_default(flags),
+                    None => "".to_owned(),
+                };
 
                 slot_viii.add_dotted(
                     relation
@@ -183,7 +193,10 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
         ShortcutType::Cn => (relation.mood_or_case_scope().gloss(flags), String::new()),
 
         ShortcutType::Ca => (if slot_v == "" { "" } else { "{Ca}" }.to_owned(), {
-            let mut slot_viii = vn.gloss_non_default(flags);
+            let mut slot_viii = match vn {
+                Some(vn) => vn.gloss_non_default(flags),
+                None => "".to_owned(),
+            };
 
             slot_viii.add_dotted(
                 relation
@@ -332,14 +345,13 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
 
 impl Gloss for Formative {
     fn gloss(&self, flags: GlossFlags) -> String {
-        let (root, stem, version, slot_vii, vn) = match self {
+        let (root, stem, version, slot_vii) = match self {
             Self::Normal(
                 FormativeCore {
                     root,
                     stem,
                     version,
                     slot_vii_affixes,
-                    vn,
                 },
                 _,
             ) => (
@@ -347,7 +359,6 @@ impl Gloss for Formative {
                 stem.gloss_static(flags),
                 *version,
                 slot_vii_affixes.gloss(flags),
-                vn,
             ),
 
             Self::Numeric(
@@ -356,7 +367,6 @@ impl Gloss for Formative {
                     stem,
                     version,
                     slot_vii_affixes,
-                    vn,
                 },
                 _,
             ) => (
@@ -364,7 +374,6 @@ impl Gloss for Formative {
                 stem.gloss_static(flags),
                 *version,
                 slot_vii_affixes.gloss(flags),
-                vn,
             ),
 
             Self::Referential(
@@ -373,7 +382,6 @@ impl Gloss for Formative {
                     stem: _,
                     version,
                     slot_vii_affixes,
-                    vn,
                 },
                 _,
             ) => (
@@ -381,7 +389,6 @@ impl Gloss for Formative {
                 "",
                 *version,
                 slot_vii_affixes.gloss(flags),
-                vn,
             ),
 
             Self::Affixual(
@@ -390,7 +397,6 @@ impl Gloss for Formative {
                     stem: _,
                     version,
                     slot_vii_affixes,
-                    vn,
                 },
                 _,
             ) => (
@@ -398,7 +404,6 @@ impl Gloss for Formative {
                 "",
                 *version,
                 slot_vii_affixes.gloss(flags),
-                vn,
             ),
         };
 
@@ -419,7 +424,6 @@ impl Gloss for Formative {
                 stem,
                 version,
                 slot_vii,
-                vn,
                 root_type,
                 additions: &additions,
             },
@@ -441,8 +445,6 @@ impl Gloss for GeneralFormative {
 
         let slot_vii = self.0.slot_vii_affixes.gloss(flags);
 
-        let vn = &self.0.vn;
-
         let root_type = match self.0.root {
             GeneralFormativeRoot::Normal(_) => RootType::Normal,
             GeneralFormativeRoot::Numeric(_) => RootType::Numeric,
@@ -458,12 +460,31 @@ impl Gloss for GeneralFormative {
                 stem,
                 version,
                 slot_vii,
-                vn,
                 root_type,
                 additions,
             },
             flags,
         )
+    }
+}
+
+impl FromTokenStream for Formative {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        // This function is scary. Be warned.
+
+        // These are all possible formative structures:
+        // 1. ((H)V)CVC(VC...)(VH)(V)
+        // 2. ((H)V)CV(CV...)CC(VC...)(VH)(V)
+        // 3. HVCV(VC...')(VC...)(VH)(V)
+        // 4. ((H)V)CVH(VC...)(V)
+
+        // We'll take care of parsing Vc/Vk first, because it's easy.
+        // We'll leave it as a VowelForm though, because we don't want to interpret it into a Vc or
+        // Vk form until the end of parsing.
+
+        let vc_or_vk: Option<VowelForm> = stream.next_back();
+
+        todo!()
     }
 }
 
@@ -496,7 +517,6 @@ mod tests {
                 stem: Stem::S1,
                 version: Version::PRC,
                 slot_vii_affixes: AffixList::Normal(Vec::new()),
-                vn: Vn::Valence(Valence::MNO),
             },
             NormalFormativeAdditions::Normal(NormalNonShortcutAdditions {
                 relation: relation!(NOM, CCN, THM),
@@ -506,6 +526,7 @@ mod tests {
                 context: Context::EXS,
                 slot_v_affixes: AffixList::Normal(Vec::new()),
                 ca: ca!(),
+                vn: Vn::Valence(Valence::MNO),
             }),
         );
 
@@ -521,7 +542,6 @@ mod tests {
                 stem: Stem::S3,
                 version: Version::CPT,
                 slot_vii_affixes: AffixList::Normal(Vec::new()),
-                vn: Vn::Phase(Phase::FRE),
             },
             NormalFormativeAdditions::Normal(NormalNonShortcutAdditions {
                 relation: relation!(NOM, CCN, ALL),
@@ -531,6 +551,7 @@ mod tests {
                 context: Context::RPS,
                 slot_v_affixes: AffixList::Normal(Vec::new()),
                 ca: ca!(),
+                vn: Vn::Phase(Phase::FRE),
             }),
         );
 

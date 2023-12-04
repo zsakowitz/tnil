@@ -15,9 +15,10 @@ fn test() {
 
     assert_gloss::<Formative>();
     assert_gloss::<GeneralFormative>();
-    assert_gloss::<NormalReferential>();
-    assert_gloss::<SuppletiveReferential>();
-    assert_gloss::<GeneralReferential>();
+
+    assert_is_word::<NormalReferential>();
+    assert_is_word::<SuppletiveReferential>();
+    assert_is_word::<GeneralReferential>();
 
     assert_is_word::<AffixualAdjunct>();
     assert_is_word::<ModularAdjunct>();

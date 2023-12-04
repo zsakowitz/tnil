@@ -78,10 +78,10 @@ pub struct GlottalStop;
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Token {
     /// A consonant form.
-    Consonant(OwnedConsonantForm),
+    C(OwnedConsonantForm),
 
     /// A normal vowel form.
-    Vowel(VowelForm),
+    V(VowelForm),
 
     /// The vowel form -üa-.
     ÜA(ÜA),
@@ -93,7 +93,7 @@ pub enum Token {
     H(HForm),
 
     /// A numeral form.
-    Numeral(NumeralForm),
+    N(NumeralForm),
 
     /// A glottal stop without any corresponding vowels, or a word-final glottal stop.
     GlottalStop,

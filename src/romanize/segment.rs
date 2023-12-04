@@ -23,7 +23,7 @@ use crate::{
 impl TokenType for OwnedConsonantForm {
     fn parse(token: &Token) -> Option<Self> {
         match token {
-            Token::Consonant(value) => Some(value.clone()),
+            Token::C(value) => Some(value.clone()),
             _ => None,
         }
     }
@@ -32,7 +32,7 @@ impl TokenType for OwnedConsonantForm {
 impl TokenType for VowelForm {
     fn parse(token: &Token) -> Option<Self> {
         match token {
-            Token::Vowel(value) => Some(*value),
+            Token::V(value) => Some(*value),
             _ => None,
         }
     }
@@ -86,7 +86,7 @@ impl TokenType for WYForm {
 impl TokenType for NumeralForm {
     fn parse(token: &Token) -> Option<Self> {
         match token {
-            Token::Numeral(value) => Some(*value),
+            Token::N(value) => Some(*value),
             _ => None,
         }
     }
@@ -128,7 +128,7 @@ impl FromTokenStream for Hr {
 impl FromTokenStream for Bias {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Consonant(value)) => match value.0.parse() {
+            Some(Token::C(value)) => match value.0.parse() {
                 Ok(value) => Ok(value),
                 Err(_) => Err(ParseError::ExpectedCb),
             },
@@ -160,7 +160,7 @@ impl FromTokenStream for SuppletiveAdjunctMode {
 impl FromTokenStream for Case {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Vowel(VowelForm {
+            Some(Token::V(VowelForm {
                 has_glottal_stop,
                 sequence,
                 degree,
@@ -196,7 +196,7 @@ impl FromTokenStream for Case {
 impl FromTokenStream for Register {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Vowel(VowelForm {
+            Some(Token::V(VowelForm {
                 has_glottal_stop: false,
                 sequence,
                 degree,
@@ -222,7 +222,7 @@ impl FromTokenStream for Register {
 impl FromTokenStream for Stress {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Vowel(VowelForm {
+            Some(Token::V(VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree,
@@ -244,7 +244,7 @@ impl FromTokenStream for MoodOrCaseScope {
         use VowelFormSequence as S;
 
         match stream.next_any() {
-            Some(Token::Vowel(VowelForm {
+            Some(Token::V(VowelForm {
                 has_glottal_stop: false,
                 sequence,
                 degree,
@@ -383,7 +383,7 @@ pub struct Cm {
 impl FromTokenStream for Cm {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::Consonant(OwnedConsonantForm(source))) => match &source[..] {
+            Some(Token::C(OwnedConsonantForm(source))) => match &source[..] {
                 "n" => Ok(Self { is_aspect: false }),
                 "ň" => Ok(Self { is_aspect: true }),
                 _ => Err(ParseError::ExpectedCm),
@@ -692,5 +692,60 @@ impl FromTokenStream for CsVxCz {
                 },
             },
         })
+    }
+}
+
+/// A case form found at the end of a combination referential.
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Vc2 {
+    /// The case of this Vc2 form.
+    pub case: Option<Case>,
+}
+
+impl FromTokenStream for Vc2 {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        match stream.next_any() {
+            Some(Token::V(VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D1,
+            })) => Ok(Vc2 { case: None }),
+
+            Some(Token::V(VowelForm {
+                has_glottal_stop,
+                sequence,
+                degree,
+            })) if *degree != VowelFormDegree::D0 => {
+                let degree = *degree as u8 - 1;
+                let sequence = 9 * (*sequence as u8);
+                let shift = 36 * (*has_glottal_stop as u8);
+                let mut value = shift + sequence + degree;
+
+                // If permissive mode is enabled, we allow using degree 8 for the RLT, VOC, NAV, and
+                // PLM cases.
+                if flags.matches(FromTokenFlags::PERMISSIVE) {
+                    value = match value {
+                        43 => 44,
+                        52 => 53,
+                        61 => 62,
+                        70 => 71,
+                        _ => value,
+                    }
+                }
+
+                match Case::from_variant(value) {
+                    Some(value) => Ok(Vc2 { case: Some(value) }),
+                    None => Err(ParseError::ExpectedVc2),
+                }
+            }
+
+            Some(Token::ÜA(_)) => Ok(Vc2 {
+                case: Some(Case::THM),
+            }),
+
+            None => Ok(Vc2 { case: None }),
+
+            _ => Err(ParseError::ExpectedVc2),
+        }
     }
 }
