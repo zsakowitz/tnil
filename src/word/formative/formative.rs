@@ -10,15 +10,27 @@ use super::{
     root::GeneralFormativeRoot,
 };
 use crate::{
-    category::{NominalMode, Version, Vn},
+    affix::AffixList,
+    category::{
+        AffixShortcut, ArbitraryMoodOrCaseScope, Ca, Case, Context, Function, HFormDegree,
+        HFormSequence, IllocutionOrValidation, Mood, NominalMode, NormalCaShortcut, Specification,
+        Stem, Stress, Valence, Version, Vn, VowelFormDegree, VowelFormSequence,
+    },
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
         flags::FromTokenFlags,
         stream::{FromTokenStream, ParseError, TokenStream},
-        token::VowelForm,
+        token::{HForm, NumeralForm, OwnedConsonantForm, Token, VowelForm},
     },
-    specificity::{AsGeneral, TryAsSpecific},
-    word::formative::{core::FormativeCore, relation::Relation},
+    specificity::{AsGeneral, AsSpecific, TryAsSpecific},
+    word::formative::{
+        additions::{
+            GeneralCnShortcutAdditions, GeneralNonShortcutAdditions, NormalCaShortcutAdditions,
+        },
+        core::FormativeCore,
+        relation::Relation,
+        root::{AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot},
+    },
 };
 
 /// A formative.
@@ -39,7 +51,7 @@ pub enum Formative {
 
 /// A general formative.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct GeneralFormative(GeneralFormativeCore, GeneralFormativeAdditions);
+pub struct GeneralFormative(pub GeneralFormativeCore, pub GeneralFormativeAdditions);
 
 impl AsGeneral<GeneralFormative> for Formative {
     fn as_general(self) -> GeneralFormative {
@@ -468,7 +480,7 @@ impl Gloss for GeneralFormative {
     }
 }
 
-impl FromTokenStream for Formative {
+impl FromTokenStream for GeneralFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         // This function is scary. Be warned.
 
@@ -484,85 +496,1014 @@ impl FromTokenStream for Formative {
 
         let vc_or_vk: Option<VowelForm> = stream.next_back();
 
-        todo!()
+        // The Cc and Vv slots tell us pretty much everything else about how the word is
+        // constructed. So we'll parse those next. How convenient that they're at the beginning of
+        // the word.
+
+        #[derive(Clone, Copy, Debug)]
+        enum CaShortcutMode {
+            W,
+            Y,
+            None,
+        }
+
+        #[derive(Clone, Copy, Debug)]
+        enum Concatenation {
+            T1,
+            T2,
+            None,
+        }
+
+        // The Cc form gives us the Ca shortcut and concatenation type.
+
+        let (ca_shortcut, concatenation_type, has_cc) = match stream.next() {
+            None => (CaShortcutMode::None, Concatenation::None, false),
+
+            Some(HForm { sequence, degree }) => match (sequence, degree) {
+                (HFormSequence::SW, HFormDegree::D1) => {
+                    (CaShortcutMode::W, Concatenation::None, true)
+                }
+                (HFormSequence::SY, HFormDegree::D1) => {
+                    (CaShortcutMode::Y, Concatenation::None, true)
+                }
+                (HFormSequence::S0, HFormDegree::D1) => {
+                    (CaShortcutMode::None, Concatenation::T1, true)
+                }
+                (HFormSequence::S0, HFormDegree::D2) => {
+                    (CaShortcutMode::W, Concatenation::T1, true)
+                }
+                (HFormSequence::S0, HFormDegree::D3) => {
+                    (CaShortcutMode::W, Concatenation::T2, true)
+                }
+                (HFormSequence::S0, HFormDegree::D4) => {
+                    (CaShortcutMode::Y, Concatenation::T1, true)
+                }
+                (HFormSequence::S0, HFormDegree::D5) => {
+                    (CaShortcutMode::Y, Concatenation::T2, true)
+                }
+                (HFormSequence::SW, HFormDegree::D2) => {
+                    (CaShortcutMode::None, Concatenation::T2, true)
+                }
+                _ => return Err(ParseError::ExpectedCc),
+            },
+        };
+
+        #[derive(Clone, Copy, Debug)]
+        enum RelationType {
+            /// The bool here indicates if the word has cases 37-68.
+            T1(bool),
+
+            /// The bool here indicates if the word has cases 37-68.
+            T2(bool),
+
+            Nominal,
+            Verbal,
+            Framed,
+        }
+
+        // Now we have enough information to figure out the relation of the word.
+
+        let relation_type = match concatenation_type {
+            Concatenation::None => match stream.stress() {
+                Some(Stress::Ultimate) => RelationType::Verbal,
+                Some(Stress::Antepenultimate) => RelationType::Framed,
+                _ => RelationType::Nominal,
+            },
+
+            Concatenation::T1 => match stream.stress() {
+                Some(Stress::Ultimate) => RelationType::T1(true),
+                Some(Stress::Antepenultimate) => {
+                    if flags.matches(FromTokenFlags::PERMISSIVE) {
+                        RelationType::T1(false)
+                    } else {
+                        return Err(ParseError::AntepenultimateStress);
+                    }
+                }
+                _ => RelationType::T1(false),
+            },
+
+            Concatenation::T2 => match stream.stress() {
+                Some(Stress::Ultimate) => RelationType::T2(true),
+                Some(Stress::Antepenultimate) => {
+                    if flags.matches(FromTokenFlags::PERMISSIVE) {
+                        RelationType::T2(false)
+                    } else {
+                        return Err(ParseError::AntepenultimateStress);
+                    }
+                }
+                _ => RelationType::T2(false),
+            },
+        };
+
+        // If we parse the Vv form too early, we'll be stuck having to deal with enum variants and
+        // stuff. So we'll just capture it for now, detect the word type, and leave it for later.
+
+        let vv: VowelForm = if has_cc {
+            stream.next().ok_or(ParseError::ExpectedVv)?
+        } else {
+            stream.next().unwrap_or_default()
+        };
+
+        #[derive(Clone, Copy, Debug)]
+        enum WordType {
+            NormalOrNumeric {
+                version: Version,
+                stem: Stem,
+                sequence: VowelFormSequence,
+            },
+            Referential {
+                version: Version,
+            },
+            Affixual {
+                version: Version,
+                function: Function,
+            },
+        }
+
+        let word_type = match vv {
+            VowelForm {
+                has_glottal_stop: _,
+                sequence,
+                degree: VowelFormDegree::D5,
+            } => WordType::Affixual {
+                version: match sequence {
+                    VowelFormSequence::S1 | VowelFormSequence::S3 => Version::PRC,
+                    VowelFormSequence::S2 | VowelFormSequence::S4 => Version::CPT,
+                },
+                function: match sequence {
+                    VowelFormSequence::S1 | VowelFormSequence::S2 => Function::STA,
+                    VowelFormSequence::S3 | VowelFormSequence::S4 => Function::DYN,
+                },
+            },
+            VowelForm {
+                has_glottal_stop: _,
+                sequence,
+                degree: VowelFormDegree::D0,
+            } => WordType::Referential {
+                version: match sequence {
+                    VowelFormSequence::S1 => Version::PRC,
+                    VowelFormSequence::S2 => Version::CPT,
+                    VowelFormSequence::S3 | VowelFormSequence::S4 => {
+                        return Err(ParseError::ExpectedVv)
+                    }
+                },
+            },
+            VowelForm {
+                has_glottal_stop: _,
+                sequence,
+                degree,
+            } => WordType::NormalOrNumeric {
+                version: match degree {
+                    VowelFormDegree::D1
+                    | VowelFormDegree::D3
+                    | VowelFormDegree::D7
+                    | VowelFormDegree::D9 => Version::PRC,
+                    VowelFormDegree::D2
+                    | VowelFormDegree::D4
+                    | VowelFormDegree::D6
+                    | VowelFormDegree::D8 => Version::CPT,
+                    _ => unreachable!("we caught degrees 5 and 0 in earlier match arms"),
+                },
+                stem: match degree {
+                    VowelFormDegree::D1 | VowelFormDegree::D2 => Stem::S1,
+                    VowelFormDegree::D3 | VowelFormDegree::D4 => Stem::S2,
+                    VowelFormDegree::D9 | VowelFormDegree::D8 => Stem::S3,
+                    VowelFormDegree::D7 | VowelFormDegree::D6 => Stem::S0,
+                    _ => unreachable!("we caught degrees 5 and 0 in earlier match arms"),
+                },
+                sequence,
+            },
+        };
+
+        if !matches!(ca_shortcut, CaShortcutMode::None)
+            && matches!(word_type, WordType::Affixual { .. })
+        {
+            return Err(ParseError::AffixualFormativeWithCaShortcut);
+        }
+
+        #[derive(Debug)]
+        enum Root {
+            C(OwnedConsonantForm),
+            N(NumeralForm),
+        }
+
+        // Again, we'll leave these unparsed for now.
+
+        let root = match stream.next_any() {
+            Some(Token::C(value)) => Root::C(value.clone()),
+            Some(Token::N(value)) => {
+                if !matches!(word_type, WordType::NormalOrNumeric { .. }) {
+                    return Err(ParseError::ExpectedNonNumericRoot);
+                }
+
+                Root::N(*value)
+            }
+            _ => return Err(ParseError::ExpectedRoot),
+        };
+
+        // Still leaving it unparsed.
+
+        let vr: Option<VowelForm> = match ca_shortcut {
+            CaShortcutMode::None => Some(stream.next().ok_or(ParseError::ExpectedVr)?),
+            _ => None,
+        };
+
+        // Now we've collected Cc, Vv, Cr, and Vr. That's the easy part done, and we can piece
+        // together most of the formative now.
+        //
+        // We still need to get slots V, VI, VII, and VIII, but we'll do that later in case there's
+        // an early error in the first four slots.
+        //
+        // The slots provide these values:
+        // Cc = concatenation type, Ca shortcut type
+        // Vv =
+        //      normal: stem, version, affix shortcut, Ca shortcut index
+        //    referent: version
+        //    affixual: version, function
+        // Cr = root
+        // Vr =
+        //      normal: specification, function, context
+        //    referent: specification, function, context
+        //    affixual: degree, context
+        // [stress] = relation
+
+        enum Shortcut {
+            None(Option<AffixShortcut>),
+            Ca(NormalCaShortcut),
+        }
+
+        let does_vv_have_glottal_stop = vv.has_glottal_stop;
+        let does_vr_have_glottal_stop = vr.map(|x| x.has_glottal_stop).unwrap_or_default();
+
+        let (stem, version, shortcut, specification, function, context, root) = match word_type {
+            WordType::NormalOrNumeric {
+                version,
+                stem,
+                sequence,
+            } => (
+                Some(stem),
+                version,
+                match ca_shortcut {
+                    CaShortcutMode::None => Shortcut::None(match sequence {
+                        VowelFormSequence::S1 => Some(AffixShortcut::None),
+                        VowelFormSequence::S2 => Some(AffixShortcut::NEG4),
+                        VowelFormSequence::S3 => Some(AffixShortcut::DCD4),
+                        VowelFormSequence::S4 => Some(AffixShortcut::DCD5),
+                    }),
+                    CaShortcutMode::W => Shortcut::Ca(match sequence {
+                        VowelFormSequence::S1 => NormalCaShortcut::Default,
+                        VowelFormSequence::S2 => NormalCaShortcut::G,
+                        VowelFormSequence::S3 => NormalCaShortcut::N,
+                        VowelFormSequence::S4 => NormalCaShortcut::G_RPV,
+                    }),
+                    CaShortcutMode::Y => Shortcut::Ca(match sequence {
+                        VowelFormSequence::S1 => NormalCaShortcut::PRX,
+                        VowelFormSequence::S2 => NormalCaShortcut::RPV,
+                        VowelFormSequence::S3 => NormalCaShortcut::A,
+                        VowelFormSequence::S4 => NormalCaShortcut::PRX_RPV,
+                    }),
+                },
+                Some(match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
+                        VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
+                        VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
+                        VowelFormDegree::D1 | VowelFormDegree::D9 => Specification::BSC,
+                        VowelFormDegree::D2 | VowelFormDegree::D8 => Specification::CTE,
+                        VowelFormDegree::D3 | VowelFormDegree::D7 => Specification::CSV,
+                        VowelFormDegree::D4 | VowelFormDegree::D6 => Specification::OBJ,
+                    },
+                    _ => Specification::BSC,
+                }),
+                match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
+                        VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
+                        VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
+                        VowelFormDegree::D1
+                        | VowelFormDegree::D2
+                        | VowelFormDegree::D3
+                        | VowelFormDegree::D4 => Function::STA,
+                        VowelFormDegree::D6
+                        | VowelFormDegree::D7
+                        | VowelFormDegree::D8
+                        | VowelFormDegree::D9 => Function::DYN,
+                    },
+                    _ => Function::STA,
+                },
+                match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.sequence {
+                        VowelFormSequence::S1 => Context::EXS,
+                        VowelFormSequence::S2 => Context::FNC,
+                        VowelFormSequence::S3 => Context::RPS,
+                        VowelFormSequence::S4 => Context::AMG,
+                    },
+                    _ => Context::EXS,
+                },
+                match root {
+                    Root::C(cr) => GeneralFormativeRoot::Normal(NormalFormativeRoot { cr: cr.0 }),
+                    Root::N(n) => GeneralFormativeRoot::Numeric(NumericFormativeRoot {
+                        integer_part: n.integer_part,
+                    }),
+                },
+            ),
+
+            WordType::Referential { version } => (
+                None,
+                version,
+                Shortcut::None(None),
+                Some(match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
+                        VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
+                        VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
+                        VowelFormDegree::D1 | VowelFormDegree::D9 => Specification::BSC,
+                        VowelFormDegree::D2 | VowelFormDegree::D8 => Specification::CTE,
+                        VowelFormDegree::D3 | VowelFormDegree::D7 => Specification::CSV,
+                        VowelFormDegree::D4 | VowelFormDegree::D6 => Specification::OBJ,
+                    },
+                    _ => Specification::BSC,
+                }),
+                match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
+                        VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
+                        VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
+                        VowelFormDegree::D1
+                        | VowelFormDegree::D2
+                        | VowelFormDegree::D3
+                        | VowelFormDegree::D4 => Function::STA,
+                        VowelFormDegree::D6
+                        | VowelFormDegree::D7
+                        | VowelFormDegree::D8
+                        | VowelFormDegree::D9 => Function::DYN,
+                    },
+                    _ => Function::STA,
+                },
+                match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.sequence {
+                        VowelFormSequence::S1 => Context::EXS,
+                        VowelFormSequence::S2 => Context::FNC,
+                        VowelFormSequence::S3 => Context::RPS,
+                        VowelFormSequence::S4 => Context::AMG,
+                    },
+                    _ => Context::EXS,
+                },
+                match root {
+                    Root::C(cr) => GeneralFormativeRoot::Referential(cr.parse()?),
+                    Root::N(_) => return Err(ParseError::ExpectedReferentialRoot),
+                },
+            ),
+
+            WordType::Affixual { version, function } => (
+                None,
+                version,
+                Shortcut::None(None),
+                None,
+                function,
+                match ca_shortcut {
+                    CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.sequence {
+                        VowelFormSequence::S1 => Context::EXS,
+                        VowelFormSequence::S2 => Context::FNC,
+                        VowelFormSequence::S3 => Context::RPS,
+                        VowelFormSequence::S4 => Context::AMG,
+                    },
+                    _ => return Err(ParseError::AffixualFormativeWithCaShortcut),
+                },
+                match root {
+                    Root::C(cr) => GeneralFormativeRoot::Affixual(AffixualFormativeRoot {
+                        cs: cr.0,
+                        degree: vr.ok_or(ParseError::ExpectedVr)?.degree.into(),
+                    }),
+                    Root::N(_) => return Err(ParseError::ExpectedReferentialRoot),
+                },
+            ),
+        };
+
+        // We've officially completed the easy part of parsing.
+        //
+        // There are now quite a few options left for how the token stream can be parsed.
+        //
+        // For formatives with Ca shortcuts, there is only one option:
+        // 1. (VC...')(VC...)(VH)     (slot V affixes, then slot VII affixes, then VnCn)
+        //
+        // For other formatives, there are several choices:
+        // 1. C(VC...)(VH)            (an ungeminated Ca, then slot VII affixes, then VnCn)
+        // 2. (CV...)CC(VC...)(VH)    (slot V affixes, then a geminated Ca, then VnCn)
+        // 3. H(VC...)                (a Cn shortcut, then slot VII affixes)
+        //
+        // Time to get to work!
+
+        enum VnCn {
+            VnCn(Vn, ArbitraryMoodOrCaseScope),
+            JustCn(ArbitraryMoodOrCaseScope),
+            Nothing,
+        }
+
+        let (vncn, does_vn_have_glottal_stop) = match stream.next_back::<HForm>() {
+            Some(cn) => match stream.next_back_any() {
+                Some(Token::V(vn)) => {
+                    let is_aspect = matches!(cn.sequence, HFormSequence::SW | HFormSequence::SY);
+
+                    let cn = match cn.degree {
+                        HFormDegree::D1 => ArbitraryMoodOrCaseScope::FAC_CCN,
+                        HFormDegree::D2 => ArbitraryMoodOrCaseScope::SUB_CCA,
+                        HFormDegree::D3 => ArbitraryMoodOrCaseScope::ASM_CCS,
+                        HFormDegree::D4 => ArbitraryMoodOrCaseScope::SPC_CCQ,
+                        HFormDegree::D5 => ArbitraryMoodOrCaseScope::COU_CCP,
+                        HFormDegree::D6 => ArbitraryMoodOrCaseScope::HYP_CCV,
+                    };
+
+                    (
+                        VnCn::VnCn(
+                            Vn::from_vowel_form(*vn, is_aspect).ok_or(ParseError::ExpectedVn)?,
+                            cn,
+                        ),
+                        vn.has_glottal_stop,
+                    )
+                }
+                None => (
+                    VnCn::JustCn(match cn.sequence {
+                        HFormSequence::S0 => match cn.degree {
+                            HFormDegree::D1 => return Err(ParseError::DefaultCnShortcut),
+                            HFormDegree::D2 => ArbitraryMoodOrCaseScope::SUB_CCA,
+                            HFormDegree::D3 => ArbitraryMoodOrCaseScope::ASM_CCS,
+                            HFormDegree::D4 => ArbitraryMoodOrCaseScope::SPC_CCQ,
+                            HFormDegree::D5 => ArbitraryMoodOrCaseScope::COU_CCP,
+                            HFormDegree::D6 => ArbitraryMoodOrCaseScope::HYP_CCV,
+                        },
+                        _ => return Err(ParseError::AspectualCnShortcut),
+                    }),
+                    false,
+                ),
+                _ => return Err(ParseError::ExpectedVn),
+            },
+            None => (VnCn::Nothing, false),
+        };
+
+        let mut does_vx_have_glottal_stop = false;
+
+        enum MiddleSegments<AffixListType> {
+            Normal {
+                slot_v_affixes: AffixListType,
+                ca: Ca,
+                slot_vii_affixes: AffixListType,
+                vncn: Option<(Vn, ArbitraryMoodOrCaseScope)>,
+                affix_shortcut: Option<AffixShortcut>,
+            },
+
+            Ca {
+                ca: NormalCaShortcut,
+                slot_v_affixes: AffixListType,
+                slot_vii_affixes: AffixListType,
+                vncn: Option<(Vn, ArbitraryMoodOrCaseScope)>,
+            },
+
+            Cn {
+                cn: ArbitraryMoodOrCaseScope,
+                slot_vii_affixes: AffixListType,
+                affix_shortcut: Option<AffixShortcut>,
+            },
+        }
+
+        type UnparsedMiddleSegments = MiddleSegments<Vec<(VowelForm, OwnedConsonantForm)>>;
+
+        let middle: UnparsedMiddleSegments = match shortcut {
+            Shortcut::Ca(ca) => {
+                let vncn = match vncn {
+                    VnCn::Nothing => None,
+                    VnCn::JustCn(_) => return Err(ParseError::ExpectedVn),
+                    VnCn::VnCn(vn, cn) => Some((vn, cn)),
+                };
+
+                let mut slot_v_affixes = Vec::new();
+                let mut slot_vii_affixes = Vec::new();
+
+                loop {
+                    match stream.next_any() {
+                        None => break,
+                        Some(Token::V(vx)) => {
+                            let vx = *vx;
+                            match stream.next_any() {
+                                Some(Token::C(cs)) => {
+                                    slot_vii_affixes.push((vx, cs.clone()));
+
+                                    if cs.is_geminate() {
+                                        return Err(ParseError::GeminatedCs);
+                                    }
+
+                                    if vx.has_glottal_stop {
+                                        if slot_v_affixes.is_empty() {
+                                            slot_v_affixes = slot_vii_affixes;
+                                            slot_vii_affixes = Vec::new();
+                                        } else {
+                                            return Err(ParseError::MultipleEndOfSlotVMarkers);
+                                        }
+                                    }
+                                }
+                                _ => return Err(ParseError::ExpectedCs),
+                            }
+                        }
+                        _ => return Err(ParseError::ExpectedVx),
+                    }
+                }
+
+                MiddleSegments::Ca {
+                    ca,
+                    slot_v_affixes,
+                    slot_vii_affixes,
+                    vncn,
+                }
+            }
+
+            Shortcut::None(affix_shortcut) => {
+                if let VnCn::JustCn(cn) = vncn {
+                    MiddleSegments::Cn {
+                        cn,
+                        slot_vii_affixes: Vec::new(),
+                        affix_shortcut,
+                    }
+                } else {
+                    // Quick reminder of possible forms at this point:
+                    // 1. C(VC...)            (an ungeminated Ca, then slot VII affixes)
+                    // 2. (CV...)CC(VC...)    (slot V affixes, then a geminated Ca)
+                    // 3. H(VC...)            (a Cn shortcut, then slot VII affixes)
+
+                    if let Some(HForm { sequence, degree }) = stream.next() {
+                        if sequence != HFormSequence::S0 {
+                            return Err(ParseError::AspectualCnShortcut);
+                        }
+
+                        let cn = match degree {
+                            HFormDegree::D1 => return Err(ParseError::DefaultCnShortcut),
+                            HFormDegree::D2 => ArbitraryMoodOrCaseScope::SUB_CCA,
+                            HFormDegree::D3 => ArbitraryMoodOrCaseScope::ASM_CCS,
+                            HFormDegree::D4 => ArbitraryMoodOrCaseScope::SPC_CCQ,
+                            HFormDegree::D5 => ArbitraryMoodOrCaseScope::COU_CCP,
+                            HFormDegree::D6 => ArbitraryMoodOrCaseScope::HYP_CCV,
+                        };
+
+                        let mut slot_vii_affixes = Vec::new();
+
+                        loop {
+                            match stream.next_any() {
+                                None => break,
+                                Some(Token::V(vx)) => {
+                                    let vx = *vx;
+                                    match stream.next_any() {
+                                        Some(Token::C(cs)) => {
+                                            slot_vii_affixes.push((vx, cs.clone()));
+
+                                            if cs.is_geminate() {
+                                                return Err(ParseError::GeminatedCs);
+                                            }
+
+                                            if vx.has_glottal_stop {
+                                                if does_vx_have_glottal_stop {
+                                                    return Err(ParseError::DoublyGlottalizedVx);
+                                                } else {
+                                                    does_vx_have_glottal_stop = true;
+                                                }
+                                            }
+                                        }
+                                        _ => return Err(ParseError::ExpectedCs),
+                                    }
+                                }
+                                _ => return Err(ParseError::ExpectedVx),
+                            }
+                        }
+
+                        MiddleSegments::Cn {
+                            cn,
+                            slot_vii_affixes,
+                            affix_shortcut,
+                        }
+                    } else {
+                        if stream
+                            .remaining_tokens()
+                            .iter()
+                            .any(|x| matches!(x, Token::C(cs) if cs.is_geminate()))
+                        {
+                            let mut slot_v_affixes = Vec::new();
+
+                            'outer: loop {
+                                match stream.next_any() {
+                                    Some(Token::C(cs)) => {
+                                        let cs = cs.clone();
+
+                                        if cs.is_geminate() {
+                                            let ca = Ca::from_geminated_string(&cs)
+                                                .ok_or(ParseError::ExpectedCa)?;
+
+                                            let mut slot_vii_affixes = Vec::new();
+
+                                            // Do we really have 11 levels of nesting? So proud /hj
+
+                                            loop {
+                                                match stream.next_any() {
+                                                    None => {
+                                                        break 'outer MiddleSegments::Normal {
+                                                            slot_v_affixes,
+                                                            ca,
+                                                            slot_vii_affixes,
+                                                            vncn: match vncn {
+                                                                VnCn::VnCn(vn, cn) => {
+                                                                    Some((vn, cn))
+                                                                }
+                                                                VnCn::JustCn(_) => unreachable!(
+                                                                    // 68 indent characters?
+                                                                    // New world record!
+                                                                    "we caught this already"
+                                                                ),
+                                                                VnCn::Nothing => None,
+                                                            },
+                                                            affix_shortcut,
+                                                        };
+                                                    }
+
+                                                    Some(Token::V(vx)) => {
+                                                        let vx = *vx;
+
+                                                        let cs: OwnedConsonantForm = stream
+                                                            .next::<OwnedConsonantForm>()
+                                                            .ok_or(ParseError::ExpectedCs)?
+                                                            .clone();
+
+                                                        if cs.is_geminate() {
+                                                            return Err(ParseError::GeminatedCs);
+                                                        }
+
+                                                        if vx.has_glottal_stop {
+                                                            if does_vx_have_glottal_stop {
+                                                                return Err(
+                                                                    ParseError::DoublyGlottalizedVx,
+                                                                );
+                                                            } else {
+                                                                does_vx_have_glottal_stop = true;
+                                                            }
+                                                        }
+
+                                                        slot_vii_affixes.push((vx, cs));
+                                                    }
+
+                                                    _ => return Err(ParseError::ExpectedVx),
+                                                }
+                                            }
+                                        } else {
+                                            let vx: VowelForm =
+                                                stream.next().ok_or(ParseError::ExpectedVx)?;
+
+                                            if vx.has_glottal_stop {
+                                                if does_vx_have_glottal_stop {
+                                                    return Err(ParseError::DoublyGlottalizedVx);
+                                                } else {
+                                                    does_vx_have_glottal_stop = true;
+                                                }
+                                            }
+
+                                            slot_v_affixes.push((vx, cs));
+                                        }
+                                    }
+                                    _ => return Err(ParseError::ExpectedCs),
+                                }
+                            }
+                        } else {
+                            let ca: OwnedConsonantForm =
+                                stream.next().ok_or(ParseError::ExpectedCa)?;
+
+                            let ca =
+                                Ca::from_ungeminated_string(&ca).ok_or(ParseError::ExpectedCa)?;
+
+                            let mut slot_vii_affixes = Vec::new();
+
+                            loop {
+                                match stream.next_any() {
+                                    None => break,
+                                    Some(Token::V(vx)) => {
+                                        let vx = *vx;
+                                        match stream.next_any() {
+                                            Some(Token::C(cs)) => {
+                                                slot_vii_affixes.push((vx, cs.clone()));
+
+                                                if cs.is_geminate() {
+                                                    return Err(ParseError::GeminatedCs);
+                                                }
+
+                                                if vx.has_glottal_stop {
+                                                    if does_vx_have_glottal_stop {
+                                                        return Err(
+                                                            ParseError::DoublyGlottalizedVx,
+                                                        );
+                                                    } else {
+                                                        does_vx_have_glottal_stop = true;
+                                                    }
+                                                }
+                                            }
+                                            _ => return Err(ParseError::ExpectedCs),
+                                        }
+                                    }
+                                    _ => return Err(ParseError::ExpectedVx),
+                                }
+                            }
+
+                            MiddleSegments::Normal {
+                                slot_v_affixes: Vec::new(),
+                                ca,
+                                slot_vii_affixes,
+                                vncn: match vncn {
+                                    VnCn::VnCn(vn, cn) => Some((vn, cn)),
+                                    VnCn::JustCn(_) => unreachable!("we caught this already"),
+                                    VnCn::Nothing => None,
+                                },
+                                affix_shortcut,
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Time to parse affixes.
+
+        type ParsedMiddleSegments = MiddleSegments<AffixList>;
+
+        let middle_parsed: ParsedMiddleSegments = match middle {
+            MiddleSegments::Normal {
+                slot_v_affixes,
+                ca,
+                slot_vii_affixes,
+                vncn,
+                affix_shortcut,
+            } => MiddleSegments::Normal {
+                slot_v_affixes: {
+                    let slot_v_affixes = AffixList::from_vxcs_slice(&slot_v_affixes)?;
+
+                    if !flags.matches(FromTokenFlags::PERMISSIVE) {
+                        if does_vv_have_glottal_stop {
+                            if slot_v_affixes.len() <= 1 {
+                                return Err(ParseError::TooFewSlotVAffixes);
+                            }
+                        } else {
+                            if slot_v_affixes.len() > 1 {
+                                return Err(ParseError::TooManySlotVAffixes);
+                            }
+                        }
+                    }
+
+                    slot_v_affixes
+                },
+                ca,
+                slot_vii_affixes: AffixList::from_vxcs_slice(&slot_vii_affixes)?,
+                vncn,
+                affix_shortcut,
+            },
+
+            MiddleSegments::Ca {
+                ca,
+                slot_v_affixes,
+                slot_vii_affixes,
+                vncn,
+            } => MiddleSegments::Ca {
+                ca,
+                slot_v_affixes: {
+                    let slot_v_affixes = AffixList::from_vxcs_slice(&slot_v_affixes)?;
+
+                    if !flags.matches(FromTokenFlags::PERMISSIVE) {
+                        if does_vv_have_glottal_stop {
+                            if slot_v_affixes.len() <= 1 {
+                                return Err(ParseError::TooFewSlotVAffixes);
+                            }
+                        } else {
+                            if slot_v_affixes.len() > 1 {
+                                return Err(ParseError::TooManySlotVAffixes);
+                            }
+                        }
+                    }
+
+                    slot_v_affixes
+                },
+                slot_vii_affixes: AffixList::from_vxcs_slice(&slot_vii_affixes)?,
+                vncn,
+            },
+
+            MiddleSegments::Cn {
+                cn,
+                slot_vii_affixes,
+                affix_shortcut,
+            } => MiddleSegments::Cn {
+                cn,
+                slot_vii_affixes: AffixList::from_vxcs_slice(&slot_vii_affixes)?,
+                affix_shortcut,
+            },
+        };
+
+        // We're free! Now we just have to put everything together
+
+        let (additions, slot_vii_affixes) = match middle_parsed {
+            MiddleSegments::Normal {
+                slot_v_affixes,
+                ca,
+                slot_vii_affixes,
+                vncn,
+                affix_shortcut,
+            } => (
+                GeneralFormativeAdditions::Normal(GeneralNonShortcutAdditions {
+                    relation: match relation_type {
+                        RelationType::Verbal => Relation::Verbal {
+                            mood: match vncn {
+                                Some(vncn) => vncn.1.as_specific(),
+                                _ => Mood::FAC,
+                            },
+                            ivl: {
+                                let mut vk = vc_or_vk.unwrap_or_default();
+                                vk.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                IllocutionOrValidation::from_vk(vk)?
+                            },
+                        },
+                        _ => Relation::Nominal {
+                            mode: match relation_type {
+                                RelationType::Nominal => NominalMode::NOM,
+                                RelationType::T1(_) => NominalMode::T1,
+                                RelationType::T2(_) => NominalMode::T2,
+                                RelationType::Framed => NominalMode::FRM,
+                                RelationType::Verbal => unreachable!(),
+                            },
+                            case_scope: vncn.map(|x| x.1.as_specific()).unwrap_or_default(),
+                            case: match relation_type {
+                                RelationType::Nominal | RelationType::Framed => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::T1(is_high) | RelationType::T2(is_high) => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    if vc.has_glottal_stop {
+                                        return Err(ParseError::GlottalizedVc);
+                                    }
+                                    vc.has_glottal_stop = is_high;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::Verbal => unreachable!(),
+                            },
+                        },
+                    },
+                    affix_shortcut,
+                    function,
+                    specification,
+                    context,
+                    slot_v_affixes,
+                    ca,
+                    vn: match vncn {
+                        Some(vncn) => vncn.0,
+                        _ => Vn::Valence(Valence::MNO),
+                    },
+                }),
+                slot_vii_affixes,
+            ),
+
+            MiddleSegments::Cn {
+                cn,
+                slot_vii_affixes,
+                affix_shortcut,
+            } => (
+                GeneralFormativeAdditions::CnShortcut(GeneralCnShortcutAdditions {
+                    relation: match relation_type {
+                        RelationType::Verbal => Relation::Verbal {
+                            mood: cn
+                                .try_as_specific()
+                                .ok_or(ParseError::ExpectedNonDefaultCn)?,
+                            ivl: {
+                                let mut vk = vc_or_vk.unwrap_or_default();
+                                vk.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                IllocutionOrValidation::from_vk(vk)?
+                            },
+                        },
+                        _ => Relation::Nominal {
+                            mode: match relation_type {
+                                RelationType::Nominal => NominalMode::NOM,
+                                RelationType::T1(_) => NominalMode::T1,
+                                RelationType::T2(_) => NominalMode::T2,
+                                RelationType::Framed => NominalMode::FRM,
+                                RelationType::Verbal => unreachable!(),
+                            },
+                            case_scope: cn
+                                .try_as_specific()
+                                .ok_or(ParseError::ExpectedNonDefaultCn)?,
+                            case: match relation_type {
+                                RelationType::Nominal | RelationType::Framed => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::T1(is_high) | RelationType::T2(is_high) => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    if vc.has_glottal_stop {
+                                        return Err(ParseError::GlottalizedVc);
+                                    }
+                                    vc.has_glottal_stop = is_high;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::Verbal => unreachable!(),
+                            },
+                        },
+                    },
+                    affix_shortcut,
+                    function,
+                    specification,
+                    context,
+                }),
+                slot_vii_affixes,
+            ),
+
+            MiddleSegments::Ca {
+                ca,
+                slot_v_affixes,
+                slot_vii_affixes,
+                vncn,
+            } => (
+                GeneralFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
+                    relation: match relation_type {
+                        RelationType::Verbal => Relation::Verbal {
+                            mood: match vncn {
+                                Some(vncn) => vncn.1.as_specific(),
+                                _ => Mood::FAC,
+                            },
+                            ivl: {
+                                let mut vk = vc_or_vk.unwrap_or_default();
+                                vk.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                vk.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                IllocutionOrValidation::from_vk(vk)?
+                            },
+                        },
+                        _ => Relation::Nominal {
+                            mode: match relation_type {
+                                RelationType::Nominal => NominalMode::NOM,
+                                RelationType::T1(_) => NominalMode::T1,
+                                RelationType::T2(_) => NominalMode::T2,
+                                RelationType::Framed => NominalMode::FRM,
+                                RelationType::Verbal => unreachable!(),
+                            },
+                            case_scope: vncn.map(|x| x.1.as_specific()).unwrap_or_default(),
+                            case: match relation_type {
+                                RelationType::Nominal | RelationType::Framed => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::T1(is_high) | RelationType::T2(is_high) => {
+                                    let mut vc = vc_or_vk.unwrap_or_default();
+                                    vc.merge_vcvk_glottal_stop(does_vr_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vx_have_glottal_stop)?;
+                                    vc.merge_vcvk_glottal_stop(does_vn_have_glottal_stop)?;
+                                    if vc.has_glottal_stop {
+                                        return Err(ParseError::GlottalizedVc);
+                                    }
+                                    vc.has_glottal_stop = is_high;
+                                    Case::from_vc(vc)?
+                                }
+                                RelationType::Verbal => unreachable!(),
+                            },
+                        },
+                    },
+                    slot_v_affixes,
+                    ca,
+                    vn: vncn.map(|x| x.0).unwrap_or_default(),
+                }),
+                slot_vii_affixes,
+            ),
+        };
+
+        Ok(GeneralFormative(
+            GeneralFormativeCore {
+                root,
+                slot_vii_affixes,
+                stem,
+                version,
+            },
+            additions,
+        ))
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{
-        affix::AffixList,
-        ca,
-        category::{
-            AffixShortcut, Context, Function, Phase, Specification, Stem, Valence, Version, Vn,
-        },
-        gloss::{Gloss, GlossFlags},
-        relation,
-        word::formative::{
-            additions::{NormalFormativeAdditions, NormalNonShortcutAdditions},
-            core::NormalFormativeCore,
-            root::NormalFormativeRoot,
-        },
-    };
+impl FromTokenStream for Formative {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let general: GeneralFormative = stream.parse(flags)?;
 
-    use super::Formative;
-
-    #[test]
-    fn glosses() {
-        let formative = Formative::Normal(
-            NormalFormativeCore {
-                root: NormalFormativeRoot {
-                    cr: "rr".to_string(),
-                },
-                stem: Stem::S1,
-                version: Version::PRC,
-                slot_vii_affixes: AffixList::Normal(Vec::new()),
-            },
-            NormalFormativeAdditions::Normal(NormalNonShortcutAdditions {
-                relation: relation!(NOM, CCN, THM),
-                affix_shortcut: AffixShortcut::None,
-                function: Function::STA,
-                specification: Specification::BSC,
-                context: Context::EXS,
-                slot_v_affixes: AffixList::Normal(Vec::new()),
-                ca: ca!(),
-                vn: Vn::Valence(Valence::MNO),
-            }),
-        );
-
-        let gloss = formative.gloss(GlossFlags::NONE);
-
-        assert_eq!(gloss, "S1-rr");
-
-        let formative = Formative::Normal(
-            NormalFormativeCore {
-                root: NormalFormativeRoot {
-                    cr: "rr".to_string(),
-                },
-                stem: Stem::S3,
-                version: Version::CPT,
-                slot_vii_affixes: AffixList::Normal(Vec::new()),
-            },
-            NormalFormativeAdditions::Normal(NormalNonShortcutAdditions {
-                relation: relation!(NOM, CCN, ALL),
-                affix_shortcut: AffixShortcut::None,
-                function: Function::STA,
-                specification: Specification::CTE,
-                context: Context::RPS,
-                slot_v_affixes: AffixList::Normal(Vec::new()),
-                ca: ca!(),
-                vn: Vn::Phase(Phase::FRE),
-            }),
-        );
-
-        let gloss = formative.gloss(GlossFlags::NONE);
-        let gloss_with_defaults = formative.gloss(GlossFlags::SHOW_DEFAULTS);
-
-        assert_eq!(gloss, "CPT.S3-rr-CTE.RPS-FRE-ALL");
-
-        assert_eq!(
-            gloss_with_defaults,
-            "CPT.S3-rr-STA.CTE.RPS-CSL.UPX.DEL.M.NRM-FRE.CCN-ALL\\UNF"
-        );
+        general
+            .try_as_specific()
+            .ok_or(ParseError::InvalidFormative)
     }
 }

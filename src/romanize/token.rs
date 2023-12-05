@@ -1,6 +1,7 @@
 //! Contains types for various tokens.
 
 pub use super::consonant::*;
+use super::stream::ParseError;
 use crate::category::{HFormDegree, HFormSequence, VowelFormDegree, VowelFormSequence};
 use std::{
     error::Error,
@@ -110,6 +111,23 @@ impl fmt::Display for ParseVowelFormError {
 }
 
 impl Error for ParseVowelFormError {}
+
+impl VowelForm {
+    /// Merges a glottal stop into this [`VowelForm`], returning the
+    /// [`ParseError::DoublyGlottalizedFormative`] error if two glottal stops are indicated.
+    pub fn merge_vcvk_glottal_stop(&mut self, has_glottal_stop: bool) -> Result<(), ParseError> {
+        if has_glottal_stop {
+            if self.has_glottal_stop {
+                Err(ParseError::DoublyGlottalizedFormative)
+            } else {
+                self.has_glottal_stop = true;
+                Ok(())
+            }
+        } else {
+            Ok(())
+        }
+    }
+}
 
 impl FromStr for VowelForm {
     type Err = ParseVowelFormError;

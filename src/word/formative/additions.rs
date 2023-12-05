@@ -3,7 +3,10 @@
 use super::relation::{NonDefaultRelation, NormalRelation};
 use crate::{
     affix::AffixList,
-    category::{AffixShortcut, Ca, CaShortcut, Context, Function, Specification, Vn},
+    category::{
+        AffixShortcut, Ca, Context, Function, NormalCaShortcut, ReferentialCaShortcut,
+        Specification, Vn,
+    },
     specificity::{AsGeneral, TryAsSpecific},
 };
 use paste::paste;
@@ -71,7 +74,7 @@ pub struct CnShortcutAdditions<AffixShortcutType, SpecificationType> {
 /// Additions for normal and numeric Cn-shortcut formatives.
 pub type NormalCnShortcutAdditions = CnShortcutAdditions<AffixShortcut, Specification>;
 
-/// Additions for referential non-shortcut formatives.
+/// Additions for referential Cn-shortcut formatives.
 pub type ReferentialCnShortcutAdditions = CnShortcutAdditions<(), Specification>;
 
 /// Additions for affixual Cn-shortcut formatives.
@@ -83,7 +86,7 @@ pub type GeneralCnShortcutAdditions =
 
 /// Additions to a Ca-shortcut formative.
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct CaShortcutAdditions {
+pub struct CaShortcutAdditions<CaShortcutType> {
     /// The relation of this formative.
     pub relation: NormalRelation,
 
@@ -91,11 +94,17 @@ pub struct CaShortcutAdditions {
     pub slot_v_affixes: AffixList,
 
     /// The Ca of this formative.
-    pub ca: CaShortcut,
+    pub ca: CaShortcutType,
 
     /// The Vn of this formative.
     pub vn: Vn,
 }
+
+/// Additions for normal and numeric Ca-shortcut formatives.
+pub type NormalCaShortcutAdditions = CaShortcutAdditions<NormalCaShortcut>;
+
+/// Additions for referential Ca-shortcut formatives.
+pub type ReferentialCaShortcutAdditions = CaShortcutAdditions<ReferentialCaShortcut>;
 
 /// Additions to a normal or numeric formative.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -107,7 +116,7 @@ pub enum NormalFormativeAdditions {
     CnShortcut(NormalCnShortcutAdditions),
 
     /// Additions to a Ca-shortcut formative.
-    CaShortcut(CaShortcutAdditions),
+    CaShortcut(NormalCaShortcutAdditions),
 }
 
 impl Default for NormalFormativeAdditions {
@@ -126,7 +135,7 @@ pub enum ReferentialFormativeAdditions {
     CnShortcut(ReferentialCnShortcutAdditions),
 
     /// Additions to a Ca-shortcut formative.
-    CaShortcut(CaShortcutAdditions),
+    CaShortcut(ReferentialCaShortcutAdditions),
 }
 
 impl Default for ReferentialFormativeAdditions {
@@ -161,7 +170,7 @@ pub enum GeneralFormativeAdditions {
     CnShortcut(GeneralCnShortcutAdditions),
 
     /// Additions to a Ca-shortcut formative.
-    CaShortcut(CaShortcutAdditions),
+    CaShortcut(NormalCaShortcutAdditions),
 }
 
 /// See the examples below for "documentation" on how this works.
@@ -335,6 +344,34 @@ as_general_impl!(
     (),
 );
 
+impl AsGeneral<NormalCaShortcutAdditions> for ReferentialCaShortcutAdditions {
+    fn as_general(self) -> NormalCaShortcutAdditions {
+        NormalCaShortcutAdditions {
+            ca: self.ca.as_general(),
+            relation: self.relation,
+            slot_v_affixes: self.slot_v_affixes,
+            vn: self.vn,
+        }
+    }
+}
+
+impl From<ReferentialCaShortcutAdditions> for NormalCaShortcutAdditions {
+    fn from(value: ReferentialCaShortcutAdditions) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<ReferentialCaShortcutAdditions> for NormalCaShortcutAdditions {
+    fn try_as_specific(self) -> Option<ReferentialCaShortcutAdditions> {
+        Some(ReferentialCaShortcutAdditions {
+            ca: self.ca.try_as_specific()?,
+            relation: self.relation,
+            slot_v_affixes: self.slot_v_affixes,
+            vn: self.vn,
+        })
+    }
+}
+
 impl AsGeneral<GeneralFormativeAdditions> for NormalFormativeAdditions {
     fn as_general(self) -> GeneralFormativeAdditions {
         match self {
@@ -368,7 +405,7 @@ impl AsGeneral<GeneralFormativeAdditions> for ReferentialFormativeAdditions {
         match self {
             Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
             Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
-            Self::CaShortcut(value) => GeneralFormativeAdditions::CaShortcut(value),
+            Self::CaShortcut(value) => GeneralFormativeAdditions::CaShortcut(value.as_general()),
         }
     }
 }
@@ -386,7 +423,9 @@ impl TryAsSpecific<ReferentialFormativeAdditions> for GeneralFormativeAdditions 
             Self::CnShortcut(value) => {
                 ReferentialFormativeAdditions::CnShortcut(value.try_as_specific()?)
             }
-            Self::CaShortcut(value) => ReferentialFormativeAdditions::CaShortcut(value),
+            Self::CaShortcut(value) => {
+                ReferentialFormativeAdditions::CaShortcut(value.try_as_specific()?)
+            }
         })
     }
 }

@@ -23,10 +23,8 @@ use crate::{
     category::Stress,
     romanize::token::{NumeralForm, OwnedConsonantForm, Schwa, Token, ÜA},
 };
-use std::{
-    error::Error,
-    fmt::{self, Display},
-};
+
+use super::stream::ParseError;
 
 /// Normalizes a string into proper New Ithkuil format. This means consolidating extending
 /// diacritics into single letters and turning allomorphs such as ṭ into their actual letters.
@@ -96,33 +94,12 @@ pub fn normalize(word: &str) -> String {
     output
 }
 
-/// An error returned when stress is invalid.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum StressError {
-    /// An error returned when stress is marked twice.
-    DoubleMarked,
-
-    /// An error returned when a stress is marked other than ((ante)pen)ultimate.
-    TooEarly,
-}
-
-impl Display for StressError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DoubleMarked => f.write_str("stress should only be marked once"),
-            Self::TooEarly => f.write_str("only ((ante)pen)ultimate stress is valid"),
-        }
-    }
-}
-
-impl Error for StressError {}
-
 /// Detects the stress in a word, returning it. If no vowel form is accented, [`None`] is returned
 /// instead of a definite stress marker. If two vowel forms are stressed, the [`Err`] variant is
 /// returned.
 ///
 /// The input is assumed to be [`normalize`]d.
-pub fn detect_stress(word: &str) -> Result<Option<Stress>, StressError> {
+pub fn detect_stress(word: &str) -> Result<Option<Stress>, ParseError> {
     enum LastVowel {
         None,
         I,
@@ -199,13 +176,13 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, StressError> {
             VowelStatus::Stressed => {
                 vowel_forms_detected += 1;
                 if stress.is_none() {
-                    return Err(StressError::DoubleMarked);
+                    return Err(ParseError::StressDoubled);
                 }
                 stress = match vowel_forms_detected {
                     1 => Some(Stress::Ultimate),
                     2 => Some(Stress::Penultimate),
                     3 => Some(Stress::Antepenultimate),
-                    _ => return Err(StressError::TooEarly),
+                    _ => return Err(ParseError::StressInvalid),
                 }
             }
 
@@ -213,13 +190,13 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, StressError> {
 
             VowelStatus::StressedAfterDipthong => {
                 if stress.is_none() {
-                    return Err(StressError::DoubleMarked);
+                    return Err(ParseError::StressDoubled);
                 }
                 stress = match vowel_forms_detected {
                     1 => Some(Stress::Ultimate),
                     2 => Some(Stress::Penultimate),
                     3 => Some(Stress::Antepenultimate),
-                    _ => return Err(StressError::TooEarly),
+                    _ => return Err(ParseError::StressInvalid),
                 }
             }
         };
@@ -241,37 +218,6 @@ pub fn unstress_vowels(word: &str) -> String {
         .replace("û", "ü")
 }
 
-/// An error returned when a word cannot be tokenized.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum TokenizeWordError {
-    /// An error returned when a character is neither a consonant, vowel, numeral, `_`, or `.`.
-    InvalidChar(char),
-
-    /// An error returned when a vowel form is invalid.
-    InvalidVowelForm,
-
-    /// An error returned when an h-form is invalid.
-    InvalidHForm,
-
-    /// An error returned when a numeral sequence is invalid.
-    InvalidNumber,
-}
-
-impl Display for TokenizeWordError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidChar(char) => {
-                write!(f, "the character {char:?} is not valid in New Ithkuil")
-            }
-            Self::InvalidVowelForm => write!(f, "invalid vowel form"),
-            Self::InvalidHForm => write!(f, "invalid h-form"),
-            Self::InvalidNumber => write!(f, "invalid numeric literal"),
-        }
-    }
-}
-
-impl Error for TokenizeWordError {}
-
 /// Turns a word into a sequence of tokens. Underscores are assumed to be consonants, and may be
 /// used to force the positioning of certain cores and extensions in the script. For example,
 /// "malëuţřait" will by default place "ţ" as the core of an affix with a "ř" bottom extension, but
@@ -282,7 +228,7 @@ impl Error for TokenizeWordError {}
 ///
 /// The input is assumed to be [`normalize`]d and have no stress markings (e.g. "walá" is invalid
 /// input and will likely throw an error).
-pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
+pub fn tokenize(word: &str) -> Result<Vec<Token>, ParseError> {
     let (word, has_word_final_glottal_stop) = match word.strip_suffix('\'') {
         Some(value) => (value, true),
         None => (word, false),
@@ -314,7 +260,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                         if current.starts_with(['h', 'w', 'y']) {
                             tokens.push(Token::H(match current.parse() {
                                 Ok(h_form) => h_form,
-                                Err(_) => return Err(TokenizeWordError::InvalidHForm),
+                                Err(_) => return Err(ParseError::SourceHFormInvalid),
                             }));
                         } else {
                             tokens.push(Token::C(OwnedConsonantForm(current)));
@@ -327,7 +273,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                         "üa" => Token::ÜA(ÜA),
                         vowel_form => Token::V(match vowel_form.parse() {
                             Ok(vowel_form) => vowel_form,
-                            Err(_) => return Err(TokenizeWordError::InvalidVowelForm),
+                            Err(_) => return Err(ParseError::SourceVowelInvalid),
                         }),
                     }),
 
@@ -337,7 +283,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                             integer_part: value,
                         })),
 
-                        Err(_) => return Err(TokenizeWordError::InvalidNumber),
+                        Err(_) => return Err(ParseError::SourceNumeralInvalid),
                     },
                 }
             }
@@ -378,7 +324,7 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, TokenizeWordError> {
                 }
             }
 
-            _ => return Err(TokenizeWordError::InvalidChar(char)),
+            _ => return Err(ParseError::SourceCharInvalid),
         }
     }
 

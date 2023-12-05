@@ -1,11 +1,13 @@
 //! Provides different formative root types.
 
+use std::str::FromStr;
+
 use crate::{
-    category::{AffixDegree, Referent},
+    category::{AffixDegree, PerspectivelessReferentList},
     gloss::{Gloss, GlossFlags, GlossStatic},
+    romanize::stream::ParseError,
     specificity::{AsGeneral, TryAsSpecific},
 };
-use vec1::Vec1;
 
 /// A normal formative root.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -63,24 +65,29 @@ impl Gloss for NumericFormativeRoot {
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ReferentialFormativeRoot {
     /// The referents of this formative.
-    pub referents: Vec1<Referent>,
+    pub referents: PerspectivelessReferentList,
 }
 
-impl ReferentialFormativeRoot {
-    /// Constructs a new [`ReferentialRoot`] from a list of referents.
-    pub fn new(referents: Vec1<Referent>) -> Self {
-        Self { referents }
+impl FromStr for ReferentialFormativeRoot {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(ReferentialFormativeRoot {
+            referents: s.parse()?,
+        })
     }
 }
 
 impl Gloss for ReferentialFormativeRoot {
     fn gloss(&self, flags: GlossFlags) -> String {
-        if self.referents.len() == 1 {
-            self.referents.first().gloss(flags)
+        let referents = &self.referents.referents;
+
+        if referents.len() == 1 {
+            referents.first().gloss(flags)
         } else {
             let mut output = "[".to_owned();
-            output += &self.referents.first().gloss(flags);
-            for el in &self.referents[1..] {
+            output += &referents.first().gloss(flags);
+            for el in &referents[1..] {
                 output += "+";
                 output += &el.gloss(flags);
             }

@@ -221,8 +221,7 @@ custom_category!(
 
 custom_category!(
     VowelFormDegree,
-    (D0, "D0", "Degree 0", "0", "degree_zero"),
-    (D1, "D1", "Degree 1", "1", "degree_one"),
+    (D1 = 1, "D1", "Degree 1", "1", "degree_one"),
     (D2, "D2", "Degree 2", "2", "degree_two"),
     (D3, "D3", "Degree 3", "3", "degree_three"),
     (D4, "D4", "Degree 4", "4", "degree_four"),
@@ -231,6 +230,7 @@ custom_category!(
     (D7, "D7", "Degree 7", "7", "degree_seven"),
     (D8, "D8", "Degree 8", "8", "degree_eight"),
     (D9, "D9", "Degree 9", "9", "degree_nine"),
+    (D0 = 0, "D0", "Degree 0", "0", "degree_zero"),
 );
 
 custom_category!(
@@ -894,6 +894,8 @@ mod register {
 
 pub use register::*;
 
+use super::Ca;
+
 /// Represents a AffixShortcut value.
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -965,7 +967,7 @@ impl Category for AffixShortcut {
 #[repr(u8)]
 /// Represents a CaShortcut value.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum CaShortcut {
+pub enum NormalCaShortcut {
     /// The Default (Default) CaShortcut.
     #[default]
     Default,
@@ -998,13 +1000,13 @@ pub enum CaShortcut {
 // (long + default), and it's easier to just implement `Gloss` and leave it to `Ca` to do it
 // properly.
 
-impl Gloss for CaShortcut {
+impl Gloss for NormalCaShortcut {
     fn gloss(&self, flags: GlossFlags) -> String {
         self.as_general().gloss(flags)
     }
 }
 
-impl Category for CaShortcut {
+impl Category for NormalCaShortcut {
     fn abbr(self) -> &'static str {
         match self {
             Self::Default => "Default",
@@ -1028,6 +1030,45 @@ impl Category for CaShortcut {
             Self::A => "Abstract",
             Self::G_RPV => "Agglomerative + Representative",
             Self::PRX_RPV => "Proximal + Representative",
+        }
+    }
+}
+
+#[repr(u8)]
+/// Represents a ReferentialCaShortcut value.
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ReferentialCaShortcut {
+    /// The Default (Default) ReferentialCaShortcut.
+    #[default]
+    Default,
+
+    /// The PRX (Proximal) ReferentialCaShortcut.
+    PRX,
+}
+
+// We could implement `GlossStatic` for `ReferentialCaShortcut`, but it'd have to handle four
+// separate cases (long + default), and it's easier to just implement `Gloss` and leave it to `Ca`
+// to do it properly.
+
+impl Gloss for ReferentialCaShortcut {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        let ca: Ca = self.as_general();
+        ca.gloss(flags)
+    }
+}
+
+impl Category for ReferentialCaShortcut {
+    fn abbr(self) -> &'static str {
+        match self {
+            Self::Default => "Default",
+            Self::PRX => "PRX",
+        }
+    }
+
+    fn name(self) -> &'static str {
+        match self {
+            Self::Default => "Default",
+            Self::PRX => "Proximal",
         }
     }
 }

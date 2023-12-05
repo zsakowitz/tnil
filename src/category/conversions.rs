@@ -4,14 +4,15 @@
 
 use super::{
     Affiliation, AffixDegree, AffixType, AppositiveCase, ArbitraryMoodOrCaseScope, Aspect, Bias,
-    Ca, CaShortcut, Case, CaseScope, Configuration, DestructuredConfiguration, Effect, Essence,
-    Extension, Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn,
-    NonDefaultCaseScope, NonDefaultMood, Perspective, Phase, Plexity, ReferentialAffixPerspective,
-    Separability, Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
-    VowelFormDegree, VowelFormSequence,
+    Ca, Case, CaseScope, Configuration, DestructuredConfiguration, Effect, Essence, Extension,
+    Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn,
+    NonDefaultCaseScope, NonDefaultMood, NormalCaShortcut, Perspective, Phase, Plexity,
+    ReferentialAffixPerspective, ReferentialCaShortcut, Separability, Similarity,
+    SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn, VowelFormDegree,
+    VowelFormSequence,
 };
 use crate::{
-    romanize::token::VowelForm,
+    romanize::{stream::ParseError, token::VowelForm},
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
 };
 use std::{
@@ -1007,7 +1008,7 @@ impl TryAsSpecific<NonDefaultCaseScope> for CaseScope {
     }
 }
 
-impl AsGeneral<Ca> for CaShortcut {
+impl AsGeneral<Ca> for NormalCaShortcut {
     fn as_general(self) -> Ca {
         match self {
             Self::Default => Ca {
@@ -1077,14 +1078,14 @@ impl AsGeneral<Ca> for CaShortcut {
     }
 }
 
-impl From<CaShortcut> for Ca {
-    fn from(value: CaShortcut) -> Self {
+impl From<NormalCaShortcut> for Ca {
+    fn from(value: NormalCaShortcut) -> Self {
         value.as_general()
     }
 }
 
-impl TryAsSpecific<CaShortcut> for Ca {
-    fn try_as_specific(self) -> Option<CaShortcut> {
+impl TryAsSpecific<NormalCaShortcut> for Ca {
+    fn try_as_specific(self) -> Option<NormalCaShortcut> {
         match self {
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1092,7 +1093,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::M,
                 essence: Essence::NRM,
-            } => Some(CaShortcut::Default),
+            } => Some(NormalCaShortcut::Default),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1100,7 +1101,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::PRX,
                 perspective: Perspective::M,
                 essence: Essence::NRM,
-            } => Some(CaShortcut::PRX),
+            } => Some(NormalCaShortcut::PRX),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1108,7 +1109,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::G,
                 essence: Essence::NRM,
-            } => Some(CaShortcut::G),
+            } => Some(NormalCaShortcut::G),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1116,7 +1117,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::M,
                 essence: Essence::RPV,
-            } => Some(CaShortcut::RPV),
+            } => Some(NormalCaShortcut::RPV),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1124,7 +1125,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::N,
                 essence: Essence::NRM,
-            } => Some(CaShortcut::N),
+            } => Some(NormalCaShortcut::N),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1132,7 +1133,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::A,
                 essence: Essence::NRM,
-            } => Some(CaShortcut::A),
+            } => Some(NormalCaShortcut::A),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1140,7 +1141,7 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::DEL,
                 perspective: Perspective::G,
                 essence: Essence::RPV,
-            } => Some(CaShortcut::G_RPV),
+            } => Some(NormalCaShortcut::G_RPV),
 
             Ca {
                 affiliation: Affiliation::CSL,
@@ -1148,7 +1149,59 @@ impl TryAsSpecific<CaShortcut> for Ca {
                 extension: Extension::PRX,
                 perspective: Perspective::M,
                 essence: Essence::RPV,
-            } => Some(CaShortcut::PRX_RPV),
+            } => Some(NormalCaShortcut::PRX_RPV),
+
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<Ca> for ReferentialCaShortcut {
+    fn as_general(self) -> Ca {
+        match self {
+            Self::Default => Ca {
+                affiliation: Affiliation::CSL,
+                configuration: Configuration::UPX,
+                extension: Extension::DEL,
+                perspective: Perspective::M,
+                essence: Essence::NRM,
+            },
+
+            Self::PRX => Ca {
+                affiliation: Affiliation::CSL,
+                configuration: Configuration::UPX,
+                extension: Extension::PRX,
+                perspective: Perspective::M,
+                essence: Essence::NRM,
+            },
+        }
+    }
+}
+
+impl From<ReferentialCaShortcut> for Ca {
+    fn from(value: ReferentialCaShortcut) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<ReferentialCaShortcut> for Ca {
+    fn try_as_specific(self) -> Option<ReferentialCaShortcut> {
+        match self {
+            Ca {
+                affiliation: Affiliation::CSL,
+                configuration: Configuration::UPX,
+                extension: Extension::DEL,
+                perspective: Perspective::M,
+                essence: Essence::NRM,
+            } => Some(ReferentialCaShortcut::Default),
+
+            Ca {
+                affiliation: Affiliation::CSL,
+                configuration: Configuration::UPX,
+                extension: Extension::PRX,
+                perspective: Perspective::M,
+                essence: Essence::NRM,
+            } => Some(ReferentialCaShortcut::PRX),
 
             _ => None,
         }
@@ -1525,6 +1578,19 @@ impl Case {
             _ => None,
         }
     }
+
+    /// Constructs a case from a [`VowelForm`].
+    pub fn from_vc(vc: VowelForm) -> Result<Self, ParseError> {
+        if vc.degree == VowelFormDegree::D0 {
+            return Err(ParseError::ExpectedVc);
+        }
+
+        let shift = 36 * (vc.has_glottal_stop as u8);
+        let sequence = 9 * (vc.sequence as u8);
+        let degree = (vc.degree as u8) - 1;
+        let value = shift + sequence + degree;
+        Case::from_variant(value).ok_or(ParseError::ExpectedVc)
+    }
 }
 
 impl Aspect {
@@ -1725,6 +1791,66 @@ impl Vn {
 
                 _ => None,
             }
+        }
+    }
+}
+
+impl AsGeneral<NormalCaShortcut> for ReferentialCaShortcut {
+    fn as_general(self) -> NormalCaShortcut {
+        match self {
+            Self::Default => NormalCaShortcut::Default,
+            Self::PRX => NormalCaShortcut::PRX,
+        }
+    }
+}
+
+impl From<ReferentialCaShortcut> for NormalCaShortcut {
+    fn from(value: ReferentialCaShortcut) -> Self {
+        match value {
+            ReferentialCaShortcut::Default => Self::Default,
+            ReferentialCaShortcut::PRX => Self::PRX,
+        }
+    }
+}
+
+impl TryAsSpecific<ReferentialCaShortcut> for NormalCaShortcut {
+    fn try_as_specific(self) -> Option<ReferentialCaShortcut> {
+        match self {
+            Self::Default => Some(ReferentialCaShortcut::Default),
+            Self::PRX => Some(ReferentialCaShortcut::PRX),
+            _ => None,
+        }
+    }
+}
+
+impl IllocutionOrValidation {
+    /// Attempts to construct an [`IllocutionOrValidation`] from a Vk form.
+    pub fn from_vk(vk: VowelForm) -> Result<Self, ParseError> {
+        if vk.has_glottal_stop {
+            return Err(ParseError::GlottalizedVk);
+        }
+
+        match (vk.sequence, vk.degree) {
+            (VowelFormSequence::S1, VowelFormDegree::D1) => Ok(Self::OBS),
+            (VowelFormSequence::S1, VowelFormDegree::D2) => Ok(Self::REC),
+            (VowelFormSequence::S1, VowelFormDegree::D3) => Ok(Self::PUP),
+            (VowelFormSequence::S1, VowelFormDegree::D4) => Ok(Self::RPR),
+            (VowelFormSequence::S1, VowelFormDegree::D5) => Ok(Self::USP),
+            (VowelFormSequence::S1, VowelFormDegree::D6) => Ok(Self::IMA),
+            (VowelFormSequence::S1, VowelFormDegree::D7) => Ok(Self::CVN),
+            (VowelFormSequence::S1, VowelFormDegree::D8) => Ok(Self::ITU),
+            (VowelFormSequence::S1, VowelFormDegree::D9) => Ok(Self::INF),
+
+            (VowelFormSequence::S2, VowelFormDegree::D1) => Ok(Self::DIR),
+            (VowelFormSequence::S2, VowelFormDegree::D2) => Ok(Self::DEC),
+            (VowelFormSequence::S2, VowelFormDegree::D3) => Ok(Self::IRG),
+            (VowelFormSequence::S2, VowelFormDegree::D4) => Ok(Self::VER),
+            (VowelFormSequence::S2, VowelFormDegree::D6) => Ok(Self::ADM),
+            (VowelFormSequence::S2, VowelFormDegree::D7) => Ok(Self::POT),
+            (VowelFormSequence::S2, VowelFormDegree::D8) => Ok(Self::HOR),
+            (VowelFormSequence::S2, VowelFormDegree::D9) => Ok(Self::CNJ),
+
+            _ => Err(ParseError::ExpectedVk),
         }
     }
 }

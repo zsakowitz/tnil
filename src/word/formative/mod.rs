@@ -44,3 +44,6 @@ pub mod core;
 pub(super) mod formative;
 pub mod relation;
 pub mod root;
+
+#[cfg(test)]
+mod tests;

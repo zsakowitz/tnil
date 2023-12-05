@@ -2,13 +2,16 @@
 
 use super::{flags::FromTokenFlags, token::Token, token_list::TokenList};
 use crate::category::Stress;
-use std::{error::Error, fmt};
+use std::{error::Error, fmt, str::FromStr};
 
-/// A borrowed [`TokenList`] used to facilitate constructing parsers.
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+/// A stream of tokens used to facilitate constructing parsers.
+#[derive(Clone, Debug)]
 pub struct TokenStream<'a> {
-    /// The referenced [`TokenList`].
-    pub(super) list: &'a TokenList,
+    /// The referenced stream of tokens.
+    pub(super) tokens: &'a [Token],
+
+    /// The stress of the referenced list.
+    pub(super) stress: Option<Stress>,
 
     /// The cursor index into the list from the front.
     pub(super) start: usize,
@@ -26,7 +29,7 @@ impl<'a> TokenStream<'a> {
     /// Gets the stress of the corresponding [`TokenList`].
     #[must_use]
     pub const fn stress(&self) -> Option<Stress> {
-        self.list.stress
+        self.stress
     }
 
     /// Returns the next token as a specialized token type.
@@ -35,7 +38,7 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.start)?;
+        let token = self.tokens.get(self.start)?;
         let token = T::parse(&token)?;
         self.start += 1;
         Some(token)
@@ -47,7 +50,7 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.start)?;
+        let token = self.tokens.get(self.start)?;
         self.start += 1;
         Some(token)
     }
@@ -58,9 +61,9 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.end - 1)?;
+        let token = self.tokens.get(self.end - 1)?;
         let token = T::parse(&token)?;
-        self.end += 1;
+        self.end -= 1;
         Some(token)
     }
 
@@ -70,7 +73,7 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.end - 1)?;
+        let token = self.tokens.get(self.end - 1)?;
         self.end -= 1;
         Some(token)
     }
@@ -81,7 +84,7 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.start)?;
+        let token = self.tokens.get(self.start)?;
         Some(token)
     }
 
@@ -91,7 +94,7 @@ impl<'a> TokenStream<'a> {
         if self.is_done() {
             return None;
         }
-        let token = self.list.tokens.get(self.end - 1)?;
+        let token = self.tokens.get(self.end - 1)?;
         Some(token)
     }
 
@@ -103,8 +106,8 @@ impl<'a> TokenStream<'a> {
 
     /// Returns a slice into the remaining tokens.
     #[must_use]
-    pub fn tokens_left(self) -> &'a [Token] {
-        &self.list.tokens[self.start..self.end]
+    pub fn remaining_tokens(&self) -> &'a [Token] {
+        &self.tokens[self.start..self.end]
     }
 }
 
@@ -134,6 +137,18 @@ pub trait FromTokenStream: Sized {
             }
         }
     }
+
+    /// Parses this item from a string.
+    fn from_str(source: &str, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let list = TokenList::from_str(source)?;
+        let mut stream = list.stream();
+        let result = Self::parse_volatile(&mut stream, flags)?;
+        if stream.is_done() {
+            Ok(result)
+        } else {
+            Err(ParseError::TooManyTokens)
+        }
+    }
 }
 
 /// Allows token types to be extracted from a single token.
@@ -147,6 +162,7 @@ macro_rules! parse_error_defn {
         ::paste::paste! {
             /// The error type returned when an item cannot be parsed.
             #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[non_exhaustive]
             pub enum ParseError {
                 $(
                     #[doc = "The error \"" $message "\"."]
@@ -168,41 +184,73 @@ macro_rules! parse_error_defn {
 }
 
 parse_error_defn!(match self {
+    StressInvalid => "stress is not ((ante)pen)ultimate",
+    StressDoubled => "stress is marked twice",
+
+    SourceCharInvalid => "only consonants, vowels, and numbers can be parsed",
+    SourceVowelInvalid => "a vowel form could not be parsed",
+    SourceHFormInvalid => "a consonant form starting with w, y, or h could not be parsed",
+    SourceNumeralInvalid => "a numeric form could not be parsed",
+
     ExpectedCa => "expected an ungeminated Ca form (e.g. r, lňn, řţgw)",
     ExpectedCaGeminated => "expected a geminated Ca form (e.g. rr, lňňn, řţţgw)",
-    ExpectedCb => "expected a Cb bias (e.g. pļļ, lçp, kšš)",
-    ExpectedCn => "expected a Cn mood/case-scope (e.g. h, hm, hňw)",
-    ExpectedCm => "expected a Cm form (n/ň)",
-    ExpectedCp => "expected a Cp suppletive adjunct mode (hl/hm/hn/hň)",
-    ExpectedCs => "expected a Cs affix form (e.g. t, kb, ltř)",
-    ExpectedCy => "expected a Cy mood/case-scope adjunct vowel (e.g. a, oi, iu)",
-    ExpectedCz => "expected a Cz multiple-affix adjunct scope (h/’h/’hl/’hr/’hw/’hw)",
-    ExpectedGs => "expected a word-final glottal stop",
-    ExpectedHh => "expected a single ‘h’ at the beginning of a register",
+    ExpectedCb => "expected Cb bias (e.g. pļļ, lçp, kšš)",
+    ExpectedCc => "expected Cc form (e.g. w, h, hn)",
+    ExpectedCn => "expected Cn mood/case-scope (e.g. h, hm, hňw)",
+    ExpectedCm => "expected Cm form (n/ň)",
+    ExpectedCp => "expected Cp suppletive adjunct mode (hl/hm/hn/hň)",
+    ExpectedCs => "expected Cs affix form (e.g. t, kb, ltř)",
+    ExpectedCy => "expected Cy mood/case-scope adjunct vowel (e.g. a, oi, iu)",
+    ExpectedCz => "expected Cz multiple-affix adjunct scope (h/’h/’hl/’hr/’hw/’hw)",
+    ExpectedGs => "expected word-final glottal stop",
+    ExpectedHh => "expected single ‘h’ at the beginning of a register",
     ExpectedHr => "expected ‘hr’ at the beginning of a mood/case-scope adjunct",
-    ExpectedNn => "expected a Nn numeric form (e.g. 4, 23, 7832)",
-    ExpectedVc => "expected a Vc case form (e.g. ü, ai, io)",
-    ExpectedVc2 => "expected a Vc2 combination referential second case (e.g. o, ei, üa)",
-    ExpectedVh => "expected a Vh modular adjunct scope (a/e/i/o/u)",
-    ExpectedVm => "expected a Vm register type (e.g. a, o, ei)",
-    ExpectedVn => "expected a Vn form (e.g. a, ou, ie)",
-    ExpectedVp => "expected a Vp parsing adjunct type (a/e/o/u)",
-    ExpectedVs => "expected a Vs single-affix adjunct scope (a/u/e/i/o/ö)",
-    ExpectedVz => "expected a Vz multiple-affix adjunct scope (a/u/e/i/o/ö)",
-    ExpectedVx => "expected a Vx form (e.g. a, ou, ie)",
-    ExpectedCsOrVx => "expected a Cs or Vx form (e.g. a, kb, ie)",
+    ExpectedNn => "expected Nn numeric form (e.g. 4, 23, 7832)",
+    ExpectedVc => "expected Vc case form (e.g. ü, ai, io)",
+    ExpectedVc2 => "expected Vc2 combination referential second case (e.g. o, ei, üa)",
+    ExpectedVh => "expected Vh modular adjunct scope (a/e/i/o/u)",
+    ExpectedVk => "expected Vk illocution/validation (e.g. á, éi, óu)",
+    ExpectedVm => "expected Vm register type (e.g. a, o, ei)",
+    ExpectedVn => "expected Vn form (e.g. a, ou, ie)",
+    ExpectedVp => "expected Vp parsing adjunct type (a/e/o/u)",
+    ExpectedVr => "expected Vr form (e.g. a, ou, ie)",
+    ExpectedVs => "expected Vs single-affix adjunct scope (a/u/e/i/o/ö)",
+    ExpectedVv => "expected Vv form (e.g. i, ui, ae, oë)",
+    ExpectedVz => "expected Vz multiple-affix adjunct scope (a/u/e/i/o/ö)",
+    ExpectedVx => "expected Vx form (e.g. a, ou, ie)",
+
+    ExpectedCsOrVx => "expected Cs or Vx form (e.g. a, kb, ie)",
+    ExpectedNonDefaultCn => "expected non-default Cn mood/case-scope (e.g. hm, hň)",
+    ExpectedNonNumericRoot => "expected non-numeric formative root",
     ExpectedReferentSpecification => "expected combination referential specification (x/xt/xp/xx)",
+    ExpectedReferentialRoot => "expected referential formative root (e.g. l, sm, ňzl)",
+    ExpectedRoot => "expected formative root",
     ExpectedSuppletiveReferential => "expected suppletive referential head (a/üo)",
     ExpectedWYSpecification => "expected w/y/x/xt/xp/xx to follow referent",
 
-    AntepenultimateStress => "antepenultimate stress cannot appear except in formatives",
-    ComboReferentialWithSchwa => "combination referential cannot have ë mid-word",
+    GlottalizedVc => "Vc forms cannot have glottal stops in concatenated formatives",
     GlottalizedVh => "Vh modular adjunct scopes cannot have glottal stops",
+    GlottalizedVk => "Vk illocution/validation forms cannot have glottal stops",
     GlottalizedVn => "Vn forms cannot have glottal stops except in formatives",
     GlottalizedVs => "Vs single-affix adjunct scopes cannot have glottal stops",
     GlottalizedVz => "Vz multiple-affix adjunct scopes cannot have glottal stops",
     GlottalizedVx => "Vx forms cannot have glottal stops except in formatives",
+
+    AffixualFormativeWithCaShortcut => "affixual formatives cannot have Ca shortcuts",
+    AspectualCnShortcut => "Cn shortcuts cannot indicate an aspectual Vn",
+    AntepenultimateStress => "only unconcatenated formatives can have antepenultimate stress",
+    ComboReferentialWithSchwa => "combination referential cannot have ë mid-word",
+    DefaultCnShortcut => "Cn shortcuts cannot indicate default FAC/CCN mood/case-scope",
+    DoublyGlottalizedVx => "only one Vx form in a formative may have a glottal stop",
+    DoublyGlottalizedFormative =>
+        "only one form from slots IV-IX in a formative may have a glottal stop",
+    GeminatedCs => "unexpected geminated affix Cs form",
+    InvalidFormative => "converting from a general formative to a specific formative failed",
+    MultipleEndOfSlotVMarkers => "expected only one end-of-slot-V marker",
     ReferentEmpty => "expected at least one referent",
     ReferentExpected => "expected a referent (e.g. l, g, ňň)",
     ReferentInvalid => "invalid referent list",
+    TooFewSlotVAffixes => "not enough slot V affixes (indicated by glottal stop in Vv)",
+    TooManySlotVAffixes => "too many slot V affixes (indicated by absence of a glottal stop in Vv)",
+    TooManyTokens => "expected end of word, found more tokens",
 });
