@@ -1462,7 +1462,7 @@ impl FromStr for Bias {
             "mřř" => Ok(Bias::DES),
             "cč" => Ok(Bias::DFD),
             "kff" => Ok(Bias::DIS),
-            "żmm" => Ok(Bias::DLC),
+            "ẓmm" => Ok(Bias::DLC),
             "řřx" => Ok(Bias::DOL),
             "ffx" => Ok(Bias::DPB),
             "pfc" => Ok(Bias::DRS),
@@ -1593,7 +1593,10 @@ impl Case {
         let sequence = 9 * (vc.sequence as u8);
         let degree = (vc.degree as u8) - 1;
         let value = shift + sequence + degree;
-        Case::from_variant(value).ok_or(ParseError::ExpectedVc)
+        Case::from_variant(value).ok_or_else(|| {
+            eprintln!("hello");
+            ParseError::ExpectedVc
+        })
     }
 
     /// Converts into an [`IllocutionOrValidation`] with the same vowel form.

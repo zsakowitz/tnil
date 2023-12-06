@@ -477,7 +477,7 @@ impl FromStr for PerspectivelessReferentList {
                 Some('ţ') => referent!(BEN, MI),
                 Some('ḑ') => referent!(DET, MI),
 
-                Some('ż') => referent!(NEU, PI),
+                Some('ẓ') => referent!(NEU, PI),
                 Some('f') => referent!(BEN, PI),
                 Some('v') => referent!(DET, PI),
 
@@ -588,7 +588,7 @@ impl FromStr for NormalReferentList {
                 Some('ţ') => referent!(BEN, MI),
                 Some('ḑ') => referent!(DET, MI),
 
-                Some('ż') => referent!(NEU, PI),
+                Some('ẓ') => referent!(NEU, PI),
                 Some('f') => referent!(BEN, PI),
                 Some('v') => referent!(DET, PI),
 
@@ -717,7 +717,7 @@ impl FromStr for AffixualReferentList {
                 Some('ţ') => referent!(BEN, MI),
                 Some('ḑ') => referent!(DET, MI),
 
-                Some('ż') => referent!(NEU, PI),
+                Some('ẓ') => referent!(NEU, PI),
                 Some('f') => referent!(BEN, PI),
                 Some('v') => referent!(DET, PI),
 

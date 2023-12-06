@@ -158,36 +158,12 @@ impl FromTokenStream for SuppletiveAdjunctMode {
 }
 
 impl FromTokenStream for Case {
-    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+    fn parse_volatile(
+        stream: &mut TokenStream,
+        _flags: FromTokenFlags,
+    ) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::V(VowelForm {
-                has_glottal_stop,
-                sequence,
-                degree,
-            })) if *degree != VowelFormDegree::D0 => {
-                let degree = *degree as u8 - 1;
-                let sequence = 9 * (*sequence as u8);
-                let shift = 36 * (*has_glottal_stop as u8);
-                let mut value = shift + sequence + degree;
-
-                // If permissive mode is enabled, we allow using degree 8 for the RLT, VOC, NAV, and
-                // PLM cases.
-                if flags.matches(FromTokenFlags::PERMISSIVE) {
-                    value = match value {
-                        43 => 44,
-                        52 => 53,
-                        61 => 62,
-                        70 => 71,
-                        _ => value,
-                    }
-                }
-
-                match Case::from_variant(value) {
-                    Some(value) => Ok(value),
-                    None => Err(ParseError::ExpectedVc),
-                }
-            }
-
+            Some(Token::V(vc)) => Case::from_vc(*vc),
             _ => Err(ParseError::ExpectedVc),
         }
     }
@@ -703,7 +679,10 @@ pub struct Vc2 {
 }
 
 impl FromTokenStream for Vc2 {
-    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+    fn parse_volatile(
+        stream: &mut TokenStream,
+        _flags: FromTokenFlags,
+    ) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::V(VowelForm {
                 has_glottal_stop: false,
@@ -711,33 +690,9 @@ impl FromTokenStream for Vc2 {
                 degree: VowelFormDegree::D1,
             })) => Ok(Vc2 { case: None }),
 
-            Some(Token::V(VowelForm {
-                has_glottal_stop,
-                sequence,
-                degree,
-            })) if *degree != VowelFormDegree::D0 => {
-                let degree = *degree as u8 - 1;
-                let sequence = 9 * (*sequence as u8);
-                let shift = 36 * (*has_glottal_stop as u8);
-                let mut value = shift + sequence + degree;
-
-                // If permissive mode is enabled, we allow using degree 8 for the RLT, VOC, NAV, and
-                // PLM cases.
-                if flags.matches(FromTokenFlags::PERMISSIVE) {
-                    value = match value {
-                        43 => 44,
-                        52 => 53,
-                        61 => 62,
-                        70 => 71,
-                        _ => value,
-                    }
-                }
-
-                match Case::from_variant(value) {
-                    Some(value) => Ok(Vc2 { case: Some(value) }),
-                    None => Err(ParseError::ExpectedVc2),
-                }
-            }
+            Some(Token::V(vc)) => Ok(Vc2 {
+                case: Some(Case::from_vc(*vc)?),
+            }),
 
             Some(Token::ÜA(_)) => Ok(Vc2 {
                 case: Some(Case::THM),

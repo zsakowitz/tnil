@@ -147,19 +147,19 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, ParseError> {
 
     for char in word.chars().rev() {
         let status = match (char, last_vowel) {
-            ('a' | 'e' | 'o' | 'u', LastVowel::I) => {
+            ('a' | 'e' | 'ë' | 'o' | 'u', LastVowel::I) => {
                 last_vowel = LastVowel::None;
                 VowelStatus::UnstressedAfterDipthong
             }
-            ('á' | 'é' | 'ó' | 'ú', LastVowel::I) => {
+            ('á' | 'é' | 'ê' | 'ó' | 'ú', LastVowel::I) => {
                 last_vowel = LastVowel::None;
                 VowelStatus::StressedAfterDipthong
             }
-            ('a' | 'e' | 'o' | 'i', LastVowel::U) => {
+            ('a' | 'e' | 'ë' | 'o' | 'i', LastVowel::U) => {
                 last_vowel = LastVowel::None;
                 VowelStatus::UnstressedAfterDipthong
             }
-            ('á' | 'é' | 'ó' | 'í', LastVowel::U) => {
+            ('á' | 'é' | 'ê' | 'ó' | 'í', LastVowel::U) => {
                 last_vowel = LastVowel::None;
                 VowelStatus::StressedAfterDipthong
             }

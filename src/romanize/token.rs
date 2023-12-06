@@ -146,6 +146,14 @@ impl FromStr for VowelForm {
             "o" => (VowelFormSequence::S1, VowelFormDegree::D7),
             "ü" => (VowelFormSequence::S1, VowelFormDegree::D8),
             "u" => (VowelFormSequence::S1, VowelFormDegree::D9),
+            "aa" => (VowelFormSequence::S1, VowelFormDegree::D1),
+            "ää" => (VowelFormSequence::S1, VowelFormDegree::D2),
+            "ee" => (VowelFormSequence::S1, VowelFormDegree::D3),
+            "ii" => (VowelFormSequence::S1, VowelFormDegree::D4),
+            "öö" => (VowelFormSequence::S1, VowelFormDegree::D6),
+            "oo" => (VowelFormSequence::S1, VowelFormDegree::D7),
+            "üü" => (VowelFormSequence::S1, VowelFormDegree::D8),
+            "uu" => (VowelFormSequence::S1, VowelFormDegree::D9),
 
             "ea" => (VowelFormSequence::S2, VowelFormDegree::D0),
             "ai" => (VowelFormSequence::S2, VowelFormDegree::D1),
@@ -188,7 +196,10 @@ impl FromStr for VowelForm {
             "öa" => (VowelFormSequence::S4, VowelFormDegree::D8),
             "oa" => (VowelFormSequence::S4, VowelFormDegree::D9),
 
-            _ => return Err(ParseVowelFormError),
+            value => {
+                eprintln!("{value:?}");
+                return Err(ParseVowelFormError);
+            }
         };
 
         Ok(Self {

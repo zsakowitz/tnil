@@ -66,30 +66,18 @@ impl RegularAffix {
 
         match cs {
             "lw" | "ly" => {
-                if vx.degree == VowelFormDegree::D0 {
-                    return Err(ParseError::ExpectedVc);
-                } else {
-                    return Ok(RegularAffix::CaseStacking(CaseStackingAffix {
-                        case: Case::from_variant(
-                            36 * ((cs == "lw") as u8) + 9 * (vx.sequence as u8) + (vx.degree as u8)
-                                - 1,
-                        )
-                        .ok_or(ParseError::ExpectedVc)?,
-                    }));
-                }
+                let mut vx = vx;
+                vx.has_glottal_stop = cs == "ly";
+                return Ok(RegularAffix::CaseStacking(CaseStackingAffix {
+                    case: Case::from_vc(vx)?,
+                }));
             }
 
             "sw" | "zw" | "čw" | "šw" | "žw" | "jw" | "sy" | "zy" | "čy" | "šy" | "žy" | "jy" =>
             {
-                if vx.degree == VowelFormDegree::D0 {
-                    return Err(ParseError::ExpectedVc);
-                }
-
-                let shift = 36 * (cs.ends_with('y') as u8);
-                let sequence = 9 * (vx.sequence as u8);
-                let degree = vx.degree as u8 - 1;
-                let value = shift + sequence + degree;
-                let case = Case::from_variant(value).ok_or(ParseError::ExpectedVc)?;
+                let mut vx = vx;
+                vx.has_glottal_stop = cs == "ly";
+                let case = Case::from_vc(vx)?;
                 let mode = if cs.starts_with(['š', 'ž', 'j']) {
                     CaseAccessorMode::Inverse
                 } else {
