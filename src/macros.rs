@@ -13,26 +13,35 @@
 /// # fn main() {
 /// let default_relation = relation!(NOM, CCN, THM);
 ///
-/// assert_eq!(default_relation, NormalRelation::Nominal {
-///     mode: NominalMode::NOM,
-///     case_scope: CaseScope::CCN,
-///     case: Case::THM,
-/// });
+/// assert_eq!(
+///     default_relation,
+///     NormalRelation::Nominal {
+///         mode: NominalMode::NOM,
+///         case_scope: CaseScope::CCN,
+///         case: Case::THM,
+///     }
+/// );
 ///
 /// let default_verbal_relation = relation!(FAC, OBS);
 ///
-/// assert_eq!(default_verbal_relation, NormalRelation::Verbal {
-///     mood: Mood::FAC,
-///     ivl: IllocutionOrValidation::OBS,
-/// });
+/// assert_eq!(
+///     default_verbal_relation,
+///     NormalRelation::Verbal {
+///         mood: Mood::FAC,
+///         ivl: IllocutionOrValidation::OBS,
+///     }
+/// );
 ///
 /// let t1_ccq_all = relation!(T1, CCQ, ALL);
 ///
-/// assert_eq!(t1_ccq_all, NormalRelation::Nominal {
-///     mode: NominalMode::T1,
-///     case_scope: CaseScope::CCQ,
-///     case: Case::ALL,
-/// });
+/// assert_eq!(
+///     t1_ccq_all,
+///     NormalRelation::Nominal {
+///         mode: NominalMode::T1,
+///         case_scope: CaseScope::CCQ,
+///         case: Case::ALL,
+///     }
+/// );
 /// # }
 /// ```
 macro_rules! relation {
@@ -168,7 +177,10 @@ help: any and all segments may be omitted") };
 ///
 /// # fn main() {
 /// assert_eq!(affiliation_if_standalone(ca!(ASO)), "ASO");
-/// assert_eq!(affiliation_if_standalone(ca!(COA, DPX)), "not just affiliation");
+/// assert_eq!(
+///     affiliation_if_standalone(ca!(COA, DPX)),
+///     "not just affiliation"
+/// );
 /// assert_eq!(affiliation_if_standalone(ca!(VAR, M)), "VAR");
 /// # }
 /// ```

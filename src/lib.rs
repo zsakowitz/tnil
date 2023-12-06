@@ -4,8 +4,9 @@
 //!
 //! - **To model all words and grammatical categories in New Ithkuil.** Structs and enums are
 //!   provided for all parts of the Ithkuil language and model it precisely, even if this leads to
-//!   types that end up being difficult to work with. See the [`Formative`][crate::word::formative::Formative]
-//!   type for an example of this complexity in action.
+//!   types that end up being difficult to work with. See the
+//!   [`CheckedFormative`][crate::word::formative::Formative] type for an example of this complexity
+//!   in action.
 //!
 //! - **To provide glossing functionality.** Ithkuil text is often shown as glosses, which show the
 //!   grammatical categories and roots of a word in a form easy to parse for humans. This crate

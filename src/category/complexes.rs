@@ -302,8 +302,8 @@ impl GlossStatic for MoodOrCaseScope {
 }
 
 impl MoodOrCaseScope {
-    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`.
-    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
+    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`. If `flags`
+    /// does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
     /// string is returned.
     pub fn gloss_static_non_fac_ccn(&self, flags: GlossFlags) -> &'static str {
         if flags.matches(GlossFlags::SHOW_DEFAULTS)
@@ -318,8 +318,8 @@ impl MoodOrCaseScope {
         }
     }
 
-    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`].
-    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
+    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`]. If
+    /// `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is FAC or CCN, the empty
     /// string is returned.
     pub fn gloss_non_fac_ccn(&self, flags: GlossFlags) -> String {
         self.gloss_static_non_fac_ccn(flags).to_owned()

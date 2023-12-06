@@ -5,8 +5,8 @@ use super::GlossFlags;
 /// Glosses should be done in the style of @ırburučpaızya, or in a style consistent with the other
 /// glossing functionality of this crate. In particular, these conventions are followed:
 ///
-/// - If root meanings are known (e.g. "dog" for zv), they are enclosed in “rounded double
-///   quotes”. Otherwise, roots are represented lowercase in bold or as plain Cr forms.
+/// - If root meanings are known (e.g. "dog" for zv), they are enclosed in “rounded double quotes”.
+///   Otherwise, roots are represented lowercase in bold or as plain Cr forms.
 ///
 /// - If affix meanings are known (e.g. "large" for x/7), they are enclosed in ‘rounded single
 ///   quotes’ followed by one of `₁₂₃` indicating the affix type. If the value is not known, the
@@ -33,8 +33,8 @@ pub trait Gloss {
     /// allocating new memory. However, this method is often required when glossing complex types.
     fn gloss(&self, flags: GlossFlags) -> String;
 
-    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`].
-    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is the default value of
+    /// Glosses this value with a set of flags, returning the gloss as an allocated [`String`]. If
+    /// `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is the default value of
     /// its type, an empty string is returned.
     ///
     /// Prefer using [`GlossStatic::gloss_static_non_default`] over [`Gloss::gloss`] when possible,
@@ -60,8 +60,8 @@ pub trait GlossStatic {
     /// memory.
     fn gloss_static(&self, flags: GlossFlags) -> &'static str;
 
-    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`.
-    /// If `flags` does not include `GlossFlags::SHOW_DEFAULTS` and `self` is the default value of
+    /// Glosses this value with a set of flags, returning the gloss as a `&'static str`. If `flags`
+    /// does not include `GlossFlags::SHOW_DEFAULTS` and `self` is the default value of
     /// its type, an empty string is returned.
     ///
     /// Prefer using this method over [`Gloss::gloss_non_default`] where possible, as it avoids

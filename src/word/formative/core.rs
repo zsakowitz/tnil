@@ -1,8 +1,8 @@
 //! Defines formative core types.
 
 use super::root::{
-    AffixualFormativeRoot, GeneralFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
-    ReferentialFormativeRoot,
+    AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot, ReferentialFormativeRoot,
+    ShortcutCheckedFormativeRoot,
 };
 use crate::{
     affix::AffixList,
@@ -39,12 +39,12 @@ pub type ReferentialFormativeCore = FormativeCore<ReferentialFormativeRoot, ()>;
 pub type AffixualFormativeCore = FormativeCore<AffixualFormativeRoot, ()>;
 
 /// The core of a general formative.
-pub type GeneralFormativeCore = FormativeCore<GeneralFormativeRoot, Option<Stem>>;
+pub type ShortcutCheckedFormativeCore = FormativeCore<ShortcutCheckedFormativeRoot, Option<Stem>>;
 
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident, $stem:ident, $stem_pat:pat, $stem_expr:expr, $stem_value:expr) => {
-        impl AsGeneral<GeneralFormativeCore> for $specific {
-            fn as_general(self) -> GeneralFormativeCore {
+        impl AsGeneral<ShortcutCheckedFormativeCore> for $specific {
+            fn as_general(self) -> ShortcutCheckedFormativeCore {
                 #[allow(unused_variables)]
                 let Self {
                     root,
@@ -53,7 +53,7 @@ macro_rules! as_general_impl {
                     slot_vii_affixes,
                 } = self;
 
-                GeneralFormativeCore {
+                ShortcutCheckedFormativeCore {
                     root: root.as_general(),
                     $stem: $stem_expr,
                     version,
@@ -62,17 +62,17 @@ macro_rules! as_general_impl {
             }
         }
 
-        impl From<$specific> for GeneralFormativeCore {
+        impl From<$specific> for ShortcutCheckedFormativeCore {
             fn from(value: $specific) -> Self {
                 value.as_general()
             }
         }
 
-        impl TryAsSpecific<$specific> for GeneralFormativeCore {
+        impl TryAsSpecific<$specific> for ShortcutCheckedFormativeCore {
             fn try_as_specific(self) -> Option<$specific> {
                 match self {
                     Self {
-                        root: GeneralFormativeRoot::$variant(root),
+                        root: ShortcutCheckedFormativeRoot::$variant(root),
                         $stem: $stem_pat,
                         version,
                         slot_vii_affixes,

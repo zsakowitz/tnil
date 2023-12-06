@@ -1,20 +1,21 @@
 use super::{
     additions::{
-        AffixualFormativeAdditions, GeneralFormativeAdditions, NormalFormativeAdditions,
-        ReferentialFormativeAdditions,
+        AffixualFormativeAdditions, NormalFormativeAdditions, ReferentialFormativeAdditions,
+        ShortcutCheckedFormativeAdditions,
     },
     core::{
-        AffixualFormativeCore, GeneralFormativeCore, NormalFormativeCore, NumericFormativeCore,
-        ReferentialFormativeCore,
+        AffixualFormativeCore, NormalFormativeCore, NumericFormativeCore, ReferentialFormativeCore,
+        ShortcutCheckedFormativeCore,
     },
-    root::GeneralFormativeRoot,
+    root::ShortcutCheckedFormativeRoot,
 };
 use crate::{
     affix::AffixList,
     category::{
-        AffixShortcut, ArbitraryMoodOrCaseScope, Ca, Case, Context, Function, HFormDegree,
-        HFormSequence, IllocutionOrValidation, Mood, NominalMode, NormalCaShortcut, Specification,
-        Stem, Stress, Valence, Version, Vn, VowelFormDegree, VowelFormSequence,
+        AffixShortcut, ArbitraryMoodOrCaseScope, Ca, Case, Context, DatalessRelation, Function,
+        HFormDegree, HFormSequence, IllocutionOrValidation, Mood, NominalMode, NormalCaShortcut,
+        ShortcutType, Specification, Stem, Stress, Valence, Version, Vn, VowelFormDegree,
+        VowelFormSequence,
     },
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
@@ -34,8 +35,14 @@ use crate::{
 };
 
 /// A formative.
+///
+/// The system of enums and structs used to construct a [`CheckedFormative`] means that
+/// it is guaranteed to be a valid word at compile time. This makes it quite
+/// difficult to work with, and as such it is recommended to use `.as_general()`
+/// to cast to a [`ShortcutCheckedFormative`] or an [`UncheckedFormative`] if
+/// you're planning to manipulate it manually.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Formative {
+pub enum CheckedFormative {
     /// A normal formative.
     Normal(NormalFormativeCore, NormalFormativeAdditions),
 
@@ -50,58 +57,122 @@ pub enum Formative {
 }
 
 /// A general formative.
+///
+/// The system of enums and structs used to construct a [`ShortcutCheckedFormative`] make a few
+/// guarantees about its structure. Namely, shortcuts such as Ca and Cn shortcuts will contain valid
+/// data. These guarantees make it quite difficult to work with, and as such it is recommended to
+/// use `.as_general()` to cast to an [`UncheckedFormative`] if you're planning to manipulate it
+/// manually.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct GeneralFormative(pub GeneralFormativeCore, pub GeneralFormativeAdditions);
+pub struct ShortcutCheckedFormative(
+    pub ShortcutCheckedFormativeCore,
+    pub ShortcutCheckedFormativeAdditions,
+);
 
-impl AsGeneral<GeneralFormative> for Formative {
-    fn as_general(self) -> GeneralFormative {
+/// An unchecked formative.
+///
+/// This type of formative provides no guarantees about the consistency of its data. If you're
+/// planning to manually manipulate a formative, this is the best type for you. Otherwise, we
+/// recommend sticking with [`CheckedFormative`] to ensure that formatives are checked for
+/// structural correctness or [`ShortcutCheckedFormative`] to ensure that shortcuts are checked for
+/// correctness.
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UncheckedFormative {
+    /// The relation of this formative.
+    pub relation: DatalessRelation,
+
+    /// The shortcut of this formative.
+    pub shortcut: ShortcutType,
+
+    /// The stem of this formative.
+    pub stem: Stem,
+
+    /// The version of this formative.
+    pub version: Version,
+
+    /// The affix_shortcut of this formative.
+    pub affix_shortcut: AffixShortcut,
+
+    /// The root of this formative.
+    pub root: ShortcutCheckedFormativeRoot,
+
+    /// The function of this formative.
+    pub function: Function,
+
+    /// The specification of this formative.
+    pub specification: Specification,
+
+    /// The context of this formative.
+    pub context: Context,
+
+    /// The slot_v_affixes of this formative.
+    pub slot_v_affixes: AffixList,
+
+    /// The ca of this formative.
+    pub ca: Ca,
+
+    /// The slot_vii_affixes of this formative.
+    pub slot_vii_affixes: AffixList,
+
+    /// The vn of this formative.
+    pub vn: Vn,
+
+    /// The cn of this formative.
+    pub cn: ArbitraryMoodOrCaseScope,
+
+    /// The vc of this formative.
+    pub vc: Case,
+}
+
+impl AsGeneral<ShortcutCheckedFormative> for CheckedFormative {
+    fn as_general(self) -> ShortcutCheckedFormative {
         match self {
             Self::Normal(core, additions) => {
-                GeneralFormative(core.as_general(), additions.as_general())
+                ShortcutCheckedFormative(core.as_general(), additions.as_general())
             }
 
             Self::Numeric(core, additions) => {
-                GeneralFormative(core.as_general(), additions.as_general())
+                ShortcutCheckedFormative(core.as_general(), additions.as_general())
             }
 
             Self::Referential(core, additions) => {
-                GeneralFormative(core.as_general(), additions.as_general())
+                ShortcutCheckedFormative(core.as_general(), additions.as_general())
             }
 
             Self::Affixual(core, additions) => {
-                GeneralFormative(core.as_general(), additions.as_general())
+                ShortcutCheckedFormative(core.as_general(), additions.as_general())
             }
         }
     }
 }
 
-impl From<Formative> for GeneralFormative {
-    fn from(value: Formative) -> Self {
+impl From<CheckedFormative> for ShortcutCheckedFormative {
+    fn from(value: CheckedFormative) -> Self {
         value.as_general()
     }
 }
 
-impl TryAsSpecific<Formative> for GeneralFormative {
-    fn try_as_specific(self) -> Option<Formative> {
-        let GeneralFormative(core, additions) = self;
+impl TryAsSpecific<CheckedFormative> for ShortcutCheckedFormative {
+    fn try_as_specific(self) -> Option<CheckedFormative> {
+        let ShortcutCheckedFormative(core, additions) = self;
 
         match core.root {
-            GeneralFormativeRoot::Normal(_) => Some(Formative::Normal(
+            ShortcutCheckedFormativeRoot::Normal(_) => Some(CheckedFormative::Normal(
                 core.try_as_specific()?,
                 additions.try_as_specific()?,
             )),
 
-            GeneralFormativeRoot::Numeric(_) => Some(Formative::Numeric(
+            ShortcutCheckedFormativeRoot::Numeric(_) => Some(CheckedFormative::Numeric(
                 core.try_as_specific()?,
                 additions.try_as_specific()?,
             )),
 
-            GeneralFormativeRoot::Referential(_) => Some(Formative::Referential(
+            ShortcutCheckedFormativeRoot::Referential(_) => Some(CheckedFormative::Referential(
                 core.try_as_specific()?,
                 additions.try_as_specific()?,
             )),
 
-            GeneralFormativeRoot::Affixual(_) => Some(Formative::Affixual(
+            ShortcutCheckedFormativeRoot::Affixual(_) => Some(CheckedFormative::Affixual(
                 core.try_as_specific()?,
                 additions.try_as_specific()?,
             )),
@@ -122,7 +193,7 @@ struct FormativeGlossInput<'a> {
     version: Version,
     slot_vii: String,
     root_type: RootType,
-    additions: &'a GeneralFormativeAdditions,
+    additions: &'a ShortcutCheckedFormativeAdditions,
 }
 
 fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
@@ -143,7 +214,7 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
 
     let (shortcut_type, relation, ca, slot_v, function, specification, context, vn) =
         match additions {
-            GeneralFormativeAdditions::Normal(data) => (
+            ShortcutCheckedFormativeAdditions::Normal(data) => (
                 ShortcutType::Normal,
                 data.relation,
                 data.ca,
@@ -153,7 +224,7 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
                 data.context,
                 Some(data.vn),
             ),
-            GeneralFormativeAdditions::CnShortcut(data) => (
+            ShortcutCheckedFormativeAdditions::CnShortcut(data) => (
                 ShortcutType::Cn,
                 data.relation.as_general(),
                 Default::default(),
@@ -163,7 +234,7 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
                 data.context,
                 None,
             ),
-            GeneralFormativeAdditions::CaShortcut(data) => (
+            ShortcutCheckedFormativeAdditions::CaShortcut(data) => (
                 ShortcutType::Ca,
                 data.relation,
                 data.ca.as_general(),
@@ -355,7 +426,7 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
     gloss
 }
 
-impl Gloss for Formative {
+impl Gloss for CheckedFormative {
     fn gloss(&self, flags: GlossFlags) -> String {
         let (root, stem, version, slot_vii) = match self {
             Self::Normal(
@@ -420,12 +491,16 @@ impl Gloss for Formative {
         };
 
         let (root_type, additions) = match self {
-            Formative::Normal(_, additions) => (RootType::Normal, additions.clone().as_general()),
-            Formative::Numeric(_, additions) => (RootType::Numeric, additions.clone().as_general()),
-            Formative::Referential(_, additions) => {
+            CheckedFormative::Normal(_, additions) => {
+                (RootType::Normal, additions.clone().as_general())
+            }
+            CheckedFormative::Numeric(_, additions) => {
+                (RootType::Numeric, additions.clone().as_general())
+            }
+            CheckedFormative::Referential(_, additions) => {
                 (RootType::Referential, additions.clone().as_general())
             }
-            Formative::Affixual(_, additions) => {
+            CheckedFormative::Affixual(_, additions) => {
                 (RootType::Affixual, additions.clone().as_general())
             }
         };
@@ -444,7 +519,7 @@ impl Gloss for Formative {
     }
 }
 
-impl Gloss for GeneralFormative {
+impl Gloss for ShortcutCheckedFormative {
     fn gloss(&self, flags: GlossFlags) -> String {
         let root = self.0.root.gloss(flags);
 
@@ -458,10 +533,10 @@ impl Gloss for GeneralFormative {
         let slot_vii = self.0.slot_vii_affixes.gloss(flags);
 
         let root_type = match self.0.root {
-            GeneralFormativeRoot::Normal(_) => RootType::Normal,
-            GeneralFormativeRoot::Numeric(_) => RootType::Numeric,
-            GeneralFormativeRoot::Referential(_) => RootType::Referential,
-            GeneralFormativeRoot::Affixual(_) => RootType::Affixual,
+            ShortcutCheckedFormativeRoot::Normal(_) => RootType::Normal,
+            ShortcutCheckedFormativeRoot::Numeric(_) => RootType::Numeric,
+            ShortcutCheckedFormativeRoot::Referential(_) => RootType::Referential,
+            ShortcutCheckedFormativeRoot::Affixual(_) => RootType::Affixual,
         };
 
         let additions = &self.1;
@@ -480,7 +555,7 @@ impl Gloss for GeneralFormative {
     }
 }
 
-impl FromTokenStream for GeneralFormative {
+impl FromTokenStream for ShortcutCheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         // This function is scary. Be warned.
 
@@ -491,14 +566,14 @@ impl FromTokenStream for GeneralFormative {
         // 4. ((H)V)CVH(VC...)(V)
 
         // We'll take care of parsing Vc/Vk first, because it's easy.
-        // We'll leave it as a VowelForm though, because we don't want to interpret it into a Vc or
-        // Vk form until the end of parsing.
+        // We'll leave it as a VowelForm though, because we don't want to interpret it
+        // into a Vc or Vk form until the end of parsing.
 
         let vc_or_vk: Option<VowelForm> = stream.next_back();
 
         // The Cc and Vv slots tell us pretty much everything else about how the word is
-        // constructed. So we'll parse those next. How convenient that they're at the beginning of
-        // the word.
+        // constructed. So we'll parse those next. How convenient that they're at the
+        // beginning of the word.
 
         #[derive(Clone, Copy, Debug)]
         enum CaShortcutMode {
@@ -595,8 +670,9 @@ impl FromTokenStream for GeneralFormative {
             },
         };
 
-        // If we parse the Vv form too early, we'll be stuck having to deal with enum variants and
-        // stuff. So we'll just capture it for now, detect the word type, and leave it for later.
+        // If we parse the Vv form too early, we'll be stuck having to deal with enum
+        // variants and stuff. So we'll just capture it for now, detect the word
+        // type, and leave it for later.
 
         let vv: VowelForm = if has_cc {
             stream.next().ok_or(ParseError::ExpectedVv)?
@@ -708,11 +784,11 @@ impl FromTokenStream for GeneralFormative {
             _ => None,
         };
 
-        // Now we've collected Cc, Vv, Cr, and Vr. That's the easy part done, and we can piece
-        // together most of the formative now.
+        // Now we've collected Cc, Vv, Cr, and Vr. That's the easy part done, and we can
+        // piece together most of the formative now.
         //
-        // We still need to get slots V, VI, VII, and VIII, but we'll do that later in case there's
-        // an early error in the first four slots.
+        // We still need to get slots V, VI, VII, and VIII, but we'll do that later in
+        // case there's an early error in the first four slots.
         //
         // The slots provide these values:
         // Cc = concatenation type, Ca shortcut type
@@ -799,8 +875,8 @@ impl FromTokenStream for GeneralFormative {
                     _ => Context::EXS,
                 },
                 match root {
-                    Root::C(cr) => GeneralFormativeRoot::Normal(NormalFormativeRoot { cr }),
-                    Root::N(n) => GeneralFormativeRoot::Numeric(NumericFormativeRoot {
+                    Root::C(cr) => ShortcutCheckedFormativeRoot::Normal(NormalFormativeRoot { cr }),
+                    Root::N(n) => ShortcutCheckedFormativeRoot::Numeric(NumericFormativeRoot {
                         integer_part: n.integer_part,
                     }),
                 },
@@ -846,7 +922,7 @@ impl FromTokenStream for GeneralFormative {
                     _ => Context::EXS,
                 },
                 match root {
-                    Root::C(cr) => GeneralFormativeRoot::Referential(cr.parse()?),
+                    Root::C(cr) => ShortcutCheckedFormativeRoot::Referential(cr.parse()?),
                     Root::N(_) => return Err(ParseError::ExpectedReferentialRoot),
                 },
             ),
@@ -867,7 +943,7 @@ impl FromTokenStream for GeneralFormative {
                     _ => return Err(ParseError::AffixualFormativeWithCaShortcut),
                 },
                 match root {
-                    Root::C(cr) => GeneralFormativeRoot::Affixual(AffixualFormativeRoot {
+                    Root::C(cr) => ShortcutCheckedFormativeRoot::Affixual(AffixualFormativeRoot {
                         cs: cr.0,
                         degree: vr.ok_or(ParseError::ExpectedVr)?.degree.into(),
                     }),
@@ -878,7 +954,8 @@ impl FromTokenStream for GeneralFormative {
 
         // We've officially completed the easy part of parsing.
         //
-        // There are now quite a few options left for how the token stream can be parsed.
+        // There are now quite a few options left for how the token stream can be
+        // parsed.
         //
         // For formatives with Ca shortcuts, there is only one option:
         // 1. (VC...')(VC...)(VH)     (slot V affixes, then slot VII affixes, then VnCn)
@@ -1303,7 +1380,7 @@ impl FromTokenStream for GeneralFormative {
                 vncn,
                 affix_shortcut,
             } => (
-                GeneralFormativeAdditions::Normal(GeneralNonShortcutAdditions {
+                ShortcutCheckedFormativeAdditions::Normal(GeneralNonShortcutAdditions {
                     relation: match relation_type {
                         RelationType::Verbal => Relation::Verbal {
                             mood: match vncn {
@@ -1369,7 +1446,7 @@ impl FromTokenStream for GeneralFormative {
                 slot_vii_affixes,
                 affix_shortcut,
             } => (
-                GeneralFormativeAdditions::CnShortcut(GeneralCnShortcutAdditions {
+                ShortcutCheckedFormativeAdditions::CnShortcut(GeneralCnShortcutAdditions {
                     relation: match relation_type {
                         RelationType::Verbal => Relation::Verbal {
                             mood: cn
@@ -1431,7 +1508,7 @@ impl FromTokenStream for GeneralFormative {
                 slot_vii_affixes,
                 vncn,
             } => (
-                GeneralFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
+                ShortcutCheckedFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
                     relation: match relation_type {
                         RelationType::Verbal => Relation::Verbal {
                             mood: match vncn {
@@ -1486,8 +1563,8 @@ impl FromTokenStream for GeneralFormative {
             ),
         };
 
-        Ok(GeneralFormative(
-            GeneralFormativeCore {
+        Ok(ShortcutCheckedFormative(
+            ShortcutCheckedFormativeCore {
                 root,
                 slot_vii_affixes,
                 stem,
@@ -1498,9 +1575,9 @@ impl FromTokenStream for GeneralFormative {
     }
 }
 
-impl FromTokenStream for Formative {
+impl FromTokenStream for CheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
-        let general: GeneralFormative = stream.parse(flags)?;
+        let general: ShortcutCheckedFormative = stream.parse(flags)?;
 
         general
             .try_as_specific()

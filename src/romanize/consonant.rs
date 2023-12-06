@@ -40,15 +40,10 @@ impl ConsonantForm {
     ///
     /// # Examples
     ///
-    /// ```
-    /// use tnil::romanize::token::ConsonantForm;
+    /// ``` use tnil::romanize::token::ConsonantForm;
+    /// let consonant_form = ConsonantForm::new("rrw"); assert!(consonant_form.is_geminate());
     ///
-    /// let consonant_form = ConsonantForm::new("rrw");
-    /// assert!(consonant_form.is_geminate());
-    ///
-    /// let consonant_form = ConsonantForm::new("zv");
-    /// assert!(!consonant_form.is_geminate());
-    /// ```
+    /// let consonant_form = ConsonantForm::new("zv"); assert!(!consonant_form.is_geminate()); ```
     pub fn is_geminate(&self) -> bool {
         let mut chars = self.0.chars();
 

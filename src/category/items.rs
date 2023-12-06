@@ -155,6 +155,15 @@ category!(
 );
 
 category!(
+    DatalessRelation,
+    (NOM, "Nominal", "nominal"),
+    (T1, "Type-1 Concatenated", "type_one"),
+    (T2, "Type-2 Concatenated", "type_two"),
+    (VRB, "Unframed Verb", "unframed_verb"),
+    (FRM, "Framed Verb", "framed_verb"),
+);
+
+category!(
     Version,
     (PRC, "Processual", "processual"),
     (CPT, "Completive", "completive"),
@@ -866,6 +875,13 @@ category!(
     (STU, "Stupefactive", "stupefactive"),
     (TRP, "Trepidative", "trepidative"),
     (VEX, "Vexative", "vexative"),
+);
+
+category!(
+    ShortcutType,
+    (Normal, "Normal", "normal"),
+    (Ca, "Ca", "ca"),
+    (Cn, "Cn", "cn"),
 );
 
 /// HACK: Using a module here allows lints to be allowed properly, which we want need in order to

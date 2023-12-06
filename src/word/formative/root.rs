@@ -143,7 +143,7 @@ impl Gloss for AffixualFormativeRoot {
 
 /// A general formative root.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum GeneralFormativeRoot {
+pub enum ShortcutCheckedFormativeRoot {
     /// The root of a normal formative.
     Normal(NormalFormativeRoot),
 
@@ -157,16 +157,16 @@ pub enum GeneralFormativeRoot {
     Affixual(AffixualFormativeRoot),
 }
 
-impl GeneralFormativeRoot {
-    /// Creates a new [`GeneralFormativeRoot::Normal`].
-    pub fn new_normal(source: impl Into<String>) -> GeneralFormativeRoot {
-        GeneralFormativeRoot::Normal(NormalFormativeRoot {
+impl ShortcutCheckedFormativeRoot {
+    /// Creates a new [`ShortcutCheckedFormativeRoot::Normal`].
+    pub fn new_normal(source: impl Into<String>) -> ShortcutCheckedFormativeRoot {
+        ShortcutCheckedFormativeRoot::Normal(NormalFormativeRoot {
             cr: OwnedConsonantForm(source.into()),
         })
     }
 }
 
-impl Gloss for GeneralFormativeRoot {
+impl Gloss for ShortcutCheckedFormativeRoot {
     fn gloss(&self, flags: GlossFlags) -> String {
         match self {
             Self::Normal(value) => value.gloss(flags),
@@ -179,19 +179,19 @@ impl Gloss for GeneralFormativeRoot {
 
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident) => {
-        impl AsGeneral<GeneralFormativeRoot> for $specific {
-            fn as_general(self) -> GeneralFormativeRoot {
-                GeneralFormativeRoot::$variant(self)
+        impl AsGeneral<ShortcutCheckedFormativeRoot> for $specific {
+            fn as_general(self) -> ShortcutCheckedFormativeRoot {
+                ShortcutCheckedFormativeRoot::$variant(self)
             }
         }
 
-        impl From<$specific> for GeneralFormativeRoot {
+        impl From<$specific> for ShortcutCheckedFormativeRoot {
             fn from(value: $specific) -> Self {
                 value.as_general()
             }
         }
 
-        impl TryAsSpecific<$specific> for GeneralFormativeRoot {
+        impl TryAsSpecific<$specific> for ShortcutCheckedFormativeRoot {
             fn try_as_specific(self) -> Option<$specific> {
                 match self {
                     Self::$variant(value) => Some(value),

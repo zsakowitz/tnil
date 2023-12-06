@@ -1,6 +1,6 @@
 use super::{
-    AffixualAdjunct, BiasAdjunct, Formative, GeneralFormative, GeneralReferential, MCSAdjunct,
-    ModularAdjunct, NormalReferential, NumericAdjunct, ParsingAdjunct, RegisterAdjunct,
+    AffixualAdjunct, BiasAdjunct, CheckedFormative, GeneralReferential, MCSAdjunct, ModularAdjunct,
+    NormalReferential, NumericAdjunct, ParsingAdjunct, RegisterAdjunct, ShortcutCheckedFormative,
     SuppletiveAdjunct, SuppletiveReferential,
 };
 use crate::romanize::{
@@ -22,8 +22,8 @@ macro_rules! from_str_impl {
 }
 
 from_str_impl!(
-    Formative,
-    GeneralFormative,
+    CheckedFormative,
+    ShortcutCheckedFormative,
     NormalReferential,
     SuppletiveReferential,
     GeneralReferential,

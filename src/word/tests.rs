@@ -1,11 +1,11 @@
 use super::{
-    AffixualAdjunct, BiasAdjunct, Formative, GeneralReferential, MCSAdjunct, ModularAdjunct,
+    AffixualAdjunct, BiasAdjunct, CheckedFormative, GeneralReferential, MCSAdjunct, ModularAdjunct,
     NormalReferential, ParsingAdjunct, RegisterAdjunct, SuppletiveAdjunct, SuppletiveReferential,
 };
 use crate::{
     gloss::Gloss,
     romanize::stream::FromTokenStream,
-    word::{GeneralFormative, NumericAdjunct},
+    word::{NumericAdjunct, ShortcutCheckedFormative},
 };
 use std::str::FromStr;
 
@@ -13,8 +13,8 @@ use std::str::FromStr;
 fn test() {
     fn assert_is_word<T: FromStr + FromTokenStream + Gloss>() {}
 
-    assert_is_word::<Formative>();
-    assert_is_word::<GeneralFormative>();
+    assert_is_word::<CheckedFormative>();
+    assert_is_word::<ShortcutCheckedFormative>();
 
     assert_is_word::<NormalReferential>();
     assert_is_word::<SuppletiveReferential>();

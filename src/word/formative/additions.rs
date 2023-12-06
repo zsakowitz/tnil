@@ -162,7 +162,7 @@ impl Default for AffixualFormativeAdditions {
 
 /// Additions to a general formative.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum GeneralFormativeAdditions {
+pub enum ShortcutCheckedFormativeAdditions {
     /// Additions to a non-shortcut formatives.
     Normal(GeneralNonShortcutAdditions),
 
@@ -372,23 +372,25 @@ impl TryAsSpecific<ReferentialCaShortcutAdditions> for NormalCaShortcutAdditions
     }
 }
 
-impl AsGeneral<GeneralFormativeAdditions> for NormalFormativeAdditions {
-    fn as_general(self) -> GeneralFormativeAdditions {
+impl AsGeneral<ShortcutCheckedFormativeAdditions> for NormalFormativeAdditions {
+    fn as_general(self) -> ShortcutCheckedFormativeAdditions {
         match self {
-            Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
-            Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
-            Self::CaShortcut(value) => GeneralFormativeAdditions::CaShortcut(value),
+            Self::Normal(value) => ShortcutCheckedFormativeAdditions::Normal(value.as_general()),
+            Self::CnShortcut(value) => {
+                ShortcutCheckedFormativeAdditions::CnShortcut(value.as_general())
+            }
+            Self::CaShortcut(value) => ShortcutCheckedFormativeAdditions::CaShortcut(value),
         }
     }
 }
 
-impl From<NormalFormativeAdditions> for GeneralFormativeAdditions {
+impl From<NormalFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn from(value: NormalFormativeAdditions) -> Self {
         value.as_general()
     }
 }
 
-impl TryAsSpecific<NormalFormativeAdditions> for GeneralFormativeAdditions {
+impl TryAsSpecific<NormalFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn try_as_specific(self) -> Option<NormalFormativeAdditions> {
         Some(match self {
             Self::Normal(value) => NormalFormativeAdditions::Normal(value.try_as_specific()?),
@@ -400,23 +402,27 @@ impl TryAsSpecific<NormalFormativeAdditions> for GeneralFormativeAdditions {
     }
 }
 
-impl AsGeneral<GeneralFormativeAdditions> for ReferentialFormativeAdditions {
-    fn as_general(self) -> GeneralFormativeAdditions {
+impl AsGeneral<ShortcutCheckedFormativeAdditions> for ReferentialFormativeAdditions {
+    fn as_general(self) -> ShortcutCheckedFormativeAdditions {
         match self {
-            Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
-            Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
-            Self::CaShortcut(value) => GeneralFormativeAdditions::CaShortcut(value.as_general()),
+            Self::Normal(value) => ShortcutCheckedFormativeAdditions::Normal(value.as_general()),
+            Self::CnShortcut(value) => {
+                ShortcutCheckedFormativeAdditions::CnShortcut(value.as_general())
+            }
+            Self::CaShortcut(value) => {
+                ShortcutCheckedFormativeAdditions::CaShortcut(value.as_general())
+            }
         }
     }
 }
 
-impl From<ReferentialFormativeAdditions> for GeneralFormativeAdditions {
+impl From<ReferentialFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn from(value: ReferentialFormativeAdditions) -> Self {
         value.as_general()
     }
 }
 
-impl TryAsSpecific<ReferentialFormativeAdditions> for GeneralFormativeAdditions {
+impl TryAsSpecific<ReferentialFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn try_as_specific(self) -> Option<ReferentialFormativeAdditions> {
         Some(match self {
             Self::Normal(value) => ReferentialFormativeAdditions::Normal(value.try_as_specific()?),
@@ -430,22 +436,24 @@ impl TryAsSpecific<ReferentialFormativeAdditions> for GeneralFormativeAdditions 
     }
 }
 
-impl AsGeneral<GeneralFormativeAdditions> for AffixualFormativeAdditions {
-    fn as_general(self) -> GeneralFormativeAdditions {
+impl AsGeneral<ShortcutCheckedFormativeAdditions> for AffixualFormativeAdditions {
+    fn as_general(self) -> ShortcutCheckedFormativeAdditions {
         match self {
-            Self::Normal(value) => GeneralFormativeAdditions::Normal(value.as_general()),
-            Self::CnShortcut(value) => GeneralFormativeAdditions::CnShortcut(value.as_general()),
+            Self::Normal(value) => ShortcutCheckedFormativeAdditions::Normal(value.as_general()),
+            Self::CnShortcut(value) => {
+                ShortcutCheckedFormativeAdditions::CnShortcut(value.as_general())
+            }
         }
     }
 }
 
-impl From<AffixualFormativeAdditions> for GeneralFormativeAdditions {
+impl From<AffixualFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn from(value: AffixualFormativeAdditions) -> Self {
         value.as_general()
     }
 }
 
-impl TryAsSpecific<AffixualFormativeAdditions> for GeneralFormativeAdditions {
+impl TryAsSpecific<AffixualFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn try_as_specific(self) -> Option<AffixualFormativeAdditions> {
         match self {
             Self::Normal(value) => {

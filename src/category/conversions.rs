@@ -4,11 +4,11 @@
 
 use super::{
     Affiliation, AffixDegree, AffixType, AppositiveCase, ArbitraryMoodOrCaseScope, Aspect, Bias,
-    Ca, Case, CaseScope, Configuration, DestructuredConfiguration, Effect, Essence, Extension,
-    Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope, NonAspectualVn,
-    NonDefaultCaseScope, NonDefaultMood, NormalCaShortcut, Perspective, Phase, Plexity,
-    ReferentialAffixPerspective, ReferentialCaShortcut, Separability, Similarity,
-    SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn, VowelFormDegree,
+    Ca, Case, CaseScope, Configuration, DatalessRelation, DestructuredConfiguration, Effect,
+    Essence, Extension, Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope,
+    NominalMode, NonAspectualVn, NonDefaultCaseScope, NonDefaultMood, NormalCaShortcut,
+    Perspective, Phase, Plexity, ReferentialAffixPerspective, ReferentialCaShortcut, Separability,
+    Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn, VowelFormDegree,
     VowelFormSequence,
 };
 use crate::{
@@ -650,7 +650,8 @@ impl NonAspectualVn {
         matches!(self, Self::Level(_))
     }
 
-    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Valence`], otherwise returns [`None`].
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Valence`], otherwise returns
+    /// [`None`].
     pub const fn as_valence(self) -> Option<Valence> {
         match self {
             Self::Valence(value) => Some(value),
@@ -658,7 +659,8 @@ impl NonAspectualVn {
         }
     }
 
-    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Phase`], otherwise returns [`None`].
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Phase`], otherwise returns
+    /// [`None`].
     pub const fn as_phase(self) -> Option<Phase> {
         match self {
             Self::Phase(value) => Some(value),
@@ -666,7 +668,8 @@ impl NonAspectualVn {
         }
     }
 
-    /// Returns [`Some`] if this [`NonAspectualVn`] contains an [`Effect`], otherwise returns [`None`].
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains an [`Effect`], otherwise returns
+    /// [`None`].
     pub const fn as_effect(self) -> Option<Effect> {
         match self {
             Self::Effect(value) => Some(value),
@@ -674,7 +677,8 @@ impl NonAspectualVn {
         }
     }
 
-    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Level`], otherwise returns [`None`].
+    /// Returns [`Some`] if this [`NonAspectualVn`] contains a [`Level`], otherwise returns
+    /// [`None`].
     pub const fn as_level(self) -> Option<Level> {
         match self {
             Self::Level(value) => Some(value),
@@ -1851,6 +1855,35 @@ impl IllocutionOrValidation {
             (VowelFormSequence::S2, VowelFormDegree::D9) => Ok(Self::CNJ),
 
             _ => Err(ParseError::ExpectedVk),
+        }
+    }
+}
+
+impl AsGeneral<DatalessRelation> for NominalMode {
+    fn as_general(self) -> DatalessRelation {
+        match self {
+            Self::NOM => DatalessRelation::NOM,
+            Self::T1 => DatalessRelation::T1,
+            Self::T2 => DatalessRelation::T2,
+            Self::FRM => DatalessRelation::FRM,
+        }
+    }
+}
+
+impl From<NominalMode> for DatalessRelation {
+    fn from(value: NominalMode) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<NominalMode> for DatalessRelation {
+    fn try_as_specific(self) -> Option<NominalMode> {
+        match self {
+            Self::NOM => Some(NominalMode::NOM),
+            Self::T1 => Some(NominalMode::T1),
+            Self::T2 => Some(NominalMode::T2),
+            Self::VRB => None,
+            Self::FRM => Some(NominalMode::FRM),
         }
     }
 }

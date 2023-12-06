@@ -1,8 +1,10 @@
 //! Contains different types of words in New Ithkuil.
 //!
-//! Eleven core word types are defined:
+//! ## Word Types
 //!
-//! - [`Formative`]: an Ithkuil formative, whether its root is normal/numeric/referential/affixual
+//! 11 words types are defined.
+//!
+//! - [`CheckedFormative`]: any Ithkuil formative
 //! - [`NormalReferential`]: a referential whose first referent is a normal referent
 //! - [`SuppletiveReferential`]: a referential whose first referent is a suppletive adjunct
 //! - [`AffixualAdjunct`]: an affixual adjunct
@@ -17,7 +19,8 @@
 //! Three odd, but useful choices are made here.
 //!
 //! First, referentials are split in two based on whether they are normal referentials or have a
-//! suppletive adjunct head. For a generalized version that can match either, see [`GeneralReferential`].
+//! suppletive adjunct head. For a generalized version that can match either, see
+//! [`GeneralReferential`].
 //!
 //! Second, the outdated mood/case-scope adjunct is included. This is because it's a part of the
 //! New Ithkuil language, even if it's no longer in common use. It's important to include both for
@@ -30,15 +33,23 @@
 //! in daily use. This crate allows for numerals to be used as standalone words, as formative roots,
 //! or as affix Cs forms, giving great flexibility that would not be possible without a standalone
 //! [`NumericAdjunct`] type.
+//!
+//! ## Formatives
+//!
+//! Because Ithkuil formatives are very complicated to construct and work with, this crate provides three formative types
+//!
+//! - [`CheckedFormative`]:
+//! - [`ShortcutCheckedFormative`]
+//! - [`UncheckedFormative`]
 
 mod adjunct;
 pub mod formative;
 pub mod referential;
 
+mod impls;
 #[cfg(test)]
 mod tests;
-mod impls;
 
 pub use adjunct::*;
-pub use formative::formative::{Formative, GeneralFormative};
+pub use formative::formative::*;
 pub use referential::aliases::*;

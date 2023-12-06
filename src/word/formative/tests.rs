@@ -12,20 +12,20 @@ use crate::{
     word::{
         formative::{
             additions::{
-                GeneralFormativeAdditions, GeneralNonShortcutAdditions, NormalCaShortcutAdditions,
-                NormalFormativeAdditions, NormalNonShortcutAdditions,
+                GeneralNonShortcutAdditions, NormalCaShortcutAdditions, NormalFormativeAdditions,
+                NormalNonShortcutAdditions, ShortcutCheckedFormativeAdditions,
             },
-            core::{GeneralFormativeCore, NormalFormativeCore},
+            core::{NormalFormativeCore, ShortcutCheckedFormativeCore},
             relation::NormalRelation,
-            root::{GeneralFormativeRoot, NormalFormativeRoot},
+            root::{NormalFormativeRoot, ShortcutCheckedFormativeRoot},
         },
-        Formative, GeneralFormative,
+        CheckedFormative, ShortcutCheckedFormative,
     },
 };
 
 #[test]
 fn glosses() {
-    let formative = Formative::Normal(
+    let formative = CheckedFormative::Normal(
         NormalFormativeCore {
             root: NormalFormativeRoot::new("rr"),
             stem: Stem::S1,
@@ -48,7 +48,7 @@ fn glosses() {
 
     assert_eq!(gloss, "S1-rr");
 
-    let formative = Formative::Normal(
+    let formative = CheckedFormative::Normal(
         NormalFormativeCore {
             root: NormalFormativeRoot::new("rr"),
             stem: Stem::S3,
@@ -80,18 +80,18 @@ fn glosses() {
 
 #[test]
 fn parsing() -> Result<(), ParseError> {
-    let formative: GeneralFormative = "rrata".parse()?;
+    let formative: ShortcutCheckedFormative = "rrata".parse()?;
 
     assert_eq!(
         formative,
-        GeneralFormative(
-            GeneralFormativeCore {
-                root: GeneralFormativeRoot::new_normal("rr"),
+        ShortcutCheckedFormative(
+            ShortcutCheckedFormativeCore {
+                root: ShortcutCheckedFormativeRoot::new_normal("rr"),
                 stem: Some(Stem::S1),
                 version: Version::PRC,
                 slot_vii_affixes: AffixList::Normal(Vec::new()),
             },
-            GeneralFormativeAdditions::Normal(GeneralNonShortcutAdditions {
+            ShortcutCheckedFormativeAdditions::Normal(GeneralNonShortcutAdditions {
                 relation: NormalRelation::Nominal {
                     mode: NominalMode::NOM,
                     case_scope: CaseScope::CCN,
@@ -108,13 +108,13 @@ fn parsing() -> Result<(), ParseError> {
         )
     );
 
-    let formative: GeneralFormative = "watteteihnáu".parse()?;
+    let formative: ShortcutCheckedFormative = "watteteihnáu".parse()?;
 
     assert_eq!(
         formative,
-        GeneralFormative(
-            GeneralFormativeCore {
-                root: GeneralFormativeRoot::new_normal("tt"),
+        ShortcutCheckedFormative(
+            ShortcutCheckedFormativeCore {
+                root: ShortcutCheckedFormativeRoot::new_normal("tt"),
                 stem: Some(Stem::S1),
                 version: Version::PRC,
                 slot_vii_affixes: AffixList::Normal(vec![RegularAffix::Plain(PlainAffix {
@@ -123,7 +123,7 @@ fn parsing() -> Result<(), ParseError> {
                     r#type: AffixType::T1,
                 })]),
             },
-            GeneralFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
+            ShortcutCheckedFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
                 relation: NormalRelation::Verbal {
                     mood: Mood::COU,
                     ivl: IllocutionOrValidation::DEC,
@@ -141,10 +141,10 @@ fn parsing() -> Result<(), ParseError> {
 #[test]
 fn parse_and_gloss() -> Result<(), ParseError> {
     fn check(source: &str, gloss: &str) -> Result<(), ParseError> {
-        let formative: GeneralFormative = source.parse()?;
+        let formative: ShortcutCheckedFormative = source.parse()?;
         assert_eq!(formative.gloss(GlossFlags::NONE), gloss);
 
-        let formative: Formative = source.parse()?;
+        let formative: CheckedFormative = source.parse()?;
         assert_eq!(formative.gloss(GlossFlags::NONE), gloss);
 
         Ok(())

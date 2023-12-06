@@ -40,32 +40,26 @@ impl GlossFlags {
     #[cfg(feature = "sheet-affix-data")]
     /// A [`GlossFlags`] instance with only the `use_sheet_affix_data` flag enabled.
     ///
-    /// If passed to `.gloss()`, this will replace affixes with their values as specified in the
-    /// collaborative Ithkuil IV Roots and Affixes spreadsheet, found at
-    /// https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
+    /// If passed to `.gloss()`, this will replace affixes with their values as specified in the collaborative Ithkuil IV Roots and Affixes spreadsheet, found at https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
     pub const USE_SHEET_AFFIX_DATA: Self = Self(1 << 4);
 
     #[cfg(feature = "sheet-root-data")]
     /// A [`GlossFlags`] instance with only the `use_sheet_root_data` flag enabled.
     ///
-    /// If passed to `.gloss()`, this will replace roots with their values as specified in the
-    /// collaborative Ithkuil IV Roots and Affixes spreadsheet, found at
-    /// https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
+    /// If passed to `.gloss()`, this will replace roots with their values as specified in the collaborative Ithkuil IV Roots and Affixes spreadsheet, found at https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit.
     pub const USE_SHEET_ROOT_DATA: Self = Self(1 << 5);
 
     #[cfg(feature = "lexicon-json-root-data")]
     /// A [`GlossFlags`] instance with only the `use_lexicon_json_root_data` flag enabled.
     ///
-    /// If passed to `.gloss()`, this will replace roots with their values as specified in the
-    /// lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
+    /// If passed to `.gloss()`, this will replace roots with their values as specified in the lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
     pub const USE_ITHKUIL_JSON_ROOT_DATA: Self = Self(1 << 6);
 
     #[cfg(all(feature = "sheet-root-data", feature = "lexicon-json-root-data"))]
     /// A [`GlossFlags`] instance with both the `use_sheet_root_data` and
     /// `use_lexicon_json_root_data` flags enabled.
     ///
-    /// If passed to `.gloss()`, this will replace roots with their values as specified in the
-    /// lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
+    /// If passed to `.gloss()`, this will replace roots with their values as specified in the lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
     pub const USE_COMBINED_ROOT_DATA: Self = Self(1 << 5 | 1 << 6);
 
     /// Checks if `self` contains the flags specified in `other`.
