@@ -5,6 +5,8 @@ use std::str::FromStr;
 fn test() {
     fn assert_is_word<T: FromStr + FromTokenStream + Gloss>() {}
 
+    assert_is_word::<Word>();
+
     assert_is_word::<word::CheckedFormative>();
     assert_is_word::<word::ShortcutCheckedFormative>();
     assert_is_word::<word::UncheckedFormative>();
@@ -48,9 +50,20 @@ fn parsing_and_glossing() -> Result<(), ParseError> {
     check("slot", "S1-sl-DYN.CSV-MSS-OBS")?;
     check("psalaekpa", "S1-ps-kp/0₁")?;
     check("psakpaevv", "S1-ps-kp/0₁-N")?;
+    check("oëtil", "CPT.DYN-t/4-D4")?;
     check("'oëtil", "CPT.DYN-t/4-D4")?;
 
     check("lo", "1m-ERG")?;
+    check("la", "1m")?;
+    check("lawe", "1m-THM-ABS")?;
+    check("ëlawe", "1m-THM-ABS")?;
+    check("'ëlawe", "1m-THM-ABS")?;
+    check("ahňax", "[PHR]-BSC")?;
+    check("ahňaxelta", "[PHR]-BSC-lt/3₁")?;
+    check("ahňaxeltüa", "[PHR]-BSC-lt/3₁-THM")?;
+
+    check("er", "r/3₁")?;
+    check("eru", "r/3₁-{v.sub}")?;
 
     Ok(())
 }
