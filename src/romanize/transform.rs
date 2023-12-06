@@ -175,7 +175,7 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, ParseError> {
 
             VowelStatus::Stressed => {
                 vowel_forms_detected += 1;
-                if stress.is_none() {
+                if stress.is_some() {
                     return Err(ParseError::StressDoubled);
                 }
                 stress = match vowel_forms_detected {
@@ -189,7 +189,7 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, ParseError> {
             VowelStatus::UnstressedAfterDipthong => {}
 
             VowelStatus::StressedAfterDipthong => {
-                if stress.is_none() {
+                if stress.is_some() {
                     return Err(ParseError::StressDoubled);
                 }
                 stress = match vowel_forms_detected {
@@ -200,6 +200,10 @@ pub fn detect_stress(word: &str) -> Result<Option<Stress>, ParseError> {
                 }
             }
         };
+    }
+
+    if vowel_forms_detected == 1 && stress == None {
+        stress = Some(Stress::Monosyllabic);
     }
 
     Ok(stress)

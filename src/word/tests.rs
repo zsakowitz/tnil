@@ -7,14 +7,14 @@ use crate::{
     romanize::stream::FromTokenStream,
     word::{GeneralFormative, NumericAdjunct},
 };
+use std::str::FromStr;
 
 #[test]
 fn test() {
-    fn assert_gloss<T: Gloss>() {}
-    fn assert_is_word<T: FromTokenStream + Gloss>() {}
+    fn assert_is_word<T: FromStr + FromTokenStream + Gloss>() {}
 
-    assert_gloss::<Formative>();
-    assert_gloss::<GeneralFormative>();
+    assert_is_word::<Formative>();
+    assert_is_word::<GeneralFormative>();
 
     assert_is_word::<NormalReferential>();
     assert_is_word::<SuppletiveReferential>();

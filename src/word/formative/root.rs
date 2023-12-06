@@ -5,7 +5,7 @@ use std::str::FromStr;
 use crate::{
     category::{AffixDegree, PerspectivelessReferentList},
     gloss::{Gloss, GlossFlags, GlossStatic},
-    romanize::stream::ParseError,
+    romanize::{stream::ParseError, token::OwnedConsonantForm},
     specificity::{AsGeneral, TryAsSpecific},
 };
 
@@ -13,13 +13,15 @@ use crate::{
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NormalFormativeRoot {
     /// The Cr form of this root.
-    pub cr: String,
+    pub cr: OwnedConsonantForm,
 }
 
 impl NormalFormativeRoot {
     /// Creates a new [`NormalRoot`] from a Cr form.
     pub fn new(cr: impl Into<String>) -> Self {
-        Self { cr: cr.into() }
+        Self {
+            cr: OwnedConsonantForm(cr.into()),
+        }
     }
 }
 
@@ -32,7 +34,7 @@ impl Gloss for NormalFormativeRoot {
             output += "**";
             output
         } else {
-            self.cr.clone()
+            self.cr.0.to_owned()
         }
     }
 }
@@ -108,7 +110,7 @@ pub struct AffixualFormativeRoot {
 }
 
 impl AffixualFormativeRoot {
-    /// Creates a new [`AffixualRoot`] from a Cs form and affix degree.
+    /// Creates a new [`AffixualFormativeRoot`] from a Cs form and affix degree.
     pub fn new(cs: impl Into<String>, degree: AffixDegree) -> Self {
         Self {
             cs: cs.try_into().unwrap(),
@@ -153,6 +155,15 @@ pub enum GeneralFormativeRoot {
 
     /// The root of an affixual formative.
     Affixual(AffixualFormativeRoot),
+}
+
+impl GeneralFormativeRoot {
+    /// Creates a new [`GeneralFormativeRoot::Normal`].
+    pub fn new_normal(source: impl Into<String>) -> GeneralFormativeRoot {
+        GeneralFormativeRoot::Normal(NormalFormativeRoot {
+            cr: OwnedConsonantForm(source.into()),
+        })
+    }
 }
 
 impl Gloss for GeneralFormativeRoot {

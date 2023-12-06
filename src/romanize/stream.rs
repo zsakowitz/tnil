@@ -139,7 +139,7 @@ pub trait FromTokenStream: Sized {
     }
 
     /// Parses this item from a string.
-    fn from_str(source: &str, flags: FromTokenFlags) -> Result<Self, ParseError> {
+    fn parse_str(source: &str, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let list = TokenList::from_str(source)?;
         let mut stream = list.stream();
         let result = Self::parse_volatile(&mut stream, flags)?;

@@ -301,8 +301,8 @@ fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
 
     let slot_ii = match root_type {
         RootType::Normal | RootType::Numeric => {
-            let mut output = version.gloss_non_default(flags);
-            output.add_dotted(stem);
+            let mut output = stem.to_owned();
+            output.add_dotted(version.gloss_static_non_default(flags));
             if matches!(shortcut_type, ShortcutType::Ca) {
                 output.add_dotted(&ca.gloss_non_default(flags));
             }
@@ -565,13 +565,13 @@ impl FromTokenStream for GeneralFormative {
 
         let relation_type = match concatenation_type {
             Concatenation::None => match stream.stress() {
-                Some(Stress::Ultimate) => RelationType::Verbal,
+                Some(Stress::Ultimate | Stress::Monosyllabic) => RelationType::Verbal,
                 Some(Stress::Antepenultimate) => RelationType::Framed,
                 _ => RelationType::Nominal,
             },
 
             Concatenation::T1 => match stream.stress() {
-                Some(Stress::Ultimate) => RelationType::T1(true),
+                Some(Stress::Ultimate | Stress::Monosyllabic) => RelationType::T1(true),
                 Some(Stress::Antepenultimate) => {
                     if flags.matches(FromTokenFlags::PERMISSIVE) {
                         RelationType::T1(false)
@@ -583,7 +583,7 @@ impl FromTokenStream for GeneralFormative {
             },
 
             Concatenation::T2 => match stream.stress() {
-                Some(Stress::Ultimate) => RelationType::T2(true),
+                Some(Stress::Ultimate | Stress::Monosyllabic) => RelationType::T2(true),
                 Some(Stress::Antepenultimate) => {
                     if flags.matches(FromTokenFlags::PERMISSIVE) {
                         RelationType::T2(false)
@@ -799,7 +799,7 @@ impl FromTokenStream for GeneralFormative {
                     _ => Context::EXS,
                 },
                 match root {
-                    Root::C(cr) => GeneralFormativeRoot::Normal(NormalFormativeRoot { cr: cr.0 }),
+                    Root::C(cr) => GeneralFormativeRoot::Normal(NormalFormativeRoot { cr }),
                     Root::N(n) => GeneralFormativeRoot::Numeric(NumericFormativeRoot {
                         integer_part: n.integer_part,
                     }),
