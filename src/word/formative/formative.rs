@@ -116,13 +116,17 @@ pub struct UncheckedFormative {
     /// The slot_vii_affixes of this formative.
     pub slot_vii_affixes: AffixList,
 
-    /// The vn of this formative.
+    /// The Vn of this formative.
     pub vn: Vn,
 
-    /// The cn of this formative.
+    /// The Cn of this formative.
     pub cn: ArbitraryMoodOrCaseScope,
 
-    /// The vc of this formative.
+    /// The Vc/Vk of this formative.
+    ///
+    /// This field is called `vc` because it stores a `Case`, but it represents an
+    /// [`IllocutionOrValidation`] in verbal formatives. It's not incorporated into `self.relation`
+    /// because that would make it harder to work with.
     pub vc: Case,
 }
 
@@ -261,13 +265,24 @@ impl From<ShortcutCheckedFormative> for UncheckedFormative {
 }
 
 impl TryAsSpecific<ShortcutCheckedFormative> for UncheckedFormative {
-    /// Converts [`self`] into a more specific version, returning [`None`] if it isn't possible.
     fn try_as_specific(self) -> Option<ShortcutCheckedFormative> {
         let stem = match self.root {
             ShortcutCheckedFormativeRoot::Normal(_) | ShortcutCheckedFormativeRoot::Numeric(_) => {
                 self.stem
             }
             _ => Stem::S1,
+        };
+
+        let affix_shortcut = match self.root {
+            ShortcutCheckedFormativeRoot::Normal(_) | ShortcutCheckedFormativeRoot::Numeric(_) => {
+                self.affix_shortcut
+            }
+            _ => AffixShortcut::None,
+        };
+
+        let specification = match self.root {
+            ShortcutCheckedFormativeRoot::Affixual(_) => Specification::BSC,
+            _ => self.specification,
         };
 
         match self.shortcut {
@@ -278,10 +293,102 @@ impl TryAsSpecific<ShortcutCheckedFormative> for UncheckedFormative {
                     stem,
                     version: self.version,
                 },
-                todo!(),
+                ShortcutCheckedFormativeAdditions::Normal(NormalNonShortcutAdditions {
+                    relation: match self.relation {
+                        DatalessRelation::VRB => Relation::Verbal {
+                            mood: self.cn.as_specific(),
+                            ivl: self.vc.as_vk()?,
+                        },
+
+                        relation => Relation::Nominal {
+                            mode: relation.try_as_specific()?,
+                            case_scope: self.cn.as_specific(),
+                            case: self.vc,
+                        },
+                    },
+                    affix_shortcut,
+                    function: self.function,
+                    specification,
+                    context: self.context,
+                    slot_v_affixes: self.slot_v_affixes,
+                    ca: self.ca,
+                    vn: self.vn,
+                }),
             )),
-            _ => todo!(),
+
+            ShortcutType::Ca => Some(ShortcutCheckedFormative(
+                ShortcutCheckedFormativeCore {
+                    root: self.root,
+                    slot_vii_affixes: self.slot_vii_affixes,
+                    stem,
+                    version: self.version,
+                },
+                ShortcutCheckedFormativeAdditions::CaShortcut(NormalCaShortcutAdditions {
+                    relation: match self.relation {
+                        DatalessRelation::VRB => Relation::Verbal {
+                            mood: self.cn.as_specific(),
+                            ivl: self.vc.as_vk()?,
+                        },
+
+                        relation => Relation::Nominal {
+                            mode: relation.try_as_specific()?,
+                            case_scope: self.cn.as_specific(),
+                            case: self.vc,
+                        },
+                    },
+                    slot_v_affixes: self.slot_v_affixes,
+                    ca: self.ca.try_as_specific()?,
+                    vn: self.vn,
+                }),
+            )),
+
+            ShortcutType::Cn => Some(ShortcutCheckedFormative(
+                ShortcutCheckedFormativeCore {
+                    root: self.root,
+                    slot_vii_affixes: self.slot_vii_affixes,
+                    stem,
+                    version: self.version,
+                },
+                ShortcutCheckedFormativeAdditions::CnShortcut(NormalCnShortcutAdditions {
+                    relation: match self.relation {
+                        DatalessRelation::VRB => Relation::Verbal {
+                            mood: self.cn.try_as_specific()?,
+                            ivl: self.vc.as_vk()?,
+                        },
+
+                        relation => Relation::Nominal {
+                            mode: relation.try_as_specific()?,
+                            case_scope: self.cn.try_as_specific()?,
+                            case: self.vc,
+                        },
+                    },
+                    affix_shortcut,
+                    function: self.function,
+                    specification,
+                    context: self.context,
+                }),
+            )),
         }
+    }
+}
+
+impl AsGeneral<UncheckedFormative> for CheckedFormative {
+    fn as_general(self) -> UncheckedFormative {
+        let shortcut_checked_formative: ShortcutCheckedFormative = self.as_general();
+        shortcut_checked_formative.as_general()
+    }
+}
+
+impl From<CheckedFormative> for UncheckedFormative {
+    fn from(value: CheckedFormative) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<CheckedFormative> for UncheckedFormative {
+    fn try_as_specific(self) -> Option<CheckedFormative> {
+        let shortcut_checked_formative: ShortcutCheckedFormative = self.try_as_specific()?;
+        shortcut_checked_formative.try_as_specific()
     }
 }
 
