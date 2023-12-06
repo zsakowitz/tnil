@@ -19,11 +19,10 @@
 //! Three odd, but useful choices are made here.
 //!
 //! First, referentials are split in two based on whether they are normal referentials or have a
-//! suppletive adjunct head. For a generalized version that can match either, see
-//! [`GeneralReferential`].
+//! suppletive adjunct head. For a generalized version that can match either, see [`GeneralReferential`].
 //!
-//! Second, the outdated mood/case-scope adjunct is included. This is because it's a part of the
-//! New Ithkuil language, even if it's no longer in common use. It's important to include both for
+//! Second, the outdated mood/case-scope adjunct is included. This is because it's a part of the New
+//! Ithkuil language, even if it's no longer in common use. It's important to include both for
 //! completeness and to ensure that this can be a full replacement for @ırburučpaızya, which also
 //! included mood/case-scope adjuncts (having been developed for an older version of Ithkuil).
 //!
@@ -36,11 +35,33 @@
 //!
 //! ## Formatives
 //!
-//! Because Ithkuil formatives are very complicated to construct and work with, this crate provides three formative types
+//! Because Ithkuil formatives are very complicated to construct and work with, this crate provides
+//! three formative types with different levels of strictness and ease of usability. They are
+//! [`CheckedFormative`], [`ShortcutCheckedFormative`], and [`UncheckedFormative`].
 //!
-//! - [`CheckedFormative`]:
-//! - [`ShortcutCheckedFormative`]
-//! - [`UncheckedFormative`]
+//! Here's an introduction to each:
+//!
+//! - [`CheckedFormative`] guarantees that values of its type are valid Ithkuil words at compile
+//!   time using several nested structs and enums. However, this means it is very difficult to
+//!   construct and use manually.
+//!
+//! - [`ShortcutCheckedFormative`] guarantees that values of its type have valid shortcuts. This
+//!   means that if you have a formative with a Ca shortcut, its Ca will be a valid Ca shortcut. It
+//!   accomplishes this using several nested structs and enums, although not as many as
+//!   [`CheckedFormative`]. It is still difficult to construct and use manually though.
+//!
+//! - [`UncheckedFormative`] provides no guarantees about its data other than that its roots have
+//!   the correct data. An affixual formative may specify a Cn shortcut formative that still has a
+//!   Ca of `MSS.PRX.RPV`, a default mood/case-scope, and slot V affixes. However,
+//!   [`UncheckedFormative`] values are always valid when constructed via an `.as_general()` call
+//!   from a formative type with more guarantees. They are the easiest to work with, and use barely
+//!   any nested enums or structs at all.
+//!
+//! To summarize, you should probably use [`UncheckedFormative`] if you're constructing formatives
+//! manually. If you want to ensure the formative is correct, use [`CheckedFormative`]. For
+//! everything else, use [`ShortcutCheckedFormative`].
+//!
+//! Again, these may change based on your specific use case, and are merely guidelines.
 
 mod adjunct;
 pub mod formative;

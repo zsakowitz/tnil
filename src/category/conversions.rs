@@ -1595,6 +1595,56 @@ impl Case {
         let value = shift + sequence + degree;
         Case::from_variant(value).ok_or(ParseError::ExpectedVc)
     }
+
+    /// Converts into an [`IllocutionOrValidation`] with the same vowel form.
+    pub const fn as_vk(self) -> Option<IllocutionOrValidation> {
+        match self {
+            Self::THM => Some(IllocutionOrValidation::OBS),
+            Self::INS => Some(IllocutionOrValidation::REC),
+            Self::ABS => Some(IllocutionOrValidation::PUP),
+            Self::AFF => Some(IllocutionOrValidation::RPR),
+            Self::STM => Some(IllocutionOrValidation::USP),
+            Self::EFF => Some(IllocutionOrValidation::IMA),
+            Self::ERG => Some(IllocutionOrValidation::CVN),
+            Self::DAT => Some(IllocutionOrValidation::ITU),
+            Self::IND => Some(IllocutionOrValidation::INF),
+            Self::POS => Some(IllocutionOrValidation::DIR),
+            Self::PRP => Some(IllocutionOrValidation::DEC),
+            Self::GEN => Some(IllocutionOrValidation::IRG),
+            Self::ATT => Some(IllocutionOrValidation::VER),
+            Self::PDC => None,
+            Self::ITP => Some(IllocutionOrValidation::ADM),
+            Self::OGN => Some(IllocutionOrValidation::POT),
+            Self::IDP => Some(IllocutionOrValidation::HOR),
+            Self::PAR => Some(IllocutionOrValidation::CNJ),
+            _ => None,
+        }
+    }
+}
+
+impl IllocutionOrValidation {
+    /// Converts into a [`Case`] with the same vowel form.
+    pub const fn as_vc(self) -> Case {
+        match self {
+            Self::OBS => Case::THM,
+            Self::REC => Case::INS,
+            Self::PUP => Case::ABS,
+            Self::RPR => Case::AFF,
+            Self::USP => Case::STM,
+            Self::IMA => Case::EFF,
+            Self::CVN => Case::ERG,
+            Self::ITU => Case::DAT,
+            Self::INF => Case::IND,
+            Self::DIR => Case::POS,
+            Self::DEC => Case::PRP,
+            Self::IRG => Case::GEN,
+            Self::VER => Case::ATT,
+            Self::ADM => Case::ITP,
+            Self::POT => Case::OGN,
+            Self::HOR => Case::IDP,
+            Self::CNJ => Case::PAR,
+        }
+    }
 }
 
 impl Aspect {

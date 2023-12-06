@@ -7,10 +7,12 @@ use super::{
         AffixualFormativeCore, NormalFormativeCore, NumericFormativeCore, ReferentialFormativeCore,
         ShortcutCheckedFormativeCore,
     },
+    relation::NormalRelation,
     root::ShortcutCheckedFormativeRoot,
 };
 use crate::{
     affix::AffixList,
+    ca,
     category::{
         AffixShortcut, ArbitraryMoodOrCaseScope, Ca, Case, Context, DatalessRelation, Function,
         HFormDegree, HFormSequence, IllocutionOrValidation, Mood, NominalMode, NormalCaShortcut,
@@ -180,6 +182,106 @@ impl TryAsSpecific<CheckedFormative> for ShortcutCheckedFormative {
     }
 }
 
+impl AsGeneral<UncheckedFormative> for ShortcutCheckedFormative {
+    fn as_general(self) -> UncheckedFormative {
+        match self.1 {
+            ShortcutCheckedFormativeAdditions::Normal(data) => {
+                let (relation, cn, vc) = data.relation.split_as_dataless_cn_vc();
+
+                UncheckedFormative {
+                    relation,
+                    shortcut: ShortcutType::Normal,
+                    stem: self.0.stem.unwrap_or_default(),
+                    version: self.0.version,
+                    affix_shortcut: data.affix_shortcut.unwrap_or_default(),
+                    root: self.0.root,
+                    function: data.function,
+                    specification: data.specification.unwrap_or_default(),
+                    context: data.context,
+                    slot_v_affixes: data.slot_v_affixes,
+                    ca: data.ca,
+                    slot_vii_affixes: self.0.slot_vii_affixes,
+                    vn: data.vn,
+                    cn,
+                    vc,
+                }
+            }
+
+            ShortcutCheckedFormativeAdditions::CaShortcut(data) => {
+                let (relation, cn, vc) = data.relation.split_as_dataless_cn_vc();
+
+                UncheckedFormative {
+                    relation,
+                    shortcut: ShortcutType::Ca,
+                    stem: self.0.stem.unwrap_or_default(),
+                    version: self.0.version,
+                    affix_shortcut: AffixShortcut::None,
+                    root: self.0.root,
+                    function: Function::STA,
+                    specification: Specification::BSC,
+                    context: Context::EXS,
+                    slot_v_affixes: data.slot_v_affixes,
+                    ca: data.ca.as_general(),
+                    slot_vii_affixes: self.0.slot_vii_affixes,
+                    vn: data.vn,
+                    cn,
+                    vc,
+                }
+            }
+
+            ShortcutCheckedFormativeAdditions::CnShortcut(data) => {
+                let (relation, cn, vc) = data.relation.split_as_dataless_cn_vc();
+
+                UncheckedFormative {
+                    relation,
+                    shortcut: ShortcutType::Cn,
+                    stem: self.0.stem.unwrap_or_default(),
+                    version: self.0.version,
+                    affix_shortcut: data.affix_shortcut.unwrap_or_default(),
+                    root: self.0.root,
+                    function: data.function,
+                    specification: data.specification.unwrap_or_default(),
+                    context: data.context,
+                    slot_v_affixes: AffixList::Normal(Vec::new()),
+                    ca: ca!(),
+                    slot_vii_affixes: self.0.slot_vii_affixes,
+                    vn: Vn::Valence(Valence::MNO),
+                    cn,
+                    vc,
+                }
+            }
+        }
+    }
+}
+
+impl From<ShortcutCheckedFormative> for UncheckedFormative {
+    fn from(value: ShortcutCheckedFormative) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<ShortcutCheckedFormative> for UncheckedFormative {
+    /// Converts [`self`] into a more specific version, returning [`None`] if it isn't possible.
+    fn try_as_specific(self) -> Option<ShortcutCheckedFormative> {
+        match self.shortcut {
+            ShortcutType::Normal => Some(ShortcutCheckedFormative(
+                ShortcutCheckedFormativeCore {
+                    root: self.root,
+                    slot_vii_affixes: self.slot_vii_affixes,
+                    stem: match self.root {
+                        ShortcutCheckedFormativeRoot::Normal(_)
+                        | ShortcutCheckedFormativeRoot::Numeric(_) => Some(self.stem),
+                        _ => None,
+                    },
+                    version: self.version,
+                },
+                (),
+            )),
+            _ => todo!(),
+        }
+    }
+}
+
 enum RootType {
     Normal,
     Numeric,
@@ -193,58 +295,75 @@ struct FormativeGlossInput<'a> {
     version: Version,
     slot_vii: String,
     root_type: RootType,
-    additions: &'a ShortcutCheckedFormativeAdditions,
 }
 
-fn gloss_formative(data: FormativeGlossInput, flags: GlossFlags) -> String {
+struct Additions {
+    shortcut_type: ShortcutType,
+    relation: NormalRelation,
+    ca: Ca,
+    slot_v: String,
+    function: Function,
+    specification: Option<Specification>,
+    context: Context,
+    vn: Option<Vn>,
+}
+
+fn make_additions(additions: &ShortcutCheckedFormativeAdditions, flags: GlossFlags) -> Additions {
+    match additions {
+        ShortcutCheckedFormativeAdditions::Normal(data) => Additions {
+            shortcut_type: ShortcutType::Normal,
+            relation: data.relation,
+            ca: data.ca,
+            slot_v: data.slot_v_affixes.gloss(flags),
+            function: data.function,
+            specification: data.specification,
+            context: data.context,
+            vn: Some(data.vn),
+        },
+        ShortcutCheckedFormativeAdditions::CnShortcut(data) => Additions {
+            shortcut_type: ShortcutType::Cn,
+            relation: data.relation.as_general(),
+            ca: Default::default(),
+            slot_v: String::new(),
+            function: data.function,
+            specification: data.specification,
+            context: data.context,
+            vn: None,
+        },
+        ShortcutCheckedFormativeAdditions::CaShortcut(data) => Additions {
+            shortcut_type: ShortcutType::Ca,
+            relation: data.relation,
+            ca: data.ca.as_general(),
+            slot_v: data.slot_v_affixes.gloss(flags),
+            function: Default::default(),
+            specification: Default::default(),
+            context: Default::default(),
+            vn: Some(data.vn),
+        },
+    }
+}
+
+fn gloss_formative(
+    data: FormativeGlossInput,
+    Additions {
+        shortcut_type,
+        relation,
+        ca,
+        slot_v,
+        function,
+        specification,
+        context,
+        vn,
+    }: Additions,
+    flags: GlossFlags,
+) -> String {
     let FormativeGlossInput {
         root,
         stem,
         version,
         slot_vii,
         root_type,
-        additions,
     } = data;
-
-    enum ShortcutType {
-        Normal,
-        Cn,
-        Ca,
-    }
-
-    let (shortcut_type, relation, ca, slot_v, function, specification, context, vn) =
-        match additions {
-            ShortcutCheckedFormativeAdditions::Normal(data) => (
-                ShortcutType::Normal,
-                data.relation,
-                data.ca,
-                data.slot_v_affixes.gloss(flags),
-                data.function,
-                data.specification,
-                data.context,
-                Some(data.vn),
-            ),
-            ShortcutCheckedFormativeAdditions::CnShortcut(data) => (
-                ShortcutType::Cn,
-                data.relation.as_general(),
-                Default::default(),
-                String::new(),
-                data.function,
-                data.specification,
-                data.context,
-                None,
-            ),
-            ShortcutCheckedFormativeAdditions::CaShortcut(data) => (
-                ShortcutType::Ca,
-                data.relation,
-                data.ca.as_general(),
-                data.slot_v_affixes.gloss(flags),
-                Default::default(),
-                Default::default(),
-                Default::default(),
-                Some(data.vn),
-            ),
-        };
 
     let (slot_vi, slot_viii) = match shortcut_type {
         ShortcutType::Normal => (
@@ -512,8 +631,8 @@ impl Gloss for CheckedFormative {
                 version,
                 slot_vii,
                 root_type,
-                additions: &additions,
             },
+            make_additions(&additions, flags),
             flags,
         )
     }
@@ -548,7 +667,61 @@ impl Gloss for ShortcutCheckedFormative {
                 version,
                 slot_vii,
                 root_type,
-                additions,
+            },
+            make_additions(additions, flags),
+            flags,
+        )
+    }
+}
+
+impl Gloss for UncheckedFormative {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        gloss_formative(
+            FormativeGlossInput {
+                root: self.root.gloss(flags),
+                stem: match self.root {
+                    ShortcutCheckedFormativeRoot::Normal(_)
+                    | ShortcutCheckedFormativeRoot::Numeric(_) => self.stem.gloss_static(flags),
+                    _ => "",
+                },
+                version: self.version,
+                slot_vii: self.slot_vii_affixes.gloss(flags),
+                root_type: match self.root {
+                    ShortcutCheckedFormativeRoot::Normal(_) => RootType::Normal,
+                    ShortcutCheckedFormativeRoot::Numeric(_) => RootType::Numeric,
+                    ShortcutCheckedFormativeRoot::Referential(_) => RootType::Referential,
+                    ShortcutCheckedFormativeRoot::Affixual(_) => RootType::Affixual,
+                },
+            },
+            Additions {
+                shortcut_type: self.shortcut,
+                relation: match self.relation {
+                    DatalessRelation::VRB => Relation::Verbal {
+                        mood: self.cn.as_specific(),
+                        ivl: self.vc.as_vk().unwrap_or(IllocutionOrValidation::USP),
+                    },
+
+                    _ => Relation::Nominal {
+                        mode: match self.relation {
+                            DatalessRelation::NOM => NominalMode::NOM,
+                            DatalessRelation::T1 => NominalMode::T1,
+                            DatalessRelation::T2 => NominalMode::T2,
+                            DatalessRelation::VRB => unreachable!(),
+                            DatalessRelation::FRM => NominalMode::FRM,
+                        },
+                        case_scope: self.cn.as_specific(),
+                        case: self.vc,
+                    },
+                },
+                ca: self.ca,
+                slot_v: self.slot_v_affixes.gloss(flags),
+                function: self.function,
+                specification: match self.root {
+                    ShortcutCheckedFormativeRoot::Affixual(_) => None,
+                    _ => Some(self.specification),
+                },
+                context: self.context,
+                vn: None,
             },
             flags,
         )

@@ -2,8 +2,8 @@
 
 use crate::{
     category::{
-        Case, CaseScope, IllocutionOrValidation, Mood, MoodOrCaseScope, NominalMode,
-        NonDefaultCaseScope, NonDefaultMood,
+        ArbitraryMoodOrCaseScope, Case, CaseScope, DatalessRelation, IllocutionOrValidation, Mood,
+        MoodOrCaseScope, NominalMode, NonDefaultCaseScope, NonDefaultMood,
     },
     specificity::{AsGeneral, TryAsSpecific},
 };
@@ -34,6 +34,42 @@ pub enum Relation<CaseScopeType, MoodType> {
         /// The illocution or validation of this formative.
         ivl: IllocutionOrValidation,
     },
+}
+
+impl<CaseScopeType, MoodType> Relation<CaseScopeType, MoodType> {
+    /// Creates a [`DatalessRelation`] from this [`Relation`].
+    pub fn without_data(self) -> DatalessRelation {
+        match self {
+            Relation::Nominal { mode, .. } => mode.as_general(),
+            Relation::Verbal { .. } => DatalessRelation::VRB,
+        }
+    }
+}
+
+impl<CaseScopeType, MoodType> Relation<CaseScopeType, MoodType>
+where
+    CaseScopeType: Into<CaseScope>,
+    MoodType: Into<Mood>,
+{
+    /// Splits this relation into a [`DatalessRelation`], a [`ArbitraryMoodOrCaseScope`], and a [`Case`].
+    pub fn split_as_dataless_cn_vc(self) -> (DatalessRelation, ArbitraryMoodOrCaseScope, Case) {
+        match self {
+            Relation::Nominal {
+                mode,
+                case_scope,
+                case,
+            } => (
+                mode.as_general(),
+                <CaseScopeType as Into<CaseScope>>::into(case_scope).as_general(),
+                case,
+            ),
+            Relation::Verbal { mood, ivl } => (
+                DatalessRelation::VRB,
+                <MoodType as Into<Mood>>::into(mood).as_general(),
+                ivl.as_vc(),
+            ),
+        }
+    }
 }
 
 impl<CaseScopeType, MoodType> Default for Relation<CaseScopeType, MoodType>
