@@ -263,3 +263,9 @@ impl DerefMut for OwnedConsonantForm {
         (&mut self.0[..]).into()
     }
 }
+
+impl<T: Into<String>> From<T> for OwnedConsonantForm {
+    fn from(value: T) -> Self {
+        OwnedConsonantForm(value.into())
+    }
+}

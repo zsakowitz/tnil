@@ -26,8 +26,11 @@ impl Gloss for NumericAdjunct {
 }
 
 impl FromTokens for NumericAdjunct {
-    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
-        let nn: NumeralForm = stream.parse(flags)?;
+    fn parse_volatile(
+        stream: &mut TokenStream,
+        _flags: FromTokenFlags,
+    ) -> Result<Self, ParseError> {
+        let nn: NumeralForm = stream.next().ok_or(ParseError::ExpectedNn)?;
 
         Ok(NumericAdjunct {
             integer_part: nn.integer_part,

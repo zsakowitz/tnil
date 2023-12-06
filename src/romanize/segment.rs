@@ -9,7 +9,7 @@ use super::{
         GlottalStop, HForm, Hh, Hr, NumeralForm, OwnedConsonantForm, Schwa, Token, VowelForm,
         WYForm, ÜA,
     },
-    traits::{FromTokens, TokenType},
+    traits::{FromToken, FromTokens, IntoToken, IntoTokens},
 };
 use crate::{
     affix::RegularAffix,
@@ -19,75 +19,86 @@ use crate::{
         NonAspectualVn, Register, Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree,
         VowelFormSequence,
     },
+    prelude::TokenList,
 };
 
-impl TokenType for OwnedConsonantForm {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for OwnedConsonantForm {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::C(value) => Some(value.clone()),
             _ => None,
         }
     }
+}
 
+impl IntoToken for OwnedConsonantForm {
     fn into_token(self) -> Token {
         Token::C(self)
     }
 }
 
-impl TokenType for VowelForm {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for VowelForm {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::V(value) => Some(*value),
             _ => None,
         }
     }
+}
 
+impl IntoToken for VowelForm {
     fn into_token(self) -> Token {
         Token::V(self)
     }
 }
 
-impl TokenType for ÜA {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for ÜA {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::ÜA => Some(Self),
             _ => None,
         }
     }
+}
 
+impl IntoToken for ÜA {
     fn into_token(self) -> Token {
         Token::ÜA
     }
 }
 
-impl TokenType for Schwa {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for Schwa {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::Schwa => Some(Self),
             _ => None,
         }
     }
+}
 
+impl IntoToken for Schwa {
     fn into_token(self) -> Token {
         Token::Schwa
     }
 }
 
-impl TokenType for HForm {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for HForm {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::H(value) => Some(*value),
             _ => None,
         }
     }
+}
 
+impl IntoToken for HForm {
     fn into_token(self) -> Token {
         Token::H(self)
     }
 }
 
-impl TokenType for WYForm {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for WYForm {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::H(HForm {
                 sequence: HFormSequence::SW,
@@ -102,7 +113,9 @@ impl TokenType for WYForm {
             _ => None,
         }
     }
+}
 
+impl IntoToken for WYForm {
     fn into_token(self) -> Token {
         match self {
             Self::W => Token::H(HForm {
@@ -117,29 +130,42 @@ impl TokenType for WYForm {
     }
 }
 
-impl TokenType for NumeralForm {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for NumeralForm {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::N(value) => Some(*value),
             _ => None,
         }
     }
+}
 
+impl IntoToken for NumeralForm {
     fn into_token(self) -> Token {
         Token::N(self)
     }
 }
 
-impl TokenType for GlottalStop {
-    fn parse(token: &Token) -> Option<Self> {
+impl FromToken for GlottalStop {
+    fn from_token(token: &Token) -> Option<Self> {
         match token {
             Token::GlottalStop => Some(Self),
             _ => None,
         }
     }
+}
 
+impl IntoToken for GlottalStop {
     fn into_token(self) -> Token {
         Token::GlottalStop
+    }
+}
+
+impl IntoToken for Hh {
+    fn into_token(self) -> Token {
+        Token::H(HForm {
+            sequence: HFormSequence::S0,
+            degree: HFormDegree::D1,
+        })
     }
 }
 
@@ -155,6 +181,15 @@ impl FromTokens for Hh {
     }
 }
 
+impl IntoToken for Hr {
+    fn into_token(self) -> Token {
+        Token::H(HForm {
+            sequence: HFormSequence::S0,
+            degree: HFormDegree::D3,
+        })
+    }
+}
+
 impl FromTokens for Hr {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
@@ -167,6 +202,12 @@ impl FromTokens for Hr {
     }
 }
 
+impl IntoToken for Bias {
+    fn into_token(self) -> Token {
+        Token::C(self.as_cb().into())
+    }
+}
+
 impl FromTokens for Bias {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
@@ -176,6 +217,20 @@ impl FromTokens for Bias {
             },
             _ => Err(ParseError::ExpectedCb),
         }
+    }
+}
+
+impl IntoToken for SuppletiveAdjunctMode {
+    fn into_token(self) -> Token {
+        Token::H(HForm {
+            sequence: HFormSequence::S0,
+            degree: match self {
+                SuppletiveAdjunctMode::CAR => HFormDegree::D2,
+                SuppletiveAdjunctMode::QUO => HFormDegree::D4,
+                SuppletiveAdjunctMode::NAM => HFormDegree::D5,
+                SuppletiveAdjunctMode::PHR => HFormDegree::D6,
+            },
+        })
     }
 }
 
@@ -199,6 +254,35 @@ impl FromTokens for SuppletiveAdjunctMode {
     }
 }
 
+impl IntoToken for Case {
+    fn into_token(self) -> Token {
+        let value = self as u8;
+
+        Token::V(VowelForm {
+            has_glottal_stop: value >= 36,
+            sequence: match value / 9 {
+                0 => VowelFormSequence::S1,
+                1 => VowelFormSequence::S2,
+                2 => VowelFormSequence::S3,
+                3 => VowelFormSequence::S4,
+                _ => unreachable!(),
+            },
+            degree: match value % 9 {
+                0 => VowelFormDegree::D1,
+                1 => VowelFormDegree::D2,
+                2 => VowelFormDegree::D3,
+                3 => VowelFormDegree::D4,
+                4 => VowelFormDegree::D5,
+                5 => VowelFormDegree::D6,
+                6 => VowelFormDegree::D7,
+                7 => VowelFormDegree::D8,
+                8 => VowelFormDegree::D9,
+                _ => unreachable!(),
+            },
+        })
+    }
+}
+
 impl FromTokens for Case {
     fn parse_volatile(
         stream: &mut TokenStream,
@@ -208,6 +292,68 @@ impl FromTokens for Case {
             Some(Token::V(vc)) => Case::from_vc(*vc),
             _ => Err(ParseError::ExpectedVc),
         }
+    }
+}
+
+impl IntoToken for Register {
+    fn into_token(self) -> Token {
+        Token::V(match self {
+            Register::DSV => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D1,
+            },
+            Register::PNT => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D3,
+            },
+            Register::SPF => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D4,
+            },
+            Register::EXM => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D7,
+            },
+            Register::CGT => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D9,
+            },
+            Register::DSV_END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D1,
+            },
+            Register::PNT_END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D3,
+            },
+            Register::SPF_END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D8,
+            },
+            Register::EXM_END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D7,
+            },
+            Register::CGT_END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D9,
+            },
+            Register::END => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D8,
+            },
+        })
     }
 }
 
@@ -237,6 +383,21 @@ impl FromTokens for Register {
     }
 }
 
+impl IntoToken for Stress {
+    fn into_token(self) -> Token {
+        Token::V(VowelForm {
+            has_glottal_stop: false,
+            sequence: VowelFormSequence::S1,
+            degree: match self {
+                Stress::Monosyllabic => VowelFormDegree::D1,
+                Stress::Ultimate => VowelFormDegree::D3,
+                Stress::Penultimate => VowelFormDegree::D7,
+                Stress::Antepenultimate => VowelFormDegree::D9,
+            },
+        })
+    }
+}
+
 impl FromTokens for Stress {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
@@ -253,6 +414,73 @@ impl FromTokens for Stress {
             },
             _ => Err(ParseError::ExpectedVp),
         }
+    }
+}
+
+impl IntoToken for MoodOrCaseScope {
+    fn into_token(self) -> Token {
+        Token::V(match self {
+            MoodOrCaseScope::Mood(Mood::FAC) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D1,
+            },
+            MoodOrCaseScope::Mood(Mood::SUB) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D3,
+            },
+            MoodOrCaseScope::Mood(Mood::ASM) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D4,
+            },
+            MoodOrCaseScope::Mood(Mood::SPC) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D7,
+            },
+            MoodOrCaseScope::Mood(Mood::COU) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D6,
+            },
+            MoodOrCaseScope::Mood(Mood::HYP) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D9,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCN) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D1,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCA) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D3,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCS) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D8,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCQ) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D7,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCP) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D8,
+            },
+            MoodOrCaseScope::CaseScope(CaseScope::CCV) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D9,
+            },
+        })
     }
 }
 
@@ -288,20 +516,12 @@ impl FromTokens for MoodOrCaseScope {
     }
 }
 
-impl FromTokens for NumeralForm {
-    fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
-        match stream.next() {
-            Some(value) => Ok(value),
-            _ => Err(ParseError::ExpectedNn),
-        }
-    }
-}
-
-impl FromTokens for GlottalStop {
-    fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
-        match stream.next() {
-            Some(value) => Ok(value),
-            _ => Err(ParseError::ExpectedGs),
+impl IntoTokens for ModularAdjunctMode {
+    fn append_tokens(&self, list: &mut TokenList) {
+        match self {
+            ModularAdjunctMode::Parent => list.push(WYForm::W.into_token()),
+            ModularAdjunctMode::Concatenated => list.push(WYForm::Y.into_token()),
+            ModularAdjunctMode::Full => {}
         }
     }
 }
@@ -316,6 +536,8 @@ impl FromTokens for ModularAdjunctMode {
     }
 }
 
+// TODO: impl IntoToken for NonAspectualVn
+
 impl FromTokens for NonAspectualVn {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
@@ -326,6 +548,8 @@ impl FromTokens for NonAspectualVn {
     }
 }
 
+// TODO: impl IntoToken for Aspect
+
 impl FromTokens for Aspect {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
@@ -335,6 +559,8 @@ impl FromTokens for Aspect {
         Self::from_vowel_form(vn).ok_or(ParseError::ExpectedVn)
     }
 }
+
+// TODO: impl IntoToken for ModularAdjunctScope
 
 impl FromTokens for ModularAdjunctScope {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {

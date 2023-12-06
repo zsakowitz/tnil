@@ -8,6 +8,19 @@ use super::{
 };
 use std::str::FromStr;
 
+/// Allows types to be extracted from a single token.
+pub trait FromToken: Sized {
+    /// Creates this item from a [`Token`], returning [`None`] if it is not a valid token of this
+    /// type.
+    fn from_token(token: &Token) -> Option<Self>;
+}
+
+/// Allows types to be converted into a single token.
+pub trait IntoToken: Sized {
+    /// Turns `self` into a [`Token`].
+    fn into_token(self) -> Token;
+}
+
 /// Allows types to be created from a sequence of tokens.
 pub trait FromTokens: Sized {
     /// Creates this item from a [`TokenStream`], returning [`Err`] if it fails.
@@ -54,18 +67,9 @@ pub trait IntoTokens {
     fn append_tokens(&self, list: &mut TokenList);
 }
 
-/// Allows token types to be extracted from a single token.
-pub trait TokenType: Sized {
-    /// Creates this item from a [`TokenStream`], returning [`None`] if it fails.
-    fn parse(token: &Token) -> Option<Self>;
-
-    /// Turns this into a token.
-    fn into_token(self) -> Token;
-}
-
 impl<T> IntoTokens for T
 where
-    T: Clone + TokenType,
+    T: Clone + IntoToken,
 {
     fn append_tokens(&self, list: &mut TokenList) {
         list.push(self.clone().into_token());

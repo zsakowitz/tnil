@@ -10,7 +10,7 @@ pub use crate::{
         stream::ParseError,
         token,
         token_list::TokenList,
-        traits::{FromTokens, TokenType},
+        traits::{FromToken, FromTokens, IntoToken},
     },
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
     word::{self, Word},

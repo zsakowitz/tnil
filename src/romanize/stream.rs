@@ -3,7 +3,7 @@
 use super::{
     flags::FromTokenFlags,
     token::Token,
-    traits::{FromTokens, TokenType},
+    traits::{FromToken, FromTokens},
 };
 use crate::category::Stress;
 use std::{error::Error, fmt};
@@ -38,12 +38,12 @@ impl<'a> TokenStream<'a> {
 
     /// Returns the next token as a specialized token type.
     #[must_use]
-    pub fn next<T: TokenType>(&mut self) -> Option<T> {
+    pub fn next<T: FromToken>(&mut self) -> Option<T> {
         if self.is_done() {
             return None;
         }
         let token = self.tokens.get(self.start)?;
-        let token = T::parse(&token)?;
+        let token = T::from_token(&token)?;
         self.start += 1;
         Some(token)
     }
@@ -61,12 +61,12 @@ impl<'a> TokenStream<'a> {
 
     /// Returns the next token from the end as a specialized token type.
     #[must_use]
-    pub fn next_back<T: TokenType>(&mut self) -> Option<T> {
+    pub fn next_back<T: FromToken>(&mut self) -> Option<T> {
         if self.is_done() {
             return None;
         }
         let token = self.tokens.get(self.end - 1)?;
-        let token = T::parse(&token)?;
+        let token = T::from_token(&token)?;
         self.end -= 1;
         Some(token)
     }
@@ -185,7 +185,6 @@ parse_error_defn!(match self {
     ExpectedCs => "expected Cs affix form (e.g. t, kb, ltř)",
     ExpectedCy => "expected Cy mood/case-scope adjunct vowel (e.g. a, oi, iu)",
     ExpectedCz => "expected Cz multiple-affix adjunct scope (h/’h/’hl/’hr/’hw/’hw)",
-    ExpectedGs => "expected word-final glottal stop",
     ExpectedHh => "expected single ‘h’ at the beginning of a register",
     ExpectedHr => "expected ‘hr’ at the beginning of a mood/case-scope adjunct",
     ExpectedNn => "expected Nn numeric form (e.g. 4, 23, 7832)",
@@ -203,6 +202,7 @@ parse_error_defn!(match self {
     ExpectedVx => "expected Vx form (e.g. a, ou, ie)",
 
     ExpectedCsOrVx => "expected Cs or Vx form (e.g. a, kb, ie)",
+    ExpectedGlottalStop => "expected word-final glottal stop",
     ExpectedNonDefaultCn => "expected non-default Cn mood/case-scope (e.g. hm, hň)",
     ExpectedNonNumericRoot => "expected non-numeric formative root",
     ExpectedReferentSpecification => "expected combination referential specification (x/xt/xp/xx)",

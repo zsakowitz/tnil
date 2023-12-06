@@ -27,7 +27,7 @@ impl GlossStatic for ParsingAdjunct {
 impl FromTokens for ParsingAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let stress = stream.parse(flags)?;
-        stream.parse::<GlottalStop>(flags)?;
+        let _: GlottalStop = stream.next().ok_or(ParseError::ExpectedGlottalStop)?;
         Ok(ParsingAdjunct { stress })
     }
 }

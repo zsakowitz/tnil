@@ -1507,6 +1507,75 @@ impl FromStr for Bias {
     }
 }
 
+impl Bias {
+    /// Gets the Cb form of this [`Bias`].
+    pub const fn as_cb(self) -> &'static str {
+        match self {
+            Bias::ACC => "lf",
+            Bias::ACH => "mçt",
+            Bias::ADS => "lļ",
+            Bias::ANN => "drr",
+            Bias::ANP => "lst",
+            Bias::APB => "řs",
+            Bias::APH => "vvz",
+            Bias::ARB => "xtļ",
+            Bias::ATE => "ňj",
+            Bias::CMD => "pļļ",
+            Bias::CNV => "rrj",
+            Bias::COI => "ššč",
+            Bias::CRP => "gžž",
+            Bias::CRR => "ňţ",
+            Bias::CTP => "kšš",
+            Bias::CTV => "gvv",
+            Bias::DCC => "gzj",
+            Bias::DEJ => "žžg",
+            Bias::DES => "mřř",
+            Bias::DFD => "cč",
+            Bias::DIS => "kff",
+            Bias::DLC => "ẓmm",
+            Bias::DOL => "řřx",
+            Bias::DPB => "ffx",
+            Bias::DRS => "pfc",
+            Bias::DUB => "mmf",
+            Bias::EUH => "gzz",
+            Bias::EUP => "vvt",
+            Bias::EXA => "kçç",
+            Bias::EXG => "rrs",
+            Bias::FOR => "lzp",
+            Bias::FSC => "žžj",
+            Bias::GRT => "mmh",
+            Bias::IDG => "pšš",
+            Bias::IFT => "vvr",
+            Bias::IPL => "vll",
+            Bias::IPT => "žžv",
+            Bias::IRO => "mmž",
+            Bias::ISP => "lçp",
+            Bias::IVD => "řřn",
+            Bias::MAN => "msk",
+            Bias::MNF => "pss",
+            Bias::OPT => "ççk",
+            Bias::PES => "ksp",
+            Bias::PPT => "mll",
+            Bias::PPX => "llh",
+            Bias::PPV => "sl",
+            Bias::PSC => "žžt",
+            Bias::PSM => "nnţ",
+            Bias::RAC => "kll",
+            Bias::RFL => "llm",
+            Bias::RSG => "msf",
+            Bias::RPU => "šštļ",
+            Bias::RVL => "mmļ",
+            Bias::SAT => "ļţ",
+            Bias::SGS => "ltç",
+            Bias::SKP => "rnž",
+            Bias::SOL => "ňňs",
+            Bias::STU => "ļļč",
+            Bias::TRP => "llč",
+            Bias::VEX => "ksk",
+        }
+    }
+}
+
 impl Case {
     /// Constructs a case from its associated variant, returning [`None`] upon failure.
     pub const fn from_variant(value: u8) -> Option<Self> {
