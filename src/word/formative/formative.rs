@@ -28,7 +28,7 @@ use crate::{
     specificity::{AsGeneral, AsSpecific, TryAsSpecific},
     word::formative::{
         additions::{
-            GeneralCnShortcutAdditions, GeneralNonShortcutAdditions, NormalCaShortcutAdditions,
+            NormalCaShortcutAdditions, NormalCnShortcutAdditions, NormalNonShortcutAdditions,
         },
         core::FormativeCore,
         relation::Relation,
@@ -191,12 +191,12 @@ impl AsGeneral<UncheckedFormative> for ShortcutCheckedFormative {
                 UncheckedFormative {
                     relation,
                     shortcut: ShortcutType::Normal,
-                    stem: self.0.stem.unwrap_or_default(),
+                    stem: self.0.stem,
                     version: self.0.version,
-                    affix_shortcut: data.affix_shortcut.unwrap_or_default(),
+                    affix_shortcut: data.affix_shortcut,
                     root: self.0.root,
                     function: data.function,
-                    specification: data.specification.unwrap_or_default(),
+                    specification: data.specification,
                     context: data.context,
                     slot_v_affixes: data.slot_v_affixes,
                     ca: data.ca,
@@ -213,7 +213,7 @@ impl AsGeneral<UncheckedFormative> for ShortcutCheckedFormative {
                 UncheckedFormative {
                     relation,
                     shortcut: ShortcutType::Ca,
-                    stem: self.0.stem.unwrap_or_default(),
+                    stem: self.0.stem,
                     version: self.0.version,
                     affix_shortcut: AffixShortcut::None,
                     root: self.0.root,
@@ -235,12 +235,12 @@ impl AsGeneral<UncheckedFormative> for ShortcutCheckedFormative {
                 UncheckedFormative {
                     relation,
                     shortcut: ShortcutType::Cn,
-                    stem: self.0.stem.unwrap_or_default(),
+                    stem: self.0.stem,
                     version: self.0.version,
-                    affix_shortcut: data.affix_shortcut.unwrap_or_default(),
+                    affix_shortcut: data.affix_shortcut,
                     root: self.0.root,
                     function: data.function,
-                    specification: data.specification.unwrap_or_default(),
+                    specification: data.specification,
                     context: data.context,
                     slot_v_affixes: AffixList::Normal(Vec::new()),
                     ca: ca!(),
@@ -263,19 +263,22 @@ impl From<ShortcutCheckedFormative> for UncheckedFormative {
 impl TryAsSpecific<ShortcutCheckedFormative> for UncheckedFormative {
     /// Converts [`self`] into a more specific version, returning [`None`] if it isn't possible.
     fn try_as_specific(self) -> Option<ShortcutCheckedFormative> {
+        let stem = match self.root {
+            ShortcutCheckedFormativeRoot::Normal(_) | ShortcutCheckedFormativeRoot::Numeric(_) => {
+                self.stem
+            }
+            _ => Stem::S1,
+        };
+
         match self.shortcut {
             ShortcutType::Normal => Some(ShortcutCheckedFormative(
                 ShortcutCheckedFormativeCore {
                     root: self.root,
                     slot_vii_affixes: self.slot_vii_affixes,
-                    stem: match self.root {
-                        ShortcutCheckedFormativeRoot::Normal(_)
-                        | ShortcutCheckedFormativeRoot::Numeric(_) => Some(self.stem),
-                        _ => None,
-                    },
+                    stem,
                     version: self.version,
                 },
-                (),
+                todo!(),
             )),
             _ => todo!(),
         }
@@ -303,7 +306,7 @@ struct Additions {
     ca: Ca,
     slot_v: String,
     function: Function,
-    specification: Option<Specification>,
+    specification: Specification,
     context: Context,
     vn: Option<Vn>,
 }
@@ -430,9 +433,7 @@ fn gloss_formative(
 
             for el in [
                 function.gloss_static_non_default(flags),
-                specification
-                    .unwrap_or_default()
-                    .gloss_static_non_default(flags),
+                specification.gloss_static_non_default(flags),
                 context.gloss_static_non_default(flags),
             ] {
                 if el == "" {
@@ -642,9 +643,11 @@ impl Gloss for ShortcutCheckedFormative {
     fn gloss(&self, flags: GlossFlags) -> String {
         let root = self.0.root.gloss(flags);
 
-        let stem = match self.0.stem {
-            Some(value) => value.gloss_static(flags),
-            None => "",
+        let stem = match self.0.root {
+            ShortcutCheckedFormativeRoot::Normal(_) | ShortcutCheckedFormativeRoot::Numeric(_) => {
+                self.0.stem.gloss_static(flags)
+            }
+            _ => "",
         };
 
         let version = self.0.version;
@@ -717,8 +720,8 @@ impl Gloss for UncheckedFormative {
                 slot_v: self.slot_v_affixes.gloss(flags),
                 function: self.function,
                 specification: match self.root {
-                    ShortcutCheckedFormativeRoot::Affixual(_) => None,
-                    _ => Some(self.specification),
+                    ShortcutCheckedFormativeRoot::Affixual(_) => Specification::BSC,
+                    _ => self.specification,
                 },
                 context: self.context,
                 vn: None,
@@ -977,7 +980,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
         // [stress] = relation
 
         enum Shortcut {
-            None(Option<AffixShortcut>),
+            None(AffixShortcut),
             Ca(NormalCaShortcut),
         }
 
@@ -990,14 +993,14 @@ impl FromTokenStream for ShortcutCheckedFormative {
                 stem,
                 sequence,
             } => (
-                Some(stem),
+                stem,
                 version,
                 match ca_shortcut {
                     CaShortcutMode::None => Shortcut::None(match sequence {
-                        VowelFormSequence::S1 => Some(AffixShortcut::None),
-                        VowelFormSequence::S2 => Some(AffixShortcut::NEG4),
-                        VowelFormSequence::S3 => Some(AffixShortcut::DCD4),
-                        VowelFormSequence::S4 => Some(AffixShortcut::DCD5),
+                        VowelFormSequence::S1 => AffixShortcut::None,
+                        VowelFormSequence::S2 => AffixShortcut::NEG4,
+                        VowelFormSequence::S3 => AffixShortcut::DCD4,
+                        VowelFormSequence::S4 => AffixShortcut::DCD5,
                     }),
                     CaShortcutMode::W => Shortcut::Ca(match sequence {
                         VowelFormSequence::S1 => NormalCaShortcut::Default,
@@ -1012,7 +1015,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                         VowelFormSequence::S4 => NormalCaShortcut::PRX_RPV,
                     }),
                 },
-                Some(match ca_shortcut {
+                match ca_shortcut {
                     CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
                         VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
                         VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
@@ -1022,7 +1025,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                         VowelFormDegree::D4 | VowelFormDegree::D6 => Specification::OBJ,
                     },
                     _ => Specification::BSC,
-                }),
+                },
                 match ca_shortcut {
                     CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
                         VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
@@ -1056,10 +1059,10 @@ impl FromTokenStream for ShortcutCheckedFormative {
             ),
 
             WordType::Referential { version } => (
-                None,
+                Stem::S1,
                 version,
-                Shortcut::None(None),
-                Some(match ca_shortcut {
+                Shortcut::None(AffixShortcut::None),
+                match ca_shortcut {
                     CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
                         VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
                         VowelFormDegree::D5 => unreachable!("D5 isn't a normal Vv form"),
@@ -1069,7 +1072,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                         VowelFormDegree::D4 | VowelFormDegree::D6 => Specification::OBJ,
                     },
                     _ => Specification::BSC,
-                }),
+                },
                 match ca_shortcut {
                     CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.degree {
                         VowelFormDegree::D0 => unreachable!("D0 isn't a normal Vv form"),
@@ -1101,10 +1104,10 @@ impl FromTokenStream for ShortcutCheckedFormative {
             ),
 
             WordType::Affixual { version, function } => (
-                None,
+                Stem::S1,
                 version,
-                Shortcut::None(None),
-                None,
+                Shortcut::None(AffixShortcut::None),
+                Specification::BSC,
                 function,
                 match ca_shortcut {
                     CaShortcutMode::None => match vr.ok_or(ParseError::ExpectedVr)?.sequence {
@@ -1195,7 +1198,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                 ca: Ca,
                 slot_vii_affixes: AffixListType,
                 vncn: Option<(Vn, ArbitraryMoodOrCaseScope)>,
-                affix_shortcut: Option<AffixShortcut>,
+                affix_shortcut: AffixShortcut,
             },
 
             Ca {
@@ -1208,7 +1211,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
             Cn {
                 cn: ArbitraryMoodOrCaseScope,
                 slot_vii_affixes: AffixListType,
-                affix_shortcut: Option<AffixShortcut>,
+                affix_shortcut: AffixShortcut,
             },
         }
 
@@ -1553,7 +1556,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                 vncn,
                 affix_shortcut,
             } => (
-                ShortcutCheckedFormativeAdditions::Normal(GeneralNonShortcutAdditions {
+                ShortcutCheckedFormativeAdditions::Normal(NormalNonShortcutAdditions {
                     relation: match relation_type {
                         RelationType::Verbal => Relation::Verbal {
                             mood: match vncn {
@@ -1602,7 +1605,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                     },
                     affix_shortcut,
                     function,
-                    specification,
+                    specification: specification,
                     context,
                     slot_v_affixes,
                     ca,
@@ -1619,7 +1622,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
                 slot_vii_affixes,
                 affix_shortcut,
             } => (
-                ShortcutCheckedFormativeAdditions::CnShortcut(GeneralCnShortcutAdditions {
+                ShortcutCheckedFormativeAdditions::CnShortcut(NormalCnShortcutAdditions {
                     relation: match relation_type {
                         RelationType::Verbal => Relation::Verbal {
                             mood: cn

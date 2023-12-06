@@ -39,7 +39,7 @@ pub type ReferentialFormativeCore = FormativeCore<ReferentialFormativeRoot, ()>;
 pub type AffixualFormativeCore = FormativeCore<AffixualFormativeRoot, ()>;
 
 /// The core of a general formative.
-pub type ShortcutCheckedFormativeCore = FormativeCore<ShortcutCheckedFormativeRoot, Option<Stem>>;
+pub type ShortcutCheckedFormativeCore = FormativeCore<ShortcutCheckedFormativeRoot, Stem>;
 
 macro_rules! as_general_impl {
     ($specific:ident, $variant:ident, $stem:ident, $stem_pat:pat, $stem_expr:expr, $stem_value:expr) => {
@@ -89,24 +89,24 @@ macro_rules! as_general_impl {
     };
 }
 
+as_general_impl!(NormalFormativeCore, Normal, stem, stem, stem, stem);
+
+as_general_impl!(NumericFormativeCore, Numeric, stem, stem, stem, stem);
+
 as_general_impl!(
-    NormalFormativeCore,
-    Normal,
+    ReferentialFormativeCore,
+    Referential,
     stem,
-    Some(stem),
-    Some(stem),
-    stem
+    Stem::S1,
+    (Stem::S1),
+    ()
 );
 
 as_general_impl!(
-    NumericFormativeCore,
-    Numeric,
+    AffixualFormativeCore,
+    Affixual,
     stem,
-    Some(stem),
-    Some(stem),
-    stem
+    Stem::S1,
+    (Stem::S1),
+    ()
 );
-
-as_general_impl!(ReferentialFormativeCore, Referential, stem, None, None, ());
-
-as_general_impl!(AffixualFormativeCore, Affixual, stem, None, None, ());

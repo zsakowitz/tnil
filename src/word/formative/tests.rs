@@ -12,8 +12,8 @@ use crate::{
     word::{
         formative::{
             additions::{
-                GeneralNonShortcutAdditions, NormalCaShortcutAdditions, NormalFormativeAdditions,
-                NormalNonShortcutAdditions, ShortcutCheckedFormativeAdditions,
+                NormalCaShortcutAdditions, NormalFormativeAdditions, NormalNonShortcutAdditions,
+                ShortcutCheckedFormativeAdditions,
             },
             core::{NormalFormativeCore, ShortcutCheckedFormativeCore},
             relation::NormalRelation,
@@ -87,19 +87,19 @@ fn parsing() -> Result<(), ParseError> {
         ShortcutCheckedFormative(
             ShortcutCheckedFormativeCore {
                 root: ShortcutCheckedFormativeRoot::new_normal("rr"),
-                stem: Some(Stem::S1),
+                stem: Stem::S1,
                 version: Version::PRC,
                 slot_vii_affixes: AffixList::Normal(Vec::new()),
             },
-            ShortcutCheckedFormativeAdditions::Normal(GeneralNonShortcutAdditions {
+            ShortcutCheckedFormativeAdditions::Normal(NormalNonShortcutAdditions {
                 relation: NormalRelation::Nominal {
                     mode: NominalMode::NOM,
                     case_scope: CaseScope::CCN,
                     case: Case::THM,
                 },
-                affix_shortcut: Some(AffixShortcut::None),
+                affix_shortcut: AffixShortcut::None,
                 function: Function::STA,
-                specification: Some(Specification::BSC),
+                specification: Specification::BSC,
                 context: Context::EXS,
                 slot_v_affixes: AffixList::Normal(Vec::new()),
                 ca: ca!(MSS),
@@ -115,7 +115,7 @@ fn parsing() -> Result<(), ParseError> {
         ShortcutCheckedFormative(
             ShortcutCheckedFormativeCore {
                 root: ShortcutCheckedFormativeRoot::new_normal("tt"),
-                stem: Some(Stem::S1),
+                stem: Stem::S1,
                 version: Version::PRC,
                 slot_vii_affixes: AffixList::Normal(vec![RegularAffix::Plain(PlainAffix {
                     cs: "t".to_owned(),

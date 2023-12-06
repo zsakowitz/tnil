@@ -48,10 +48,6 @@ pub type ReferentialNonShortcutAdditions = NonShortcutAdditions<(), Specificatio
 /// Additions for affixual non-shortcut formatives.
 pub type AffixualNonShortcutAdditions = NonShortcutAdditions<(), ()>;
 
-/// Additions for general non-shortcut formatives.
-pub type GeneralNonShortcutAdditions =
-    NonShortcutAdditions<Option<AffixShortcut>, Option<Specification>>;
-
 /// Additions to a Cn-shortcut formative.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CnShortcutAdditions<AffixShortcutType, SpecificationType> {
@@ -79,10 +75,6 @@ pub type ReferentialCnShortcutAdditions = CnShortcutAdditions<(), Specification>
 
 /// Additions for affixual Cn-shortcut formatives.
 pub type AffixualCnShortcutAdditions = CnShortcutAdditions<(), ()>;
-
-/// Additions for general Cn-shortcut formatives.
-pub type GeneralCnShortcutAdditions =
-    CnShortcutAdditions<Option<AffixShortcut>, Option<Specification>>;
 
 /// Additions to a Ca-shortcut formative.
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -164,10 +156,10 @@ impl Default for AffixualFormativeAdditions {
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ShortcutCheckedFormativeAdditions {
     /// Additions to a non-shortcut formatives.
-    Normal(GeneralNonShortcutAdditions),
+    Normal(NormalNonShortcutAdditions),
 
     /// Additions to a Cn-shortcut formative.
-    CnShortcut(GeneralCnShortcutAdditions),
+    CnShortcut(NormalCnShortcutAdditions),
 
     /// Additions to a Ca-shortcut formative.
     CaShortcut(NormalCaShortcutAdditions),
@@ -258,31 +250,17 @@ macro_rules! as_general_impl {
 }
 
 as_general_impl!(
-    NormalNonShortcutAdditions,
-    GeneralNonShortcutAdditions,
-    ca,
-    slot_v_affixes,
-    vn,
-    affix_shortcut,
-    specification,
-    (Some(affix_shortcut)),
-    affix_shortcut,
-    (Some(specification)),
-    specification,
-);
-
-as_general_impl!(
     ReferentialNonShortcutAdditions, // the specific type
-    GeneralNonShortcutAdditions,     // the general type
+    NormalNonShortcutAdditions,      // the general type
     ca,                              // the Ca field, or empty if the type has no Ca field
     slot_v_affixes,                  // the slot V affixes field, or empty if the type has none
     vn,                              // the Vn field, or empty if the type has none
     affix_shortcut,                  // the affix shortcut field (because macro hygiene)
     specification,                   // the specification field (because macro hygiene)
-    None,                            // the general value to put in `affix_shortcut`
+    (AffixShortcut::None),           // the general value to put in `affix_shortcut`
     (),                              // the specific value to put in `affix_shortcut`
-    (Some(specification)),           // the general value to put in `specification`
-    specification,                   // the specific value to put in `specification`
+    (Specification::BSC),            // the general value to put in `specification`
+    (Specification::BSC),            // the specific value to put in `specification`
 );
 
 // Note that parentheses are required around the `Some(...)` patterns because we match them as token
@@ -290,57 +268,43 @@ as_general_impl!(
 
 as_general_impl!(
     AffixualNonShortcutAdditions,
-    GeneralNonShortcutAdditions,
+    NormalNonShortcutAdditions,
     ca,
     slot_v_affixes,
     vn,
     affix_shortcut,
     specification,
-    None,
+    (AffixShortcut::None),
     (),
-    None,
+    (Specification::BSC),
     (),
-);
-
-as_general_impl!(
-    NormalCnShortcutAdditions,
-    GeneralCnShortcutAdditions,
-    , // Cn shortcut additions don't have Ca slots, so we pass nothing here
-    , // Cn shortcut additions also don't have slot V affixes
-    , // Cn shortcut additions also don't have Vn forms
-    affix_shortcut,
-    specification,
-    (Some(affix_shortcut)),
-    affix_shortcut,
-    (Some(specification)),
-    specification,
 );
 
 as_general_impl!(
     ReferentialCnShortcutAdditions,
-    GeneralCnShortcutAdditions,
+    NormalCnShortcutAdditions,
     ,
     ,
     ,
     affix_shortcut,
     specification,
-    None,
+    (AffixShortcut::None),
     (),
-    (Some(specification)),
-    specification,
+    (Specification::BSC),
+    (Specification::BSC),
 );
 
 as_general_impl!(
     AffixualCnShortcutAdditions,
-    GeneralCnShortcutAdditions,
+    NormalCnShortcutAdditions,
     ,
     ,
     ,
     affix_shortcut,
     specification,
-    None,
+    (AffixShortcut::None),
     (),
-    None,
+    (Specification::BSC),
     (),
 );
 
@@ -375,10 +339,8 @@ impl TryAsSpecific<ReferentialCaShortcutAdditions> for NormalCaShortcutAdditions
 impl AsGeneral<ShortcutCheckedFormativeAdditions> for NormalFormativeAdditions {
     fn as_general(self) -> ShortcutCheckedFormativeAdditions {
         match self {
-            Self::Normal(value) => ShortcutCheckedFormativeAdditions::Normal(value.as_general()),
-            Self::CnShortcut(value) => {
-                ShortcutCheckedFormativeAdditions::CnShortcut(value.as_general())
-            }
+            Self::Normal(value) => ShortcutCheckedFormativeAdditions::Normal(value),
+            Self::CnShortcut(value) => ShortcutCheckedFormativeAdditions::CnShortcut(value),
             Self::CaShortcut(value) => ShortcutCheckedFormativeAdditions::CaShortcut(value),
         }
     }
@@ -393,10 +355,8 @@ impl From<NormalFormativeAdditions> for ShortcutCheckedFormativeAdditions {
 impl TryAsSpecific<NormalFormativeAdditions> for ShortcutCheckedFormativeAdditions {
     fn try_as_specific(self) -> Option<NormalFormativeAdditions> {
         Some(match self {
-            Self::Normal(value) => NormalFormativeAdditions::Normal(value.try_as_specific()?),
-            Self::CnShortcut(value) => {
-                NormalFormativeAdditions::CnShortcut(value.try_as_specific()?)
-            }
+            Self::Normal(value) => NormalFormativeAdditions::Normal(value),
+            Self::CnShortcut(value) => NormalFormativeAdditions::CnShortcut(value),
             Self::CaShortcut(value) => NormalFormativeAdditions::CaShortcut(value),
         })
     }
