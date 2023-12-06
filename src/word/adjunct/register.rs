@@ -5,8 +5,9 @@ use crate::{
     gloss::{Gloss, GlossFlags},
     romanize::{
         flags::FromTokenFlags,
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
         token::Hh,
+        traits::FromTokens,
     },
 };
 
@@ -23,7 +24,7 @@ impl Gloss for RegisterAdjunct {
     }
 }
 
-impl FromTokenStream for RegisterAdjunct {
+impl FromTokens for RegisterAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         stream.parse::<Hh>(flags)?;
 

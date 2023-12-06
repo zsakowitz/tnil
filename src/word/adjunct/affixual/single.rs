@@ -5,7 +5,8 @@ use crate::{
     romanize::{
         flags::FromTokenFlags,
         segment::{Vs, VxCs},
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
+        traits::FromTokens,
     },
 };
 
@@ -31,7 +32,7 @@ impl Gloss for SingleAffixAdjunct {
     }
 }
 
-impl FromTokenStream for SingleAffixAdjunct {
+impl FromTokens for SingleAffixAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let VxCs { affix } = stream.parse(flags)?;
         let Vs { scope } = stream.parse(flags)?;

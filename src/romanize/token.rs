@@ -84,17 +84,17 @@ pub enum Token {
     /// A normal vowel form.
     V(VowelForm),
 
-    /// The vowel form -üa-.
-    ÜA(ÜA),
-
-    /// The vowel form -ë-.
-    Schwa(Schwa),
-
     /// A consonant form starting with h-, w-, or y-.
     H(HForm),
 
     /// A numeral form.
     N(NumeralForm),
+
+    /// The vowel form -üa-.
+    ÜA,
+
+    /// The vowel form -ë-.
+    Schwa,
 
     /// A glottal stop without any corresponding vowels, or a word-final glottal stop.
     GlottalStop,

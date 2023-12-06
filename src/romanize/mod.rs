@@ -6,4 +6,5 @@ pub mod segment;
 pub mod stream;
 pub mod token;
 pub mod token_list;
+pub mod traits;
 pub mod transform;

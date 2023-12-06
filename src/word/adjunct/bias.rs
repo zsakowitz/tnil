@@ -5,8 +5,8 @@ use crate::{
     gloss::{GlossFlags, GlossStatic},
     romanize::{
         flags::FromTokenFlags,
-        stream::FromTokenStream,
         stream::{ParseError, TokenStream},
+        traits::FromTokens,
     },
 };
 
@@ -23,7 +23,7 @@ impl GlossStatic for BiasAdjunct {
     }
 }
 
-impl FromTokenStream for BiasAdjunct {
+impl FromTokens for BiasAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         Ok(BiasAdjunct {
             bias: stream.parse(flags)?,

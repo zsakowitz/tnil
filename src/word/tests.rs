@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 #[test]
 fn test() {
-    fn assert_is_word<T: FromStr + FromTokenStream + Gloss>() {}
+    fn assert_is_word<T: FromStr + FromTokens + Gloss>() {}
 
     assert_is_word::<Word>();
 

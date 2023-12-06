@@ -7,8 +7,9 @@ pub use crate::{
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
         flags::FromTokenFlags,
-        stream::{FromTokenStream, ParseError},
+        stream::ParseError,
         token_list::TokenList,
+        traits::{FromTokens, TokenType},
     },
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
     word::{self, Word},

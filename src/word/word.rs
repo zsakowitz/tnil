@@ -57,7 +57,7 @@ impl Gloss for Word {
     }
 }
 
-impl FromTokenStream for Word {
+impl FromTokens for Word {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         macro_rules! check_all {
             ($last:ident, $($variant:ident),+) => {{
@@ -91,9 +91,9 @@ impl FromTokenStream for Word {
             Some(Token::C(_)) => check_all!(Formative, Bias, Affixual, Referential),
             Some(Token::H(_)) => check_all!(Formative, Suppletive, Register, MCS, Modular),
             Some(Token::N(_)) => check_all!(Formative, Numeric, Affixual),
-            Some(Token::Schwa(_)) => check_all!(Referential, Affixual),
+            Some(Token::Schwa) => check_all!(Referential, Affixual),
+            Some(Token::ÜA) => Err(ParseError::WordInitialÜA),
             Some(Token::GlottalStop) => Err(ParseError::WordInitialGlottalStop),
-            Some(Token::ÜA(_)) => Err(ParseError::WordInitialÜA),
             None => Err(ParseError::WordEmpty),
         }
     }

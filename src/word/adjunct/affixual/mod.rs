@@ -11,8 +11,9 @@ use crate::{
     gloss::{Gloss, GlossFlags},
     romanize::{
         flags::FromTokenFlags,
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
         token::Token,
+        traits::FromTokens,
     },
 };
 
@@ -35,13 +36,11 @@ impl Gloss for AffixualAdjunct {
     }
 }
 
-impl FromTokenStream for AffixualAdjunct {
+impl FromTokens for AffixualAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.peek() {
             Some(Token::V(_)) => Ok(AffixualAdjunct::Single(stream.parse(flags)?)),
-            Some(Token::Schwa(_) | Token::C(_)) => {
-                Ok(AffixualAdjunct::Multiple(stream.parse(flags)?))
-            }
+            Some(Token::Schwa | Token::C(_)) => Ok(AffixualAdjunct::Multiple(stream.parse(flags)?)),
             _ => Err(ParseError::ExpectedCsOrVx),
         }
     }

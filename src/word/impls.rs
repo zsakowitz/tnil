@@ -3,10 +3,7 @@ use super::{
     NormalReferential, NumericAdjunct, ParsingAdjunct, RegisterAdjunct, ShortcutCheckedFormative,
     SuppletiveAdjunct, SuppletiveReferential, UncheckedFormative, Word,
 };
-use crate::romanize::{
-    flags::FromTokenFlags,
-    stream::{FromTokenStream, ParseError},
-};
+use crate::romanize::{flags::FromTokenFlags, stream::ParseError, traits::FromTokens};
 use std::str::FromStr;
 
 macro_rules! from_str_impl {

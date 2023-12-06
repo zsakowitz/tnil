@@ -1,15 +1,3 @@
-use super::{
-    additions::{
-        AffixualFormativeAdditions, NormalFormativeAdditions, ReferentialFormativeAdditions,
-        ShortcutCheckedFormativeAdditions,
-    },
-    core::{
-        AffixualFormativeCore, NormalFormativeCore, NumericFormativeCore, ReferentialFormativeCore,
-        ShortcutCheckedFormativeCore,
-    },
-    relation::NormalRelation,
-    root::ShortcutCheckedFormativeRoot,
-};
 use crate::{
     affix::AffixList,
     ca,
@@ -22,17 +10,26 @@ use crate::{
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
         flags::FromTokenFlags,
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
         token::{HForm, NumeralForm, OwnedConsonantForm, Token, VowelForm},
+        traits::FromTokens,
     },
     specificity::{AsGeneral, AsSpecific, TryAsSpecific},
     word::formative::{
         additions::{
-            NormalCaShortcutAdditions, NormalCnShortcutAdditions, NormalNonShortcutAdditions,
+            AffixualFormativeAdditions, NormalCaShortcutAdditions, NormalCnShortcutAdditions,
+            NormalFormativeAdditions, NormalNonShortcutAdditions, ReferentialFormativeAdditions,
+            ShortcutCheckedFormativeAdditions,
         },
-        core::FormativeCore,
-        relation::Relation,
-        root::{AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot},
+        core::{
+            AffixualFormativeCore, FormativeCore, NormalFormativeCore, NumericFormativeCore,
+            ReferentialFormativeCore, ShortcutCheckedFormativeCore,
+        },
+        relation::{NormalRelation, Relation},
+        root::{
+            AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
+            ShortcutCheckedFormativeRoot,
+        },
     },
 };
 
@@ -838,7 +835,7 @@ impl Gloss for UncheckedFormative {
     }
 }
 
-impl FromTokenStream for CheckedFormative {
+impl FromTokens for CheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let general: ShortcutCheckedFormative = stream.parse(flags)?;
 
@@ -848,7 +845,7 @@ impl FromTokenStream for CheckedFormative {
     }
 }
 
-impl FromTokenStream for ShortcutCheckedFormative {
+impl FromTokens for ShortcutCheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         // This function is scary. Be warned.
 
@@ -1868,7 +1865,7 @@ impl FromTokenStream for ShortcutCheckedFormative {
     }
 }
 
-impl FromTokenStream for UncheckedFormative {
+impl FromTokens for UncheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         ShortcutCheckedFormative::parse_volatile(stream, flags)
             .map(|formative| formative.as_general())

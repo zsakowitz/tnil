@@ -19,6 +19,14 @@ pub struct TokenList {
 }
 
 impl TokenList {
+    /// Creates an empty [`TokenList`].
+    pub const fn new() -> Self {
+        TokenList {
+            tokens: Vec::new(),
+            stress: None,
+        }
+    }
+
     /// Streams `self` as [`TokenStream`], a structure more suitable for parsing than a plain
     /// [`TokenList`].
     pub fn stream(&self) -> TokenStream {
@@ -28,6 +36,16 @@ impl TokenList {
             start: 0,
             end: self.tokens.len(),
         }
+    }
+
+    /// Pushes a token into `self`.
+    pub fn push(&mut self, token: Token) {
+        self.tokens.push(token);
+    }
+
+    /// Modifies the stress of `self`.
+    pub fn set_stress(&mut self, stress: Option<Stress>) {
+        self.stress = stress;
     }
 }
 

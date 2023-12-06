@@ -9,7 +9,8 @@ use crate::{
     romanize::{
         flags::FromTokenFlags,
         segment::{VnCm, VnCn},
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
+        traits::FromTokens,
     },
 };
 
@@ -126,7 +127,7 @@ impl Gloss for ModularAdjunct {
     }
 }
 
-impl FromTokenStream for ModularAdjunct {
+impl FromTokens for ModularAdjunct {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let mode: ModularAdjunctMode = stream.parse(flags)?;
 

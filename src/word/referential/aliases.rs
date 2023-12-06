@@ -7,8 +7,9 @@ use crate::{
     romanize::{
         flags::FromTokenFlags,
         segment::{Vc2, VxCs},
-        stream::{FromTokenStream, ParseError, TokenStream},
+        stream::{ParseError, TokenStream},
         token::{HForm, OwnedConsonantForm, Schwa, Token, VowelForm},
+        traits::FromTokens,
     },
 };
 
@@ -31,7 +32,7 @@ macro_rules! from_token_stream_impl {
         $can_be_single_dual:expr,
         $can_be_combo:expr,
     ) => {
-        impl FromTokenStream for $ty {
+        impl FromTokens for $ty {
             #[allow(redundant_semicolons)]
             fn parse_volatile(
                 $stream: &mut TokenStream,

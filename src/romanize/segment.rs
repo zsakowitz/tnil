@@ -1,14 +1,15 @@
-//! Implements [`TokenType`] and [`FromTokenStream`] for many types, and provides wrappers on
-//! sequences of types (such as a VnCn pair) to aid with parsing them.
+//! Implements [`TokenType`] and [`FromTokens`] for many types, and provides wrappers on sequences
+//! of types (such as a VnCn pair) to aid with parsing them.
 
 use super::{
     flags::FromTokenFlags,
+    stream::ParseError,
     stream::TokenStream,
-    stream::{FromTokenStream, ParseError, TokenType},
     token::{
         GlottalStop, HForm, Hh, Hr, NumeralForm, OwnedConsonantForm, Schwa, Token, VowelForm,
         WYForm, ÜA,
     },
+    traits::{FromTokens, TokenType},
 };
 use crate::{
     affix::RegularAffix,
@@ -27,6 +28,10 @@ impl TokenType for OwnedConsonantForm {
             _ => None,
         }
     }
+
+    fn into_token(self) -> Token {
+        Token::C(self)
+    }
 }
 
 impl TokenType for VowelForm {
@@ -36,23 +41,35 @@ impl TokenType for VowelForm {
             _ => None,
         }
     }
+
+    fn into_token(self) -> Token {
+        Token::V(self)
+    }
 }
 
 impl TokenType for ÜA {
     fn parse(token: &Token) -> Option<Self> {
         match token {
-            Token::ÜA(value) => Some(*value),
+            Token::ÜA => Some(Self),
             _ => None,
         }
+    }
+
+    fn into_token(self) -> Token {
+        Token::ÜA
     }
 }
 
 impl TokenType for Schwa {
     fn parse(token: &Token) -> Option<Self> {
         match token {
-            Token::Schwa(value) => Some(*value),
+            Token::Schwa => Some(Self),
             _ => None,
         }
+    }
+
+    fn into_token(self) -> Token {
+        Token::Schwa
     }
 }
 
@@ -62,6 +79,10 @@ impl TokenType for HForm {
             Token::H(value) => Some(*value),
             _ => None,
         }
+    }
+
+    fn into_token(self) -> Token {
+        Token::H(self)
     }
 }
 
@@ -81,6 +102,19 @@ impl TokenType for WYForm {
             _ => None,
         }
     }
+
+    fn into_token(self) -> Token {
+        match self {
+            Self::W => Token::H(HForm {
+                sequence: HFormSequence::SW,
+                degree: HFormDegree::D1,
+            }),
+            Self::Y => Token::H(HForm {
+                sequence: HFormSequence::SY,
+                degree: HFormDegree::D1,
+            }),
+        }
+    }
 }
 
 impl TokenType for NumeralForm {
@@ -89,6 +123,10 @@ impl TokenType for NumeralForm {
             Token::N(value) => Some(*value),
             _ => None,
         }
+    }
+
+    fn into_token(self) -> Token {
+        Token::N(self)
     }
 }
 
@@ -99,9 +137,13 @@ impl TokenType for GlottalStop {
             _ => None,
         }
     }
+
+    fn into_token(self) -> Token {
+        Token::GlottalStop
+    }
 }
 
-impl FromTokenStream for Hh {
+impl FromTokens for Hh {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::H(HForm {
@@ -113,7 +155,7 @@ impl FromTokenStream for Hh {
     }
 }
 
-impl FromTokenStream for Hr {
+impl FromTokens for Hr {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::H(HForm {
@@ -125,7 +167,7 @@ impl FromTokenStream for Hr {
     }
 }
 
-impl FromTokenStream for Bias {
+impl FromTokens for Bias {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::C(value)) => match value.0.parse() {
@@ -137,7 +179,7 @@ impl FromTokenStream for Bias {
     }
 }
 
-impl FromTokenStream for SuppletiveAdjunctMode {
+impl FromTokens for SuppletiveAdjunctMode {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::H(HForm {
@@ -157,7 +199,7 @@ impl FromTokenStream for SuppletiveAdjunctMode {
     }
 }
 
-impl FromTokenStream for Case {
+impl FromTokens for Case {
     fn parse_volatile(
         stream: &mut TokenStream,
         _flags: FromTokenFlags,
@@ -169,7 +211,7 @@ impl FromTokenStream for Case {
     }
 }
 
-impl FromTokenStream for Register {
+impl FromTokens for Register {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::V(VowelForm {
@@ -195,7 +237,7 @@ impl FromTokenStream for Register {
     }
 }
 
-impl FromTokenStream for Stress {
+impl FromTokens for Stress {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::V(VowelForm {
@@ -214,7 +256,7 @@ impl FromTokenStream for Stress {
     }
 }
 
-impl FromTokenStream for MoodOrCaseScope {
+impl FromTokens for MoodOrCaseScope {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         use VowelFormDegree as D;
         use VowelFormSequence as S;
@@ -246,7 +288,7 @@ impl FromTokenStream for MoodOrCaseScope {
     }
 }
 
-impl FromTokenStream for NumeralForm {
+impl FromTokens for NumeralForm {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next() {
             Some(value) => Ok(value),
@@ -255,7 +297,7 @@ impl FromTokenStream for NumeralForm {
     }
 }
 
-impl FromTokenStream for GlottalStop {
+impl FromTokens for GlottalStop {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next() {
             Some(value) => Ok(value),
@@ -264,7 +306,7 @@ impl FromTokenStream for GlottalStop {
     }
 }
 
-impl FromTokenStream for ModularAdjunctMode {
+impl FromTokens for ModularAdjunctMode {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next() {
             Some(WYForm::W) => Ok(ModularAdjunctMode::Parent),
@@ -274,7 +316,7 @@ impl FromTokenStream for ModularAdjunctMode {
     }
 }
 
-impl FromTokenStream for NonAspectualVn {
+impl FromTokens for NonAspectualVn {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
         if vn.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
@@ -284,7 +326,7 @@ impl FromTokenStream for NonAspectualVn {
     }
 }
 
-impl FromTokenStream for Aspect {
+impl FromTokens for Aspect {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
         if vn.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
@@ -294,7 +336,7 @@ impl FromTokenStream for Aspect {
     }
 }
 
-impl FromTokenStream for ModularAdjunctScope {
+impl FromTokens for ModularAdjunctScope {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let Some(VowelForm {
             has_glottal_stop,
@@ -330,7 +372,7 @@ pub struct Cn {
     pub is_aspect: bool,
 }
 
-impl FromTokenStream for Cn {
+impl FromTokens for Cn {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         let cn: HForm = stream.next().ok_or(ParseError::ExpectedCn)?;
 
@@ -356,7 +398,7 @@ pub struct Cm {
     pub is_aspect: bool,
 }
 
-impl FromTokenStream for Cm {
+impl FromTokens for Cm {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::C(OwnedConsonantForm(source))) => match &source[..] {
@@ -379,7 +421,7 @@ pub struct VnCn {
     pub cn: ArbitraryMoodOrCaseScope,
 }
 
-impl FromTokenStream for VnCn {
+impl FromTokens for VnCn {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
 
@@ -403,7 +445,7 @@ pub struct VnCm {
     pub vn: Vn,
 }
 
-impl FromTokenStream for VnCm {
+impl FromTokens for VnCm {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
 
@@ -432,7 +474,7 @@ pub struct VnCnWithGlottalStop {
     pub cn: ArbitraryMoodOrCaseScope,
 }
 
-impl FromTokenStream for VnCnWithGlottalStop {
+impl FromTokens for VnCnWithGlottalStop {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
 
@@ -453,7 +495,7 @@ pub struct VxCs {
     pub affix: RegularAffix,
 }
 
-impl FromTokenStream for VxCs {
+impl FromTokens for VxCs {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
         if vx.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
@@ -476,7 +518,7 @@ pub struct VxCsWithGlottalStop {
     pub has_glottal_stop: bool,
 }
 
-impl FromTokenStream for VxCsWithGlottalStop {
+impl FromTokens for VxCsWithGlottalStop {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
         if vx.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
@@ -500,7 +542,7 @@ pub struct CsVxWithGlottalStop {
     pub has_glottal_stop: bool,
 }
 
-impl FromTokenStream for CsVxWithGlottalStop {
+impl FromTokens for CsVxWithGlottalStop {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
@@ -521,7 +563,7 @@ pub struct Vs {
     pub scope: AffixualAdjunctScope,
 }
 
-impl FromTokenStream for Vs {
+impl FromTokens for Vs {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let Some(vowel_form): Option<VowelForm> = stream.next() else {
             return Ok(Vs {
@@ -568,7 +610,7 @@ pub struct Vz {
     pub scope: Option<AffixualAdjunctScope>,
 }
 
-impl FromTokenStream for Vz {
+impl FromTokens for Vz {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let Some(vowel_form): Option<VowelForm> = stream.next() else {
             return Ok(Vz { scope: None });
@@ -628,7 +670,7 @@ pub struct CsVxCz {
     pub scope: AffixualAdjunctScope,
 }
 
-impl FromTokenStream for CsVxCz {
+impl FromTokens for CsVxCz {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
@@ -678,7 +720,7 @@ pub struct Vc2 {
     pub case: Option<Case>,
 }
 
-impl FromTokenStream for Vc2 {
+impl FromTokens for Vc2 {
     fn parse_volatile(
         stream: &mut TokenStream,
         _flags: FromTokenFlags,
@@ -694,7 +736,7 @@ impl FromTokenStream for Vc2 {
                 case: Some(Case::from_vc(*vc)?),
             }),
 
-            Some(Token::ÜA(_)) => Ok(Vc2 {
+            Some(Token::ÜA) => Ok(Vc2 {
                 case: Some(Case::THM),
             }),
 
