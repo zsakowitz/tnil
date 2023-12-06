@@ -164,6 +164,7 @@ fn parse_and_gloss() -> Result<(), ParseError> {
     check("slot", "S1-sl-DYN.CSV-MSS-OBS")?;
     check("psalaekpa", "S1-ps-kp/0₁")?;
     check("psakpaevv", "S1-ps-kp/0₁-N")?;
+    check("oëtil", "CPT.DYN-t/4-D4")?;
 
     Ok(())
 }

@@ -104,6 +104,34 @@ impl<'a> TokenStream<'a> {
         T::parse(self, flags)
     }
 
+    /// Parses an item, returning [`ParseError::TooManyTokens`] if it does not consume the entire
+    /// stream.
+    #[must_use]
+    pub fn parse_entire<T: FromTokenStream>(
+        &mut self,
+        flags: FromTokenFlags,
+    ) -> Result<T, ParseError> {
+        let start = self.start;
+        let end = self.end;
+
+        match T::parse_volatile(self, flags) {
+            Ok(value) => {
+                if self.is_done() {
+                    Ok(value)
+                } else {
+                    self.start = start;
+                    self.end = end;
+                    Err(ParseError::TooManyTokens)
+                }
+            }
+            Err(error) => {
+                self.start = start;
+                self.end = end;
+                Err(error)
+            }
+        }
+    }
+
     /// Returns a slice into the remaining tokens.
     #[must_use]
     pub fn remaining_tokens(&self) -> &'a [Token] {
@@ -253,4 +281,8 @@ parse_error_defn!(match self {
     TooFewSlotVAffixes => "not enough slot V affixes (indicated by glottal stop in Vv)",
     TooManySlotVAffixes => "too many slot V affixes (indicated by absence of a glottal stop in Vv)",
     TooManyTokens => "expected end of word, found more tokens",
+
+    WordEmpty => "cannot parse nothing",
+    WordInitialGlottalStop => "words cannot begin with glottal stops not followed by vowels",
+    WordInitialÜA => "words cannot begin with -üa-",
 });

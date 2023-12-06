@@ -70,7 +70,9 @@ pub mod referential;
 mod impls;
 #[cfg(test)]
 mod tests;
+mod word;
 
 pub use adjunct::*;
 pub use formative::formative::*;
 pub use referential::aliases::*;
+pub use word::*;

@@ -27,7 +27,8 @@ use crate::{
 use super::stream::ParseError;
 
 /// Normalizes a string into proper New Ithkuil format. This means consolidating extending
-/// diacritics into single letters and turning allomorphs such as ṭ into their actual letters.
+/// diacritics into single letters, turning allomorphs such as ṭ into their actual letters, and
+/// removing word-initial glottal stops.
 pub fn normalize(word: &str) -> String {
     let word = word
         .replace('​', "")
@@ -68,8 +69,34 @@ pub fn normalize(word: &str) -> String {
 
     let mut output = String::with_capacity(word.capacity());
 
-    for char in word.chars() {
+    let mut chars = word.chars();
+
+    match chars.next() {
+        None => return output,
+        Some('’' | 'ʼ' | '‘' | '\'') => {}
+        Some(char) => output.push(match char {
+            // Keep in sync with list below
+            'ì' => 'i',
+            'ı' => 'i',
+            'ù' => 'u',
+            'ṭ' => 'ţ',
+            'ŧ' => 'ţ',
+            'ț' => 'ţ',
+            'ḍ' => 'ḑ',
+            'đ' => 'ḑ',
+            'ł' => 'ļ',
+            'ḷ' => 'ļ',
+            'ż' => 'ẓ',
+            'ṇ' => 'ň',
+            'ṛ' => 'ř',
+            'ŗ' => 'ř',
+            value => value,
+        }),
+    }
+
+    for char in chars {
         output.push(match char {
+            // Keep in sync with list above
             '’' => '\'',
             'ʼ' => '\'',
             '‘' => '\'',

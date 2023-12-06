@@ -838,6 +838,16 @@ impl Gloss for UncheckedFormative {
     }
 }
 
+impl FromTokenStream for CheckedFormative {
+    fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
+        let general: ShortcutCheckedFormative = stream.parse(flags)?;
+
+        general
+            .try_as_specific()
+            .ok_or(ParseError::InvalidFormative)
+    }
+}
+
 impl FromTokenStream for ShortcutCheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         // This function is scary. Be warned.
@@ -1858,12 +1868,9 @@ impl FromTokenStream for ShortcutCheckedFormative {
     }
 }
 
-impl FromTokenStream for CheckedFormative {
+impl FromTokenStream for UncheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
-        let general: ShortcutCheckedFormative = stream.parse(flags)?;
-
-        general
-            .try_as_specific()
-            .ok_or(ParseError::InvalidFormative)
+        ShortcutCheckedFormative::parse_volatile(stream, flags)
+            .map(|formative| formative.as_general())
     }
 }

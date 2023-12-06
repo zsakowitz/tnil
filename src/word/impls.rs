@@ -1,7 +1,7 @@
 use super::{
     AffixualAdjunct, BiasAdjunct, CheckedFormative, GeneralReferential, MCSAdjunct, ModularAdjunct,
     NormalReferential, NumericAdjunct, ParsingAdjunct, RegisterAdjunct, ShortcutCheckedFormative,
-    SuppletiveAdjunct, SuppletiveReferential,
+    SuppletiveAdjunct, SuppletiveReferential, UncheckedFormative, Word,
 };
 use crate::romanize::{
     flags::FromTokenFlags,
@@ -22,8 +22,10 @@ macro_rules! from_str_impl {
 }
 
 from_str_impl!(
+    Word,
     CheckedFormative,
     ShortcutCheckedFormative,
+    UncheckedFormative,
     NormalReferential,
     SuppletiveReferential,
     GeneralReferential,
