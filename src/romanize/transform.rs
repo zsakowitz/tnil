@@ -19,12 +19,11 @@
 //! and [`unstress_vowels`]) could definitely be implemented more efficiently. But it's good enough,
 //! and replacing text probably isn't the slow part of the program anyway.
 
+use super::stream::ParseError;
 use crate::{
     category::Stress,
-    romanize::token::{NumeralForm, OwnedConsonantForm, Schwa, Token, ÜA},
+    romanize::token::{NumeralForm, OwnedConsonantForm, Token},
 };
-
-use super::stream::ParseError;
 
 /// Normalizes a string into proper New Ithkuil format. This means consolidating extending
 /// diacritics into single letters, turning allomorphs such as ṭ into their actual letters, and
@@ -300,8 +299,8 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, ParseError> {
 
                     CurrentToken::V => tokens.push(match &current[..] {
                         "'" => Token::GlottalStop,
-                        "ë" => Token::Schwa(Schwa),
-                        "üa" => Token::ÜA(ÜA),
+                        "ë" => Token::Schwa,
+                        "üa" => Token::ÜA,
                         vowel_form => Token::V(match vowel_form.parse() {
                             Ok(vowel_form) => vowel_form,
                             Err(_) => return Err(ParseError::SourceVowelInvalid),

@@ -8,6 +8,7 @@ pub use crate::{
     romanize::{
         flags::FromTokenFlags,
         stream::ParseError,
+        token,
         token_list::TokenList,
         traits::{FromTokens, TokenType},
     },

@@ -65,9 +65,9 @@ pub trait TokenType: Sized {
 
 impl<T> IntoTokens for T
 where
-    T: TokenType,
+    T: Clone + TokenType,
 {
     fn append_tokens(&self, list: &mut TokenList) {
-        list.push(self.into_token());
+        list.push(self.clone().into_token());
     }
 }
