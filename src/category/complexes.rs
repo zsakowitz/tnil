@@ -259,6 +259,19 @@ pub enum Vn {
     Aspect(Aspect),
 }
 
+impl Vn {
+    /// Converts this [`Vn`] into a [`NonAspectualVn`], returning an [`Err<Aspect>`] if it fails.
+    pub const fn as_non_aspectual_vn(self) -> Result<NonAspectualVn, Aspect> {
+        match self {
+            Self::Valence(value) => Ok(NonAspectualVn::Valence(value)),
+            Self::Phase(value) => Ok(NonAspectualVn::Phase(value)),
+            Self::Effect(value) => Ok(NonAspectualVn::Effect(value)),
+            Self::Level(value) => Ok(NonAspectualVn::Level(value)),
+            Self::Aspect(value) => Err(value),
+        }
+    }
+}
+
 impl Default for Vn {
     fn default() -> Self {
         Self::Valence(Valence::MNO)

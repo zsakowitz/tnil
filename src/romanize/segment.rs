@@ -664,6 +664,25 @@ pub struct Cn {
     pub is_aspect: bool,
 }
 
+impl IntoToken for Cn {
+    fn into_token(self) -> Token {
+        Token::H(HForm {
+            sequence: match self.is_aspect {
+                false => HFormSequence::S0,
+                true => HFormSequence::SW,
+            },
+            degree: match self.mcs {
+                ArbitraryMoodOrCaseScope::FAC_CCN => HFormDegree::D1,
+                ArbitraryMoodOrCaseScope::SUB_CCA => HFormDegree::D2,
+                ArbitraryMoodOrCaseScope::ASM_CCS => HFormDegree::D3,
+                ArbitraryMoodOrCaseScope::SPC_CCQ => HFormDegree::D4,
+                ArbitraryMoodOrCaseScope::COU_CCP => HFormDegree::D5,
+                ArbitraryMoodOrCaseScope::HYP_CCV => HFormDegree::D6,
+            },
+        })
+    }
+}
+
 impl FromTokens for Cn {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         let cn: HForm = stream.next().ok_or(ParseError::ExpectedCn)?;
@@ -690,6 +709,14 @@ pub struct Cm {
     pub is_aspect: bool,
 }
 
+impl IntoToken for Cm {
+    fn into_token(self) -> Token {
+        Token::C(OwnedConsonantForm(
+            if self.is_aspect { "ň" } else { "n" }.to_owned(),
+        ))
+    }
+}
+
 impl FromTokens for Cm {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
@@ -711,6 +738,31 @@ pub struct VnCn {
 
     /// The Cn of this pair.
     pub cn: ArbitraryMoodOrCaseScope,
+}
+
+impl IntoTokens for VnCn {
+    fn append_tokens(&self, list: &mut TokenList) {
+        match self.vn.as_non_aspectual_vn() {
+            Ok(non_aspectual) => {
+                non_aspectual.append_tokens(list);
+
+                Cn {
+                    mcs: self.cn,
+                    is_aspect: false,
+                }
+                .append_tokens(list);
+            }
+            Err(aspect) => {
+                aspect.append_tokens(list);
+
+                Cn {
+                    mcs: self.cn,
+                    is_aspect: true,
+                }
+                .append_tokens(list);
+            }
+        }
+    }
 }
 
 impl FromTokens for VnCn {
