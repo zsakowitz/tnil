@@ -1,7 +1,13 @@
 [package]
 name = "tnil"
-version = "0.1.1"
+version = "0.1.0"
 edition = "2021"
+authors = ["Zachary Sakowitz <zsakowitz@gmail.com>"]
+description = "Parser and generator for New Ithkuil"
+documentation = "https://docs.rs/tnil"
+homepage = "https://docs.rs/tnil"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/zsakowitz/tnil"
 
 [features]
 sheet-root-data = []
