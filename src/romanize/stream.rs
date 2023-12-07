@@ -48,17 +48,6 @@ impl<'a> TokenStream<'a> {
         Some(token)
     }
 
-    /// Returns the next token.
-    #[must_use]
-    pub fn next_any(&mut self) -> Option<&Token> {
-        if self.is_done() {
-            return None;
-        }
-        let token = self.tokens.get(self.start)?;
-        self.start += 1;
-        Some(token)
-    }
-
     /// Returns the next token from the end as a specialized token type.
     #[must_use]
     pub fn next_back<T: FromToken>(&mut self) -> Option<T> {
@@ -68,6 +57,17 @@ impl<'a> TokenStream<'a> {
         let token = self.tokens.get(self.end - 1)?;
         let token = T::from_token(&token)?;
         self.end -= 1;
+        Some(token)
+    }
+
+    /// Returns the next token.
+    #[must_use]
+    pub fn next_any(&mut self) -> Option<&Token> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.tokens.get(self.start)?;
+        self.start += 1;
         Some(token)
     }
 
@@ -240,4 +240,6 @@ parse_error_defn!(match self {
     WordEmpty => "cannot parse nothing",
     WordInitialGlottalStop => "words cannot begin with glottal stops not followed by vowels",
     WordInitialÜA => "words cannot begin with -üa-",
+
+    Unknown => "an unknown error occurred",
 });

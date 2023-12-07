@@ -536,7 +536,33 @@ impl FromTokens for ModularAdjunctMode {
     }
 }
 
-// TODO: impl IntoToken for NonAspectualVn
+impl IntoToken for NonAspectualVn {
+    fn into_token(self) -> Token {
+        let (sequence, degree) = match self {
+            NonAspectualVn::Valence(value) => (VowelFormSequence::S1, value as u8),
+            NonAspectualVn::Phase(value) => (VowelFormSequence::S1, value as u8),
+            NonAspectualVn::Effect(value) => (VowelFormSequence::S1, value as u8),
+            NonAspectualVn::Level(value) => (VowelFormSequence::S1, value as u8),
+        };
+
+        Token::V(VowelForm {
+            has_glottal_stop: false,
+            sequence,
+            degree: match degree {
+                0 => VowelFormDegree::D1,
+                1 => VowelFormDegree::D2,
+                2 => VowelFormDegree::D3,
+                3 => VowelFormDegree::D4,
+                4 => VowelFormDegree::D5,
+                5 => VowelFormDegree::D6,
+                6 => VowelFormDegree::D7,
+                7 => VowelFormDegree::D8,
+                8 => VowelFormDegree::D9,
+                _ => unreachable!(),
+            },
+        })
+    }
+}
 
 impl FromTokens for NonAspectualVn {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
@@ -548,7 +574,34 @@ impl FromTokens for NonAspectualVn {
     }
 }
 
-// TODO: impl IntoToken for Aspect
+impl IntoToken for Aspect {
+    fn into_token(self) -> Token {
+        let value = self as u8;
+
+        Token::V(VowelForm {
+            has_glottal_stop: false,
+            sequence: match value / 9 {
+                0 => VowelFormSequence::S1,
+                1 => VowelFormSequence::S2,
+                2 => VowelFormSequence::S3,
+                3 => VowelFormSequence::S4,
+                _ => unreachable!(),
+            },
+            degree: match value % 9 {
+                0 => VowelFormDegree::D1,
+                1 => VowelFormDegree::D2,
+                2 => VowelFormDegree::D3,
+                3 => VowelFormDegree::D4,
+                4 => VowelFormDegree::D5,
+                5 => VowelFormDegree::D6,
+                6 => VowelFormDegree::D7,
+                7 => VowelFormDegree::D8,
+                8 => VowelFormDegree::D9,
+                _ => unreachable!(),
+            },
+        })
+    }
+}
 
 impl FromTokens for Aspect {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
@@ -560,7 +613,20 @@ impl FromTokens for Aspect {
     }
 }
 
-// TODO: impl IntoToken for ModularAdjunctScope
+impl IntoToken for ModularAdjunctScope {
+    fn into_token(self) -> Token {
+        Token::V(VowelForm {
+            has_glottal_stop: false,
+            sequence: VowelFormSequence::S1,
+            degree: match self {
+                ModularAdjunctScope::Formative => VowelFormDegree::D1,
+                ModularAdjunctScope::MCS => VowelFormDegree::D3,
+                ModularAdjunctScope::OverAdj => VowelFormDegree::D4,
+                ModularAdjunctScope::UnderAdj => VowelFormDegree::D7,
+            },
+        })
+    }
+}
 
 impl FromTokens for ModularAdjunctScope {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
