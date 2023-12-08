@@ -9,7 +9,7 @@ use super::{
         GlottalStop, HForm, Hh, Hr, NumeralForm, OwnedConsonantForm, Schwa, Token, VowelForm,
         WYForm, ÜA,
     },
-    traits::{FromToken, FromTokens, IntoToken, IntoTokens},
+    traits::{FromToken, FromTokens, IntoToken, IntoTokens, IntoVowelForm},
 };
 use crate::{
     affix::RegularAffix,
@@ -37,18 +37,9 @@ impl IntoToken for OwnedConsonantForm {
     }
 }
 
-impl FromToken for VowelForm {
-    fn from_token(token: &Token) -> Option<Self> {
-        match token {
-            Token::V(value) => Some(*value),
-            _ => None,
-        }
-    }
-}
-
-impl IntoToken for VowelForm {
-    fn into_token(self) -> Token {
-        Token::V(self)
+impl IntoVowelForm for VowelForm {
+    fn into_vowel_form(self) -> VowelForm {
+        self
     }
 }
 
@@ -254,11 +245,11 @@ impl FromTokens for SuppletiveAdjunctMode {
     }
 }
 
-impl IntoToken for Case {
-    fn into_token(self) -> Token {
+impl IntoVowelForm for Case {
+    fn into_vowel_form(self) -> VowelForm {
         let value = self as u8;
 
-        Token::V(VowelForm {
+        VowelForm {
             has_glottal_stop: value >= 36,
             sequence: match value / 9 {
                 0 => VowelFormSequence::S1,
@@ -279,7 +270,7 @@ impl IntoToken for Case {
                 8 => VowelFormDegree::D9,
                 _ => unreachable!(),
             },
-        })
+        }
     }
 }
 
@@ -295,9 +286,9 @@ impl FromTokens for Case {
     }
 }
 
-impl IntoToken for Register {
-    fn into_token(self) -> Token {
-        Token::V(match self {
+impl IntoVowelForm for Register {
+    fn into_vowel_form(self) -> VowelForm {
+        match self {
             Register::DSV => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
@@ -353,7 +344,7 @@ impl IntoToken for Register {
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D8,
             },
-        })
+        }
     }
 }
 
@@ -383,9 +374,9 @@ impl FromTokens for Register {
     }
 }
 
-impl IntoToken for Stress {
-    fn into_token(self) -> Token {
-        Token::V(VowelForm {
+impl IntoVowelForm for Stress {
+    fn into_vowel_form(self) -> VowelForm {
+        VowelForm {
             has_glottal_stop: false,
             sequence: VowelFormSequence::S1,
             degree: match self {
@@ -394,7 +385,7 @@ impl IntoToken for Stress {
                 Stress::Penultimate => VowelFormDegree::D7,
                 Stress::Antepenultimate => VowelFormDegree::D9,
             },
-        })
+        }
     }
 }
 
@@ -417,9 +408,9 @@ impl FromTokens for Stress {
     }
 }
 
-impl IntoToken for MoodOrCaseScope {
-    fn into_token(self) -> Token {
-        Token::V(match self {
+impl IntoVowelForm for MoodOrCaseScope {
+    fn into_vowel_form(self) -> VowelForm {
+        match self {
             MoodOrCaseScope::Mood(Mood::FAC) => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
@@ -480,7 +471,7 @@ impl IntoToken for MoodOrCaseScope {
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D9,
             },
-        })
+        }
     }
 }
 
@@ -536,8 +527,8 @@ impl FromTokens for ModularAdjunctMode {
     }
 }
 
-impl IntoToken for NonAspectualVn {
-    fn into_token(self) -> Token {
+impl IntoVowelForm for NonAspectualVn {
+    fn into_vowel_form(self) -> VowelForm {
         let (sequence, degree) = match self {
             NonAspectualVn::Valence(value) => (VowelFormSequence::S1, value as u8),
             NonAspectualVn::Phase(value) => (VowelFormSequence::S1, value as u8),
@@ -545,7 +536,7 @@ impl IntoToken for NonAspectualVn {
             NonAspectualVn::Level(value) => (VowelFormSequence::S1, value as u8),
         };
 
-        Token::V(VowelForm {
+        VowelForm {
             has_glottal_stop: false,
             sequence,
             degree: match degree {
@@ -560,7 +551,7 @@ impl IntoToken for NonAspectualVn {
                 8 => VowelFormDegree::D9,
                 _ => unreachable!(),
             },
-        })
+        }
     }
 }
 
@@ -574,11 +565,11 @@ impl FromTokens for NonAspectualVn {
     }
 }
 
-impl IntoToken for Aspect {
-    fn into_token(self) -> Token {
+impl IntoVowelForm for Aspect {
+    fn into_vowel_form(self) -> VowelForm {
         let value = self as u8;
 
-        Token::V(VowelForm {
+        VowelForm {
             has_glottal_stop: false,
             sequence: match value / 9 {
                 0 => VowelFormSequence::S1,
@@ -599,7 +590,7 @@ impl IntoToken for Aspect {
                 8 => VowelFormDegree::D9,
                 _ => unreachable!(),
             },
-        })
+        }
     }
 }
 
@@ -613,9 +604,9 @@ impl FromTokens for Aspect {
     }
 }
 
-impl IntoToken for ModularAdjunctScope {
-    fn into_token(self) -> Token {
-        Token::V(VowelForm {
+impl IntoVowelForm for ModularAdjunctScope {
+    fn into_vowel_form(self) -> VowelForm {
+        VowelForm {
             has_glottal_stop: false,
             sequence: VowelFormSequence::S1,
             degree: match self {
@@ -624,7 +615,7 @@ impl IntoToken for ModularAdjunctScope {
                 ModularAdjunctScope::OverAdj => VowelFormDegree::D4,
                 ModularAdjunctScope::UnderAdj => VowelFormDegree::D7,
             },
-        })
+        }
     }
 }
 
@@ -841,6 +832,31 @@ impl FromTokens for VnCnWithGlottalStop {
             has_glottal_stop: vn.has_glottal_stop,
             cn: cn.mcs,
         })
+    }
+}
+
+impl IntoTokens for VnCnWithGlottalStop {
+    fn append_to(&self, list: &mut TokenList) {
+        match self.vn.as_non_aspectual_vn() {
+            Ok(vn) => {
+                let mut vn = vn.into_vowel_form();
+                vn.has_glottal_stop = self.has_glottal_stop;
+                list.push(vn);
+                list.push(Cn {
+                    mcs: self.cn,
+                    is_aspect: false,
+                });
+            }
+            Err(vn) => {
+                let mut vn = vn.into_vowel_form();
+                vn.has_glottal_stop = self.has_glottal_stop;
+                list.push(vn);
+                list.push(Cn {
+                    mcs: self.cn,
+                    is_aspect: true,
+                });
+            }
+        }
     }
 }
 

@@ -3,10 +3,16 @@
 use super::{
     flags::FromTokenFlags,
     stream::{ParseError, TokenStream},
-    token::Token,
+    token::{Token, VowelForm},
     token_list::TokenList,
 };
 use std::str::FromStr;
+
+/// Allows types to be converted into a single token.
+pub trait IntoVowelForm: Sized {
+    /// Turns `self` into a [`VowelForm`].
+    fn into_vowel_form(self) -> VowelForm;
+}
 
 /// Allows types to be extracted from a single token.
 pub trait FromToken: Sized {
@@ -67,10 +73,13 @@ pub trait IntoTokens {
     fn append_to(&self, list: &mut TokenList);
 }
 
-impl<T> IntoTokens for T
-where
-    T: Clone + IntoToken,
-{
+impl<T: IntoVowelForm> IntoToken for T {
+    fn into_token(self) -> Token {
+        Token::V(self.into_vowel_form())
+    }
+}
+
+impl<T: Clone + IntoToken> IntoTokens for T {
     fn append_to(&self, list: &mut TokenList) {
         list.push(self.clone().into_token());
     }

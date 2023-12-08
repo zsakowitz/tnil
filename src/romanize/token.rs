@@ -1,7 +1,10 @@
 //! Contains types for various tokens.
 
 pub use super::consonant::*;
-use super::{stream::ParseError, traits::IntoToken};
+use super::{
+    stream::ParseError,
+    traits::{FromToken, IntoToken},
+};
 use crate::category::{HFormDegree, HFormSequence, VowelFormDegree, VowelFormSequence};
 use std::{
     error::Error,
@@ -213,6 +216,15 @@ impl FromStr for VowelForm {
             sequence,
             degree,
         })
+    }
+}
+
+impl FromToken for VowelForm {
+    fn from_token(token: &Token) -> Option<Self> {
+        match token {
+            Token::V(vx) => Some(*vx),
+            _ => None,
+        }
     }
 }
 
