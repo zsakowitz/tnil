@@ -3,10 +3,9 @@
 mod multiple;
 mod single;
 
-pub use multiple::*;
-pub use single::*;
+pub use multiple::MultipleAffixAdjunct;
+pub use single::SingleAffixAdjunct;
 
-use self::{multiple::MultipleAffixAdjunct, single::SingleAffixAdjunct};
 use crate::{
     gloss::{Gloss, GlossFlags},
     romanize::{
