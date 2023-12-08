@@ -517,10 +517,10 @@ impl FromTokens for MoodOrCaseScope {
 }
 
 impl IntoTokens for ModularAdjunctMode {
-    fn append_tokens(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList) {
         match self {
-            ModularAdjunctMode::Parent => list.push(WYForm::W.into_token()),
-            ModularAdjunctMode::Concatenated => list.push(WYForm::Y.into_token()),
+            ModularAdjunctMode::Parent => list.push(WYForm::W),
+            ModularAdjunctMode::Concatenated => list.push(WYForm::Y),
             ModularAdjunctMode::Full => {}
         }
     }
@@ -740,31 +740,6 @@ pub struct VnCn {
     pub cn: ArbitraryMoodOrCaseScope,
 }
 
-impl IntoTokens for VnCn {
-    fn append_tokens(&self, list: &mut TokenList) {
-        match self.vn.as_non_aspectual_vn() {
-            Ok(non_aspectual) => {
-                non_aspectual.append_tokens(list);
-
-                Cn {
-                    mcs: self.cn,
-                    is_aspect: false,
-                }
-                .append_tokens(list);
-            }
-            Err(aspect) => {
-                aspect.append_tokens(list);
-
-                Cn {
-                    mcs: self.cn,
-                    is_aspect: true,
-                }
-                .append_tokens(list);
-            }
-        }
-    }
-}
-
 impl FromTokens for VnCn {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         let vn: VowelForm = stream.next().ok_or(ParseError::ExpectedVn)?;
@@ -779,6 +754,28 @@ impl FromTokens for VnCn {
             vn: Vn::from_vowel_form(vn, cn.is_aspect).ok_or(ParseError::ExpectedVn)?,
             cn: cn.mcs,
         })
+    }
+}
+
+impl IntoTokens for VnCn {
+    fn append_to(&self, list: &mut TokenList) {
+        match self.vn.as_non_aspectual_vn() {
+            Ok(non_aspectual) => {
+                list.push(non_aspectual);
+
+                list.push(Cn {
+                    mcs: self.cn,
+                    is_aspect: false,
+                });
+            }
+            Err(aspect) => {
+                list.push(aspect);
+                list.push(Cn {
+                    mcs: self.cn,
+                    is_aspect: true,
+                });
+            }
+        }
     }
 }
 
@@ -802,6 +799,21 @@ impl FromTokens for VnCm {
         Ok(Self {
             vn: Vn::from_vowel_form(vn, cm.is_aspect).ok_or(ParseError::ExpectedVn)?,
         })
+    }
+}
+
+impl IntoTokens for VnCm {
+    fn append_to(&self, list: &mut TokenList) {
+        match self.vn.as_non_aspectual_vn() {
+            Ok(non_aspectual) => {
+                list.push(non_aspectual);
+                list.push(Cm { is_aspect: false });
+            }
+            Err(aspect) => {
+                list.push(aspect);
+                list.push(Cm { is_aspect: true });
+            }
+        }
     }
 }
 
@@ -845,7 +857,7 @@ impl FromTokens for VxCs {
         if vx.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
             return Err(ParseError::GlottalizedVx);
         }
-        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let cs = stream.next_cs().ok_or(ParseError::ExpectedCs)?;
         Ok(VxCs {
             affix: RegularAffix::from_vxcs(vx, &cs)?,
         })
@@ -868,7 +880,7 @@ impl FromTokens for VxCsWithGlottalStop {
         if vx.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
             return Err(ParseError::GlottalizedVx);
         }
-        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let cs = stream.next_cs().ok_or(ParseError::ExpectedCs)?;
         Ok(Self {
             affix: RegularAffix::from_vxcs(vx, &cs)?,
             has_glottal_stop: vx.has_glottal_stop,
@@ -888,7 +900,7 @@ pub struct CsVxWithGlottalStop {
 
 impl FromTokens for CsVxWithGlottalStop {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
-        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let cs = stream.next_cs().ok_or(ParseError::ExpectedCs)?.to_owned();
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
         if vx.has_glottal_stop && !flags.matches(FromTokenFlags::PERMISSIVE) {
             return Err(ParseError::GlottalizedVx);
@@ -1016,7 +1028,7 @@ pub struct CsVxCz {
 
 impl FromTokens for CsVxCz {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
-        let cs: OwnedConsonantForm = stream.next().ok_or(ParseError::ExpectedCs)?;
+        let cs = stream.next_cs().ok_or(ParseError::ExpectedCs)?.to_owned();
         let vx: VowelForm = stream.next().ok_or(ParseError::ExpectedVx)?;
         let cz: HForm = stream.next().ok_or(ParseError::ExpectedCz)?;
         Ok(Self {

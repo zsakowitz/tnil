@@ -1487,10 +1487,9 @@ impl FromTokens for ShortcutCheckedFormative {
                                                     Some(Token::V(vx)) => {
                                                         let vx = *vx;
 
-                                                        let cs: OwnedConsonantForm = stream
-                                                            .next::<OwnedConsonantForm>()
-                                                            .ok_or(ParseError::ExpectedCs)?
-                                                            .clone();
+                                                        let cs = stream
+                                                            .next_cs()
+                                                            .ok_or(ParseError::ExpectedCs)?;
 
                                                         if cs.is_geminate() {
                                                             return Err(ParseError::GeminatedCs);
@@ -1506,7 +1505,7 @@ impl FromTokens for ShortcutCheckedFormative {
                                                             }
                                                         }
 
-                                                        slot_vii_affixes.push((vx, cs));
+                                                        slot_vii_affixes.push((vx, cs.to_owned()));
                                                     }
 
                                                     _ => return Err(ParseError::ExpectedVx),
@@ -1531,8 +1530,7 @@ impl FromTokens for ShortcutCheckedFormative {
                                 }
                             }
                         } else {
-                            let ca: OwnedConsonantForm =
-                                stream.next().ok_or(ParseError::ExpectedCa)?;
+                            let ca = stream.next_cs().ok_or(ParseError::ExpectedCa)?;
 
                             let ca =
                                 Ca::from_ungeminated_string(&ca).ok_or(ParseError::ExpectedCa)?;

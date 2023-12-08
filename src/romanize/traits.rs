@@ -64,14 +64,14 @@ pub trait FromTokens: Sized {
 /// Allows types to be turned into a sequence of tokens.
 pub trait IntoTokens {
     /// Appends `self` as a list of tokens into the passed [`TokenList`].
-    fn append_tokens(&self, list: &mut TokenList);
+    fn append_to(&self, list: &mut TokenList);
 }
 
 impl<T> IntoTokens for T
 where
     T: Clone + IntoToken,
 {
-    fn append_tokens(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList) {
         list.push(self.clone().into_token());
     }
 }

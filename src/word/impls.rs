@@ -1,9 +1,4 @@
-use super::{
-    AffixualAdjunct, BiasAdjunct, CheckedFormative, GeneralReferential, MCSAdjunct, ModularAdjunct,
-    NormalReferential, NumericAdjunct, ParsingAdjunct, RegisterAdjunct, ShortcutCheckedFormative,
-    SuppletiveAdjunct, SuppletiveReferential, UncheckedFormative, Word,
-};
-use crate::romanize::{flags::FromTokenFlags, stream::ParseError, traits::FromTokens};
+use crate::prelude::{word::*, *};
 use std::str::FromStr;
 
 macro_rules! from_str_impl {
@@ -27,6 +22,8 @@ from_str_impl!(
     SuppletiveReferential,
     GeneralReferential,
     AffixualAdjunct,
+    SingleAffixAdjunct,
+    MultipleAffixAdjunct,
     ModularAdjunct,
     MCSAdjunct,
     ParsingAdjunct,

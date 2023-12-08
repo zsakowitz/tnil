@@ -1,7 +1,7 @@
 //! Contains types for various tokens.
 
 pub use super::consonant::*;
-use super::stream::ParseError;
+use super::{stream::ParseError, traits::IntoToken};
 use crate::category::{HFormDegree, HFormSequence, VowelFormDegree, VowelFormSequence};
 use std::{
     error::Error,
@@ -98,6 +98,12 @@ pub enum Token {
 
     /// A glottal stop without any corresponding vowels, or a word-final glottal stop.
     GlottalStop,
+}
+
+impl IntoToken for Token {
+    fn into_token(self) -> Token {
+        self
+    }
 }
 
 /// An error returned when an invalid vowel form is parsed.

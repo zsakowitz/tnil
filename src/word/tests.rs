@@ -2,8 +2,9 @@ use crate::prelude::*;
 use std::str::FromStr;
 
 #[test]
-fn test() {
+fn traits() {
     fn assert_is_word<T: FromStr + FromTokens + Gloss>() {}
+    fn check<T: FromStr + FromTokens + IntoTokens + Gloss>() {}
 
     assert_is_word::<Word>();
 
@@ -11,18 +12,21 @@ fn test() {
     assert_is_word::<word::ShortcutCheckedFormative>();
     assert_is_word::<word::UncheckedFormative>();
 
+    assert_is_word::<word::GeneralReferential>();
     assert_is_word::<word::NormalReferential>();
     assert_is_word::<word::SuppletiveReferential>();
-    assert_is_word::<word::GeneralReferential>();
 
     assert_is_word::<word::AffixualAdjunct>();
-    assert_is_word::<word::ModularAdjunct>();
-    assert_is_word::<word::MCSAdjunct>();
-    assert_is_word::<word::ParsingAdjunct>();
-    assert_is_word::<word::RegisterAdjunct>();
-    assert_is_word::<word::SuppletiveAdjunct>();
-    assert_is_word::<word::BiasAdjunct>();
-    assert_is_word::<word::NumericAdjunct>();
+    assert_is_word::<word::SingleAffixAdjunct>();
+    assert_is_word::<word::MultipleAffixAdjunct>();
+
+    check::<word::ModularAdjunct>();
+    check::<word::MCSAdjunct>();
+    check::<word::ParsingAdjunct>();
+    check::<word::RegisterAdjunct>();
+    check::<word::SuppletiveAdjunct>();
+    check::<word::BiasAdjunct>();
+    check::<word::NumericAdjunct>();
 }
 
 #[test]

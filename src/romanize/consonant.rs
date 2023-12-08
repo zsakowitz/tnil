@@ -1,4 +1,6 @@
+use super::token::OwnedConsonantForm;
 use std::{
+    borrow::{Borrow, BorrowMut},
     mem::transmute,
     ops::{Deref, DerefMut},
 };
@@ -27,6 +29,40 @@ impl From<&mut str> for &mut ConsonantForm {
         unsafe {
             transmute(value)
         }
+    }
+}
+
+impl Deref for ConsonantForm {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for ConsonantForm {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl ToOwned for ConsonantForm {
+    type Owned = OwnedConsonantForm;
+
+    fn to_owned(&self) -> Self::Owned {
+        OwnedConsonantForm(self.0.to_owned())
+    }
+}
+
+impl Borrow<ConsonantForm> for OwnedConsonantForm {
+    fn borrow(&self) -> &ConsonantForm {
+        &self
+    }
+}
+
+impl BorrowMut<ConsonantForm> for OwnedConsonantForm {
+    fn borrow_mut(&mut self) -> &mut ConsonantForm {
+        &mut *self
     }
 }
 
@@ -60,19 +96,5 @@ impl ConsonantForm {
         }
 
         false
-    }
-}
-
-impl Deref for ConsonantForm {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for ConsonantForm {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }

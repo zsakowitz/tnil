@@ -2,7 +2,7 @@
 
 use super::{
     flags::FromTokenFlags,
-    token::Token,
+    token::{ConsonantForm, Token},
     traits::{FromToken, FromTokens},
 };
 use crate::category::Stress;
@@ -48,6 +48,23 @@ impl<'a> TokenStream<'a> {
         Some(token)
     }
 
+    /// Returns the next token as a borrowed [`ConsonantForm`].
+    ///
+    /// This method cannot be integrated into `.next()` due to issues with lifetimes.
+    #[must_use]
+    pub fn next_cs(&mut self) -> Option<&ConsonantForm> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.tokens.get(self.start);
+        let token = match token {
+            Some(Token::C(cs)) => &*cs,
+            _ => return None,
+        };
+        self.start += 1;
+        Some(token)
+    }
+
     /// Returns the next token from the end as a specialized token type.
     #[must_use]
     pub fn next_back<T: FromToken>(&mut self) -> Option<T> {
@@ -56,6 +73,23 @@ impl<'a> TokenStream<'a> {
         }
         let token = self.tokens.get(self.end - 1)?;
         let token = T::from_token(&token)?;
+        self.end -= 1;
+        Some(token)
+    }
+
+    /// Returns the next token from the end as a borrowed [`ConsonantForm`].
+    ///
+    /// This method cannot be integrated into `.next_back()` due to issues with lifetimes.
+    #[must_use]
+    pub fn next_cs_back(&mut self) -> Option<&ConsonantForm> {
+        if self.is_done() {
+            return None;
+        }
+        let token = self.tokens.get(self.end - 1);
+        let token = match token {
+            Some(Token::C(cs)) => &*cs,
+            _ => return None,
+        };
         self.end -= 1;
         Some(token)
     }

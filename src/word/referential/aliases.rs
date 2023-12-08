@@ -129,14 +129,14 @@ from_token_stream_impl!(
         let mut has_word_mid_schwa = false;
 
         let mut consonants = {
-            let cr: OwnedConsonantForm = stream.next().ok_or(ParseError::ReferentExpected)?;
-            cr.0
+            let cr = stream.next_cs().ok_or(ParseError::ReferentExpected)?;
+            (*cr).to_string()
         };
 
         while let Some(Schwa) = stream.next() {
             has_word_mid_schwa = true;
-            let cr: OwnedConsonantForm = stream.next().ok_or(ParseError::ReferentExpected)?;
-            consonants += &cr.0;
+            let cr = stream.next_cs().ok_or(ParseError::ReferentExpected)?;
+            consonants += &cr;
         }
 
         let first_referent = consonants.parse()?;
@@ -193,10 +193,7 @@ from_token_stream_impl!(
                         can_be_combo = false;
                     }
 
-                    let cr: OwnedConsonantForm =
-                        stream.next().ok_or(ParseError::ReferentExpected)?;
-
-                    consonants += &cr.0;
+                    consonants += stream.next_cs().ok_or(ParseError::ReferentExpected)?;
                 }
 
                 GeneralReferent::Normal(consonants.parse()?)

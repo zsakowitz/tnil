@@ -3,6 +3,7 @@
 use super::{
     stream::{ParseError, TokenStream},
     token::Token,
+    traits::{IntoToken, IntoTokens},
     transform::{detect_stress, normalize, tokenize, unstress_vowels},
 };
 use crate::category::Stress;
@@ -39,8 +40,13 @@ impl TokenList {
     }
 
     /// Pushes a token into `self`.
-    pub fn push(&mut self, token: Token) {
-        self.tokens.push(token);
+    pub fn push<T: IntoToken>(&mut self, token: T) {
+        self.tokens.push(token.into_token());
+    }
+
+    /// Appends an item as tokens to `self.`
+    pub fn append<T: IntoTokens>(&mut self, item: &T) {
+        item.append_to(self);
     }
 
     /// Modifies the stress of `self`.
