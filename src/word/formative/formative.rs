@@ -885,31 +885,15 @@ impl FromTokens for ShortcutCheckedFormative {
         let (ca_shortcut, concatenation_type, has_cc) = match stream.next() {
             None => (CaShortcutMode::None, Concatenation::None, false),
 
-            Some(HForm { sequence, degree }) => match (sequence, degree) {
-                (HFormSequence::SW, HFormDegree::D1) => {
-                    (CaShortcutMode::W, Concatenation::None, true)
-                }
-                (HFormSequence::SY, HFormDegree::D1) => {
-                    (CaShortcutMode::Y, Concatenation::None, true)
-                }
-                (HFormSequence::S0, HFormDegree::D1) => {
-                    (CaShortcutMode::None, Concatenation::T1, true)
-                }
-                (HFormSequence::S0, HFormDegree::D2) => {
-                    (CaShortcutMode::W, Concatenation::T1, true)
-                }
-                (HFormSequence::S0, HFormDegree::D3) => {
-                    (CaShortcutMode::W, Concatenation::T2, true)
-                }
-                (HFormSequence::S0, HFormDegree::D4) => {
-                    (CaShortcutMode::Y, Concatenation::T1, true)
-                }
-                (HFormSequence::S0, HFormDegree::D5) => {
-                    (CaShortcutMode::Y, Concatenation::T2, true)
-                }
-                (HFormSequence::SW, HFormDegree::D2) => {
-                    (CaShortcutMode::None, Concatenation::T2, true)
-                }
+            Some(h) => match h {
+                HForm::W => (CaShortcutMode::W, Concatenation::None, true),
+                HForm::Y => (CaShortcutMode::Y, Concatenation::None, true),
+                HForm::H => (CaShortcutMode::None, Concatenation::T1, true),
+                HForm::HL => (CaShortcutMode::W, Concatenation::T1, true),
+                HForm::HR => (CaShortcutMode::W, Concatenation::T2, true),
+                HForm::HM => (CaShortcutMode::Y, Concatenation::T1, true),
+                HForm::HN => (CaShortcutMode::Y, Concatenation::T2, true),
+                HForm::HW => (CaShortcutMode::None, Concatenation::T2, true),
                 _ => return Err(ParseError::ExpectedCc),
             },
         };
