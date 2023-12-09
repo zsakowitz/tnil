@@ -4,7 +4,7 @@ use crate::{
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     prelude::{token::HForm, IntoTokens, IntoVxCs, TokenList},
     romanize::{
-        flags::FromTokenFlags,
+        flags::{FromTokenFlags, IntoTokensFlags},
         segment::{CsVxCz, VxCs, Vz},
         stream::{ParseError, TokenStream},
         token::Schwa,
@@ -85,9 +85,9 @@ impl FromTokens for MultipleAffixAdjunct {
 }
 
 impl IntoTokens for MultipleAffixAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         let (mut first_vx, first_cs) = self.first_affix.into_vx_cs();
-        if !first_cs.is_valid_word_initial() {
+        if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !first_cs.is_valid_word_initial() {
             list.push(Schwa);
         }
         let (needs_glottal_stop, first_cz) = match self.first_scope {
@@ -157,6 +157,8 @@ impl IntoTokens for MultipleAffixAdjunct {
         }
         if let Some(vz) = vz {
             list.push(Vz { scope: vz });
+        } else if flags.matches(IntoTokensFlags::WORD_FINAL_VOWEL) {
+            list.push(Vz { scope: None });
         }
     }
 }

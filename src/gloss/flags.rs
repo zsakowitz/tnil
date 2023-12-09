@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
+use crate::macros::bitflags;
 
 /// A bit flag of options passed to glossing functions.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -61,51 +61,6 @@ impl GlossFlags {
     ///
     /// If passed to `.gloss()`, this will replace roots with their values as specified in the lexicon-json repository, found at https://github.com/yuorb/lexicon-json.
     pub const USE_COMBINED_ROOT_DATA: Self = Self(1 << 5 | 1 << 6);
-
-    /// Checks if `self` contains the flags specified in `other`.
-    pub const fn matches(self, other: GlossFlags) -> bool {
-        self.0 & other.0 == other.0
-    }
 }
 
-impl BitAnd for GlossFlags {
-    type Output = Self;
-
-    fn bitand(self, rhs: Self) -> Self::Output {
-        Self(self.0 & rhs.0)
-    }
-}
-
-impl BitOr for GlossFlags {
-    type Output = Self;
-
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Self(self.0 | rhs.0)
-    }
-}
-
-impl BitXor for GlossFlags {
-    type Output = Self;
-
-    fn bitxor(self, rhs: Self) -> Self::Output {
-        Self(self.0 ^ rhs.0)
-    }
-}
-
-impl BitAndAssign for GlossFlags {
-    fn bitand_assign(&mut self, rhs: Self) {
-        self.0 &= rhs.0;
-    }
-}
-
-impl BitOrAssign for GlossFlags {
-    fn bitor_assign(&mut self, rhs: Self) {
-        self.0 |= rhs.0;
-    }
-}
-
-impl BitXorAssign for GlossFlags {
-    fn bitxor_assign(&mut self, rhs: Self) {
-        self.0 ^= rhs.0;
-    }
-}
+bitflags!(GlossFlags);

@@ -44,7 +44,7 @@ impl FromTokens for SingleAffixAdjunct {
 }
 
 impl IntoTokens for SingleAffixAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         let (vx, cs) = self.affix.into_vx_cs();
         let vs = if self.mode == AffixualAdjunctMode::Concatenated
             || self.scope != AffixualAdjunctScope::default()

@@ -6,7 +6,7 @@ pub use crate::{
     category::Category,
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
-        flags::FromTokenFlags,
+        flags::{FromTokenFlags, IntoTokensFlags},
         stream::ParseError,
         token,
         token_list::TokenList,

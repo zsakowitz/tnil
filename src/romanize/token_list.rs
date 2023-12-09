@@ -1,6 +1,7 @@
 //! Defines a [`TokenList`] type which can be used to parse Ithkuil tokens and stress markings.
 
 use super::{
+    flags::IntoTokensFlags,
     stream::{ParseError, TokenStream},
     token::Token,
     traits::{IntoToken, IntoTokens},
@@ -44,9 +45,9 @@ impl TokenList {
         self.tokens.push(token.into_token());
     }
 
-    /// Appends an item as tokens to `self.`
-    pub fn append<T: IntoTokens>(&mut self, item: &T) {
-        item.append_to(self);
+    /// Appends an item as tokens to `self`.
+    pub fn append<T: IntoTokens>(&mut self, item: &T, flags: IntoTokensFlags) {
+        item.append_to(self, flags);
     }
 
     /// Modifies the stress of `self`.

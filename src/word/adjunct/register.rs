@@ -3,7 +3,7 @@
 use crate::{
     category::Register,
     gloss::{Gloss, GlossFlags},
-    prelude::{IntoTokens, TokenList},
+    prelude::{IntoTokens, IntoTokensFlags, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -36,7 +36,7 @@ impl FromTokens for RegisterAdjunct {
 }
 
 impl IntoTokens for RegisterAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(Hh);
         list.push(self.register);
     }

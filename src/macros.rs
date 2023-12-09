@@ -272,3 +272,58 @@ macro_rules! referent {
         }
     };
 }
+
+macro_rules! bitflags {
+    ($ty:ty) => {
+        impl $ty {
+            /// Checks if `self` contains the flags specified in `other`.
+            pub const fn matches(self, other: $ty) -> bool {
+                self.0 & other.0 == other.0
+            }
+        }
+
+        impl ::std::ops::BitAnd for $ty {
+            type Output = Self;
+
+            fn bitand(self, rhs: Self) -> Self::Output {
+                Self(self.0 & rhs.0)
+            }
+        }
+
+        impl ::std::ops::BitOr for $ty {
+            type Output = Self;
+
+            fn bitor(self, rhs: Self) -> Self::Output {
+                Self(self.0 | rhs.0)
+            }
+        }
+
+        impl ::std::ops::BitXor for $ty {
+            type Output = Self;
+
+            fn bitxor(self, rhs: Self) -> Self::Output {
+                Self(self.0 ^ rhs.0)
+            }
+        }
+
+        impl ::std::ops::BitAndAssign for $ty {
+            fn bitand_assign(&mut self, rhs: Self) {
+                self.0 &= rhs.0;
+            }
+        }
+
+        impl ::std::ops::BitOrAssign for $ty {
+            fn bitor_assign(&mut self, rhs: Self) {
+                self.0 |= rhs.0;
+            }
+        }
+
+        impl ::std::ops::BitXorAssign for $ty {
+            fn bitxor_assign(&mut self, rhs: Self) {
+                self.0 ^= rhs.0;
+            }
+        }
+    };
+}
+
+pub(crate) use bitflags;

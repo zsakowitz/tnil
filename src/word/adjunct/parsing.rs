@@ -3,7 +3,7 @@
 use crate::{
     category::Stress,
     gloss::{GlossFlags, GlossStatic},
-    prelude::{IntoTokens, TokenList},
+    prelude::{IntoTokens, IntoTokensFlags, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -34,7 +34,7 @@ impl FromTokens for ParsingAdjunct {
 }
 
 impl IntoTokens for ParsingAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(self.stress);
         list.push(GlottalStop);
     }

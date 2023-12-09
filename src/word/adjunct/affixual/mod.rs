@@ -10,7 +10,7 @@ use crate::{
     gloss::{Gloss, GlossFlags},
     prelude::{IntoTokens, TokenList},
     romanize::{
-        flags::FromTokenFlags,
+        flags::{FromTokenFlags, IntoTokensFlags},
         stream::{ParseError, TokenStream},
         token::Token,
         traits::FromTokens,
@@ -47,10 +47,10 @@ impl FromTokens for AffixualAdjunct {
 }
 
 impl IntoTokens for AffixualAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         match self {
-            Self::Single(value) => value.append_to(list),
-            Self::Multiple(value) => value.append_to(list),
+            Self::Single(value) => value.append_to(list, flags),
+            Self::Multiple(value) => value.append_to(list, flags),
         }
     }
 }

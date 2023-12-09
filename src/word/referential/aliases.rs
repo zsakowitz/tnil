@@ -1,14 +1,15 @@
 use super::{GeneralReferent, Referential};
 use crate::{
     category::{
-        Essence, HFormDegree, HFormSequence, NormalReferentList, Specification, Stress,
+        Case, Essence, HFormDegree, HFormSequence, NormalReferentList, Specification, Stress,
         SuppletiveAdjunctMode, VowelFormDegree, VowelFormSequence,
     },
+    prelude::{token::WYForm, IntoTokens, IntoVxCs, TokenList},
     romanize::{
-        flags::FromTokenFlags,
+        flags::{FromTokenFlags, IntoTokensFlags},
         segment::{Vc2, VxCs},
         stream::{ParseError, TokenStream},
-        token::{HForm, OwnedConsonantForm, Schwa, Token, VowelForm},
+        token::{HForm, OwnedConsonantForm, Schwa, Token, VowelForm, ÜA},
         traits::FromTokens,
     },
 };
@@ -222,4 +223,256 @@ from_token_stream_impl!(
     },
     can_be_single_dual,
     can_be_combo,
+);
+
+macro_rules! into_tokens_impl {
+    (
+        $ty:ident,
+        $list:ident,
+        $flags:ident,
+        $vowels:ident,
+        $referent:ident,
+        $essence:ident,
+        $second_case:ident,
+        { $($single_stmt:stmt)* },
+        { $($dual_stmt:stmt)* },
+        { $($combo_stmt:stmt)* }
+    ) => {
+        #[allow(redundant_semicolons)]
+        impl IntoTokens for $ty {
+            fn append_to(&self, $list: &mut TokenList, $flags: IntoTokensFlags) {
+                match self {
+                    Self::Single {
+                        $referent,
+                        first_case,
+                        $second_case,
+                        $essence,
+                    } => {
+                        $($single_stmt)*
+                        $list.push(*first_case);
+                        if let Some($second_case) = *$second_case {
+                            $list.push(WYForm::W);
+                            $list.push($second_case);
+                        }
+                        $list.set_stress(Some(match $essence {
+                            Essence::NRM => Stress::Penultimate,
+                            Essence::RPV => Stress::Ultimate,
+                        }));
+                    }
+
+                    Self::Dual {
+                        first_referent: $referent,
+                        first_case,
+                        $second_case,
+                        second_referent,
+                        $essence,
+                    } => {
+                        $($dual_stmt)*
+                        $list.push(*first_case);
+                        $list.push(WYForm::W);
+                        $list.push(*$second_case);
+                        let cs2 = OwnedConsonantForm(second_referent.to_string());
+                        let should_add_schwa = !cs2.is_valid_word_final();
+                        $list.push(cs2);
+                        if should_add_schwa {
+                            $list.push(Schwa);
+                        }
+                        $list.set_stress(Some(match $essence {
+                            Essence::NRM => Stress::Penultimate,
+                            Essence::RPV => Stress::Ultimate,
+                        }));
+                    }
+
+                    Self::Combination {
+                        $referent,
+                        first_case,
+                        specification,
+                        affixes,
+                        $second_case,
+                        $essence,
+                    } => {
+                        $($combo_stmt)*
+                        $list.push(*first_case);
+                        $vowels += 1;
+                        $list.push(OwnedConsonantForm(
+                            match specification {
+                                Specification::BSC => "x",
+                                Specification::CTE => "xt",
+                                Specification::CSV => "xp",
+                                Specification::OBJ => "xx",
+                            }
+                            .to_owned(),
+                        ));
+                        let mut is_last_cs_permitted_word_final = true;
+                        for affix in affixes {
+                            let (vx, cs) = affix.into_vx_cs();
+                            $list.push(vx);
+                            $vowels += 1;
+                            is_last_cs_permitted_word_final = cs.is_valid_word_final();
+                            $list.push(cs);
+                        }
+                        if let Some($second_case) = *$second_case {
+                            if $second_case == Case::THM {
+                                $list.push(ÜA);
+                            } else {
+                                $list.push($second_case);
+                            }
+                        } else if $flags.matches(IntoTokensFlags::WORD_FINAL_VOWEL)
+                            || (*$essence == Essence::RPV && $vowels < 2)
+                            || !is_last_cs_permitted_word_final
+                        {
+                            $list.push(VowelForm::default());
+                        }
+                        $list.set_stress(Some(match $essence {
+                            Essence::NRM => Stress::Penultimate,
+                            Essence::RPV => Stress::Ultimate,
+                        }));
+                    }
+                }
+            }
+        }
+    };
+}
+
+into_tokens_impl!(
+    NormalReferential,
+    list,
+    flags,
+    vowels,
+    referent,
+    essence,
+    second_case,
+    {
+        // TODO: Build referents with interconsonantal schwas.
+        let cs = OwnedConsonantForm(referent.to_string());
+        if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL)
+            || !cs.is_valid_word_initial()
+            || (*essence == Essence::RPV && second_case.is_none())
+        {
+            list.push(Schwa);
+        }
+        list.push(cs);
+    },
+    {
+        // TODO: Build referents with interconsonantal schwas.
+        let cs = OwnedConsonantForm(referent.to_string());
+        if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !cs.is_valid_word_initial() {
+            list.push(Schwa);
+        }
+        list.push(cs);
+    },
+    {
+        let mut vowels = 0;
+        let cs = OwnedConsonantForm(referent.to_string());
+        if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !cs.is_valid_word_initial() {
+            list.push(Schwa);
+            vowels += 1;
+        }
+        list.push(cs);
+    }
+);
+
+into_tokens_impl!(
+    SuppletiveReferential,
+    list,
+    flags,
+    vowels,
+    referent,
+    essence,
+    second_case,
+    {
+        list.push(VowelForm {
+            has_glottal_stop: false,
+            sequence: VowelFormSequence::S3,
+            degree: VowelFormDegree::D0,
+        });
+        list.push(*referent);
+    },
+    {
+        list.push(VowelForm {
+            has_glottal_stop: false,
+            sequence: VowelFormSequence::S3,
+            degree: VowelFormDegree::D0,
+        });
+        list.push(*referent);
+    },
+    {
+        list.push(VowelForm::default());
+        let mut vowels = 1;
+        list.push(*referent);
+    }
+);
+
+into_tokens_impl!(
+    GeneralReferential,
+    list,
+    flags,
+    vowels,
+    referent,
+    essence,
+    second_case,
+    {
+        match referent {
+            GeneralReferent::Normal(referent) => {
+                // TODO: Build referents with interconsonantal schwas.
+                let cs = OwnedConsonantForm(referent.to_string());
+                if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL)
+                    || !cs.is_valid_word_initial()
+                    || (*essence == Essence::RPV && second_case.is_none())
+                {
+                    list.push(Schwa);
+                }
+                list.push(cs);
+            }
+            GeneralReferent::Suppletive(referent) => {
+                list.push(VowelForm {
+                    has_glottal_stop: false,
+                    sequence: VowelFormSequence::S3,
+                    degree: VowelFormDegree::D0,
+                });
+                list.push(*referent);
+            }
+        }
+    },
+    {
+        match referent {
+            GeneralReferent::Normal(referent) => {
+                // TODO: Build referents with interconsonantal schwas.
+                let cs = OwnedConsonantForm(referent.to_string());
+                if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !cs.is_valid_word_initial()
+                {
+                    list.push(Schwa);
+                }
+                list.push(cs);
+            }
+            GeneralReferent::Suppletive(referent) => {
+                list.push(VowelForm {
+                    has_glottal_stop: false,
+                    sequence: VowelFormSequence::S3,
+                    degree: VowelFormDegree::D0,
+                });
+                list.push(*referent);
+            }
+        }
+    },
+    {
+        let mut vowels = 0;
+
+        match referent {
+            GeneralReferent::Normal(referent) => {
+                let cs = OwnedConsonantForm(referent.to_string());
+                if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !cs.is_valid_word_initial()
+                {
+                    list.push(Schwa);
+                    vowels += 1;
+                }
+                list.push(cs);
+            }
+            GeneralReferent::Suppletive(referent) => {
+                list.push(VowelForm::default());
+                vowels = 1;
+                list.push(*referent);
+            }
+        }
+    }
 );

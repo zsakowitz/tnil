@@ -1,7 +1,7 @@
 //! Provides traits for converting a type from and into token streams.
 
 use super::{
-    flags::FromTokenFlags,
+    flags::{FromTokenFlags, IntoTokensFlags},
     stream::{ParseError, TokenStream},
     token::{Token, VowelForm},
     token_list::TokenList,
@@ -77,7 +77,7 @@ pub trait FromTokens: Sized {
 /// Allows types to be turned into a sequence of tokens.
 pub trait IntoTokens {
     /// Appends `self` as a list of tokens into the passed [`TokenList`].
-    fn append_to(&self, list: &mut TokenList);
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags);
 }
 
 impl<T: IntoVowelForm> IntoToken for T {
@@ -87,7 +87,7 @@ impl<T: IntoVowelForm> IntoToken for T {
 }
 
 impl<T: Clone + IntoToken> IntoTokens for T {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(self.clone().into_token());
     }
 }

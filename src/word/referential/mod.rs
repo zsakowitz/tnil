@@ -72,10 +72,7 @@ pub enum Referential<T> {
     },
 }
 
-impl<T> Gloss for Referential<T>
-where
-    T: Gloss,
-{
+impl<T: Gloss> Gloss for Referential<T> {
     fn gloss(&self, flags: GlossFlags) -> String {
         match self {
             Self::Single {

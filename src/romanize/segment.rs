@@ -2,7 +2,7 @@
 //! of types (such as a VnCn pair) to aid with parsing them.
 
 use super::{
-    flags::FromTokenFlags,
+    flags::{FromTokenFlags, IntoTokensFlags},
     stream::ParseError,
     stream::TokenStream,
     token::{
@@ -508,7 +508,7 @@ impl FromTokens for MoodOrCaseScope {
 }
 
 impl IntoTokens for ModularAdjunctMode {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self {
             ModularAdjunctMode::Parent => list.push(WYForm::W),
             ModularAdjunctMode::Concatenated => list.push(WYForm::Y),
@@ -749,7 +749,7 @@ impl FromTokens for VnCn {
 }
 
 impl IntoTokens for VnCn {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(non_aspectual) => {
                 list.push(non_aspectual);
@@ -794,7 +794,7 @@ impl FromTokens for VnCm {
 }
 
 impl IntoTokens for VnCm {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(non_aspectual) => {
                 list.push(non_aspectual);
@@ -836,7 +836,7 @@ impl FromTokens for VnCnWithGlottalStop {
 }
 
 impl IntoTokens for VnCnWithGlottalStop {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(vn) => {
                 let mut vn = vn.into_vowel_form();

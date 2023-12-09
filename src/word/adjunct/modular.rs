@@ -6,7 +6,7 @@ use crate::{
         Stress, Valence, Vn,
     },
     gloss::{Gloss, GlossFlags, GlossHelpers},
-    prelude::{IntoTokens, TokenList},
+    prelude::{IntoTokens, IntoTokensFlags, TokenList},
     romanize::{
         flags::FromTokenFlags,
         segment::{VnCm, VnCn},
@@ -162,10 +162,10 @@ impl FromTokens for ModularAdjunct {
 }
 
 impl IntoTokens for ModularAdjunct {
-    fn append_to(&self, list: &mut TokenList) {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         match *self {
             Self::Aspect { mode, aspect } => {
-                list.append(&mode);
+                list.append(&mode, flags);
                 list.push(aspect);
                 list.set_stress(Some(Stress::Penultimate));
             }
@@ -177,10 +177,10 @@ impl IntoTokens for ModularAdjunct {
                 vn2,
                 vn3,
             } => {
-                list.append(&mode);
-                list.append(&VnCn { vn: vn1, cn });
+                list.append(&mode, flags);
+                list.append(&VnCn { vn: vn1, cn }, flags);
                 if let Some(vn) = vn2 {
-                    list.append(&VnCm { vn });
+                    list.append(&VnCm { vn }, flags);
                 }
                 list.push(vn3);
                 list.set_stress(Some(Stress::Penultimate));
@@ -193,10 +193,10 @@ impl IntoTokens for ModularAdjunct {
                 vn2,
                 scope,
             } => {
-                list.append(&mode);
-                list.append(&VnCn { vn: vn1, cn });
+                list.append(&mode, flags);
+                list.append(&VnCn { vn: vn1, cn }, flags);
                 if let Some(vn) = vn2 {
-                    list.append(&VnCm { vn });
+                    list.append(&VnCm { vn }, flags);
                 }
                 list.push(scope);
                 list.set_stress(Some(Stress::Ultimate));
