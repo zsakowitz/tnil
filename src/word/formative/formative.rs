@@ -8,6 +8,7 @@ use crate::{
         VowelFormSequence,
     },
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    prelude::{IntoTokens, IntoTokensFlags, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -1867,5 +1868,12 @@ impl FromTokens for UncheckedFormative {
     fn parse_volatile(stream: &mut TokenStream, flags: FromTokenFlags) -> Result<Self, ParseError> {
         ShortcutCheckedFormative::parse_volatile(stream, flags)
             .map(|formative| formative.as_general())
+    }
+}
+
+impl IntoTokens for UncheckedFormative {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+        // The implementation here is guaranteed to work on properly constructed formatives and will
+        // likely fail for everything else. It's _not intended_ to handle edge cases.
     }
 }

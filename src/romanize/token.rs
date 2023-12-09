@@ -307,3 +307,83 @@ impl<T: Into<String>> From<T> for OwnedConsonantForm {
         OwnedConsonantForm(value.into())
     }
 }
+
+impl HForm {
+    /// The h-form "h".
+    pub const H: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D1,
+    };
+
+    /// The h-form "hl".
+    pub const HL: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D2,
+    };
+
+    /// The h-form "hr".
+    pub const HR: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D3,
+    };
+
+    /// The h-form "hm".
+    pub const HM: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D4,
+    };
+
+    /// The h-form "hn".
+    pub const HN: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D5,
+    };
+
+    /// The h-form "hň".
+    pub const HŇ: Self = Self {
+        sequence: HFormSequence::S0,
+        degree: HFormDegree::D6,
+    };
+
+    /// The h-form "w".
+    pub const W: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D1,
+    };
+
+    /// The h-form "y".
+    pub const Y: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D1,
+    };
+
+    /// The h-form "hw".
+    pub const HW: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D2,
+    };
+
+    /// The h-form "hrw".
+    pub const HRW: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D3,
+    };
+
+    /// The h-form "hmw".
+    pub const HMW: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D4,
+    };
+
+    /// The h-form "hnw".
+    pub const HNW: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D5,
+    };
+
+    /// The h-form "hňw".
+    pub const HŇW: Self = Self {
+        sequence: HFormSequence::SW,
+        degree: HFormDegree::D6,
+    };
+}

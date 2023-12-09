@@ -1,6 +1,6 @@
 use crate::{
     affix::RegularAffix,
-    category::{AffixualAdjunctMode, AffixualAdjunctScope, HFormDegree, HFormSequence, Stress},
+    category::{AffixualAdjunctMode, AffixualAdjunctScope, Stress},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     prelude::{token::HForm, IntoTokens, IntoVxCs, TokenList},
     romanize::{
@@ -91,48 +91,12 @@ impl IntoTokens for MultipleAffixAdjunct {
             list.push(Schwa);
         }
         let (needs_glottal_stop, first_cz) = match self.first_scope {
-            AffixualAdjunctScope::VDom => (
-                false,
-                HForm {
-                    sequence: HFormSequence::S0,
-                    degree: HFormDegree::D1,
-                },
-            ),
-            AffixualAdjunctScope::Formative => (
-                false,
-                HForm {
-                    sequence: HFormSequence::SW,
-                    degree: HFormDegree::D2,
-                },
-            ),
-            AffixualAdjunctScope::VSub => (
-                true,
-                HForm {
-                    sequence: HFormSequence::S0,
-                    degree: HFormDegree::D1,
-                },
-            ),
-            AffixualAdjunctScope::VIIDom => (
-                true,
-                HForm {
-                    sequence: HFormSequence::S0,
-                    degree: HFormDegree::D2,
-                },
-            ),
-            AffixualAdjunctScope::VIISub => (
-                true,
-                HForm {
-                    sequence: HFormSequence::S0,
-                    degree: HFormDegree::D3,
-                },
-            ),
-            AffixualAdjunctScope::OverAdj => (
-                true,
-                HForm {
-                    sequence: HFormSequence::SW,
-                    degree: HFormDegree::D2,
-                },
-            ),
+            AffixualAdjunctScope::VDom => (false, HForm::H),
+            AffixualAdjunctScope::Formative => (false, HForm::HW),
+            AffixualAdjunctScope::VSub => (true, HForm::H),
+            AffixualAdjunctScope::VIIDom => (true, HForm::HL),
+            AffixualAdjunctScope::VIISub => (true, HForm::HR),
+            AffixualAdjunctScope::OverAdj => (true, HForm::HW),
         };
         first_vx.has_glottal_stop = needs_glottal_stop;
         list.push(first_cs);

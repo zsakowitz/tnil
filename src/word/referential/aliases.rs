@@ -1,8 +1,8 @@
 use super::{GeneralReferent, Referential};
 use crate::{
     category::{
-        Case, Essence, HFormDegree, HFormSequence, NormalReferentList, Specification, Stress,
-        SuppletiveAdjunctMode, VowelFormDegree, VowelFormSequence,
+        Case, Essence, NormalReferentList, Specification, Stress, SuppletiveAdjunctMode,
+        VowelFormDegree, VowelFormSequence,
     },
     prelude::{token::WYForm, IntoTokens, IntoVxCs, TokenList},
     romanize::{
@@ -50,10 +50,7 @@ macro_rules! from_token_stream_impl {
                 };
 
                 match $stream.next_any() {
-                    Some(Token::H(HForm {
-                        sequence: HFormSequence::SW | HFormSequence::SY,
-                        degree: HFormDegree::D1,
-                    })) if $can_be_single_dual => {
+                    Some(Token::H(HForm::W | HForm::Y)) if $can_be_single_dual => {
                         let second_case = $stream.parse($flags)?;
 
                         match $stream.next::<OwnedConsonantForm>() {

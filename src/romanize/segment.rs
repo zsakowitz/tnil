@@ -91,16 +91,8 @@ impl IntoToken for HForm {
 impl FromToken for WYForm {
     fn from_token(token: &Token) -> Option<Self> {
         match token {
-            Token::H(HForm {
-                sequence: HFormSequence::SW,
-                degree: HFormDegree::D1,
-            }) => Some(WYForm::W),
-
-            Token::H(HForm {
-                sequence: HFormSequence::SY,
-                degree: HFormDegree::D1,
-            }) => Some(WYForm::Y),
-
+            Token::H(HForm::W) => Some(WYForm::W),
+            Token::H(HForm::Y) => Some(WYForm::Y),
             _ => None,
         }
     }
@@ -109,14 +101,8 @@ impl FromToken for WYForm {
 impl IntoToken for WYForm {
     fn into_token(self) -> Token {
         match self {
-            Self::W => Token::H(HForm {
-                sequence: HFormSequence::SW,
-                degree: HFormDegree::D1,
-            }),
-            Self::Y => Token::H(HForm {
-                sequence: HFormSequence::SY,
-                degree: HFormDegree::D1,
-            }),
+            Self::W => Token::H(HForm::W),
+            Self::Y => Token::H(HForm::Y),
         }
     }
 }
@@ -153,20 +139,14 @@ impl IntoToken for GlottalStop {
 
 impl IntoToken for Hh {
     fn into_token(self) -> Token {
-        Token::H(HForm {
-            sequence: HFormSequence::S0,
-            degree: HFormDegree::D1,
-        })
+        Token::H(HForm::H)
     }
 }
 
 impl FromTokens for Hh {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::H(HForm {
-                sequence: HFormSequence::S0,
-                degree: HFormDegree::D1,
-            })) => Ok(Self),
+            Some(Token::H(HForm::H)) => Ok(Self),
             _ => Err(ParseError::ExpectedHh),
         }
     }
@@ -174,20 +154,14 @@ impl FromTokens for Hh {
 
 impl IntoToken for Hr {
     fn into_token(self) -> Token {
-        Token::H(HForm {
-            sequence: HFormSequence::S0,
-            degree: HFormDegree::D3,
-        })
+        Token::H(HForm::HR)
     }
 }
 
 impl FromTokens for Hr {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::H(HForm {
-                sequence: HFormSequence::S0,
-                degree: HFormDegree::D3,
-            })) => Ok(Self),
+            Some(Token::H(HForm::HR)) => Ok(Self),
             _ => Err(ParseError::ExpectedHr),
         }
     }
@@ -213,14 +187,11 @@ impl FromTokens for Bias {
 
 impl IntoToken for SuppletiveAdjunctMode {
     fn into_token(self) -> Token {
-        Token::H(HForm {
-            sequence: HFormSequence::S0,
-            degree: match self {
-                SuppletiveAdjunctMode::CAR => HFormDegree::D2,
-                SuppletiveAdjunctMode::QUO => HFormDegree::D4,
-                SuppletiveAdjunctMode::NAM => HFormDegree::D5,
-                SuppletiveAdjunctMode::PHR => HFormDegree::D6,
-            },
+        Token::H(match self {
+            SuppletiveAdjunctMode::CAR => HForm::HL,
+            SuppletiveAdjunctMode::QUO => HForm::HM,
+            SuppletiveAdjunctMode::NAM => HForm::HN,
+            SuppletiveAdjunctMode::PHR => HForm::HŇ,
         })
     }
 }
@@ -228,15 +199,11 @@ impl IntoToken for SuppletiveAdjunctMode {
 impl FromTokens for SuppletiveAdjunctMode {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
-            Some(Token::H(HForm {
-                sequence: HFormSequence::S0,
-                degree,
-            })) => match degree {
-                HFormDegree::D2 => Ok(SuppletiveAdjunctMode::CAR),
-                HFormDegree::D4 => Ok(SuppletiveAdjunctMode::QUO),
-                HFormDegree::D5 => Ok(SuppletiveAdjunctMode::NAM),
-                HFormDegree::D6 => Ok(SuppletiveAdjunctMode::PHR),
-
+            Some(Token::H(h)) => match *h {
+                HForm::HL => Ok(SuppletiveAdjunctMode::CAR),
+                HForm::HM => Ok(SuppletiveAdjunctMode::QUO),
+                HForm::HN => Ok(SuppletiveAdjunctMode::NAM),
+                HForm::HŇ => Ok(SuppletiveAdjunctMode::PHR),
                 _ => Err(ParseError::ExpectedCp),
             },
 
@@ -1115,33 +1082,15 @@ impl FromTokens for CsVxCz {
             affix: RegularAffix::from_vxcs(vx, &cs)?,
             scope: match vx.has_glottal_stop {
                 false => match cz {
-                    HForm {
-                        sequence: HFormSequence::S0,
-                        degree: HFormDegree::D1,
-                    } => AffixualAdjunctScope::VDom,
-                    HForm {
-                        sequence: HFormSequence::SW,
-                        degree: HFormDegree::D2,
-                    } => AffixualAdjunctScope::Formative,
+                    HForm::H => AffixualAdjunctScope::VDom,
+                    HForm::HW => AffixualAdjunctScope::Formative,
                     _ => return Err(ParseError::ExpectedCz),
                 },
                 true => match cz {
-                    HForm {
-                        sequence: HFormSequence::S0,
-                        degree: HFormDegree::D1,
-                    } => AffixualAdjunctScope::VSub,
-                    HForm {
-                        sequence: HFormSequence::S0,
-                        degree: HFormDegree::D2,
-                    } => AffixualAdjunctScope::VIIDom,
-                    HForm {
-                        sequence: HFormSequence::S0,
-                        degree: HFormDegree::D3,
-                    } => AffixualAdjunctScope::VIISub,
-                    HForm {
-                        sequence: HFormSequence::SW,
-                        degree: HFormDegree::D2,
-                    } => AffixualAdjunctScope::OverAdj,
+                    HForm::H => AffixualAdjunctScope::VSub,
+                    HForm::HL => AffixualAdjunctScope::VIIDom,
+                    HForm::HR => AffixualAdjunctScope::VIISub,
+                    HForm::HW => AffixualAdjunctScope::OverAdj,
                     _ => return Err(ParseError::ExpectedCz),
                 },
             },
