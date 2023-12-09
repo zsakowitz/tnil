@@ -975,6 +975,23 @@ impl FromTokens for Vs {
     }
 }
 
+impl IntoVowelForm for Vs {
+    fn into_vowel_form(self) -> VowelForm {
+        VowelForm {
+            has_glottal_stop: false,
+            sequence: VowelFormSequence::S1,
+            degree: match self.scope {
+                AffixualAdjunctScope::VDom => VowelFormDegree::D1,
+                AffixualAdjunctScope::VSub => VowelFormDegree::D9,
+                AffixualAdjunctScope::VIIDom => VowelFormDegree::D3,
+                AffixualAdjunctScope::VIISub => VowelFormDegree::D4,
+                AffixualAdjunctScope::Formative => VowelFormDegree::D7,
+                AffixualAdjunctScope::OverAdj => VowelFormDegree::D6,
+            },
+        }
+    }
+}
+
 /// A Vz form.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Vz {
@@ -1027,6 +1044,53 @@ impl FromTokens for Vz {
                 scope: Some(AffixualAdjunctScope::OverAdj),
             }),
             _ => Err(ParseError::ExpectedVz),
+        }
+    }
+}
+
+impl IntoVowelForm for Vz {
+    fn into_vowel_form(self) -> VowelForm {
+        match self.scope {
+            None => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S2,
+                degree: VowelFormDegree::D1,
+            },
+            Some(AffixualAdjunctScope::VDom) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D1,
+            },
+
+            Some(AffixualAdjunctScope::VSub) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D9,
+            },
+
+            Some(AffixualAdjunctScope::VIIDom) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D3,
+            },
+
+            Some(AffixualAdjunctScope::VIISub) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D4,
+            },
+
+            Some(AffixualAdjunctScope::Formative) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D7,
+            },
+
+            Some(AffixualAdjunctScope::OverAdj) => VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S1,
+                degree: VowelFormDegree::D6,
+            },
         }
     }
 }

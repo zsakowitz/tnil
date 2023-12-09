@@ -3,6 +3,7 @@
 use crate::{
     category::MoodOrCaseScope,
     gloss::{GlossFlags, GlossStatic},
+    prelude::{IntoTokens, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -31,5 +32,11 @@ impl FromTokens for MCSAdjunct {
         Ok(MCSAdjunct {
             mcs: stream.parse(flags)?,
         })
+    }
+}
+
+impl IntoTokens for MCSAdjunct {
+    fn append_to(&self, list: &mut TokenList) {
+        list.push(Hr);
     }
 }

@@ -8,6 +8,7 @@ pub use single::SingleAffixAdjunct;
 
 use crate::{
     gloss::{Gloss, GlossFlags},
+    prelude::{IntoTokens, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -41,6 +42,15 @@ impl FromTokens for AffixualAdjunct {
             Some(Token::V(_)) => Ok(AffixualAdjunct::Single(stream.parse(flags)?)),
             Some(Token::Schwa | Token::C(_)) => Ok(AffixualAdjunct::Multiple(stream.parse(flags)?)),
             _ => Err(ParseError::ExpectedCsOrVx),
+        }
+    }
+}
+
+impl IntoTokens for AffixualAdjunct {
+    fn append_to(&self, list: &mut TokenList) {
+        match self {
+            Self::Single(value) => value.append_to(list),
+            Self::Multiple(value) => value.append_to(list),
         }
     }
 }

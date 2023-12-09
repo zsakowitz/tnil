@@ -1,4 +1,4 @@
-//! Provides the [`FromTokens`], [`IntoTokens`], and [`TokenType`] traits.
+//! Provides traits for converting a type from and into token streams.
 
 use super::{
     flags::FromTokenFlags,
@@ -12,6 +12,13 @@ use std::str::FromStr;
 pub trait IntoVowelForm: Sized {
     /// Turns `self` into a [`VowelForm`].
     fn into_vowel_form(self) -> VowelForm;
+}
+
+/// Allows types to be converted into a single token.
+pub trait IntoVxCs: Sized {
+    /// Turns `self` into a [`VowelForm`] and [`Token`] pair. Used for affixes because we don't know
+    /// if they're VxCs or CsVx pairs. Also allows the Vx form to take a glottal stop if necessary.
+    fn into_vx_cs(&self) -> (VowelForm, Token);
 }
 
 /// Allows types to be extracted from a single token.

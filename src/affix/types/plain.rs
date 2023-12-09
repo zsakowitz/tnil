@@ -1,6 +1,9 @@
 use crate::{
     category::{AffixDegree, AffixType},
-    gloss::{Gloss, GlossFlags, GlossStatic},
+    prelude::{
+        token::{OwnedConsonantForm, Token, VowelForm},
+        *,
+    },
 };
 
 /// A plain affix.
@@ -44,5 +47,18 @@ impl Gloss for PlainAffix {
             output += self.r#type.gloss_static(GlossFlags::NONE);
             return output;
         }
+    }
+}
+
+impl IntoVxCs for PlainAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: self.r#type.into(),
+                degree: self.degree.into(),
+            },
+            Token::C(OwnedConsonantForm(self.cs.clone())),
+        )
     }
 }

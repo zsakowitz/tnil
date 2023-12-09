@@ -7,6 +7,7 @@ use super::{
 };
 use crate::{
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    referent,
     romanize::stream::ParseError,
 };
 use std::str::FromStr;
@@ -349,6 +350,106 @@ pub struct Referent {
     pub effect: ReferentEffect,
 }
 
+impl Referent {
+    /// Gets the string representing this referent in a referential affix.
+    pub const fn to_referential_affix_str(self) -> &'static str {
+        match self {
+            referent!(M1.NEU) => "l",
+            referent!(M1.BEN) => "r",
+            referent!(M1.DET) => "ř",
+
+            referent!(M2.NEU) => "s",
+            referent!(M2.BEN) => "š",
+            referent!(M2.DET) => "ž",
+
+            referent!(P2.NEU) => "n",
+            referent!(P2.BEN) => "t",
+            referent!(P2.DET) => "d",
+
+            referent!(MA.NEU) => "m",
+            referent!(MA.BEN) => "p",
+            referent!(MA.DET) => "b",
+
+            referent!(PA.NEU) => "ň",
+            referent!(PA.BEN) => "k",
+            referent!(PA.DET) => "g",
+
+            referent!(MI.NEU) => "z",
+            referent!(MI.BEN) => "ţ",
+            referent!(MI.DET) => "ḑ",
+
+            referent!(PI.NEU) => "ẓ",
+            referent!(PI.BEN) => "f",
+            referent!(PI.DET) => "v",
+
+            referent!(Mx.NEU) => "c",
+            referent!(Mx.BEN) => "č",
+            referent!(Mx.DET) => "j",
+
+            referent!(Rdp.NEU) => "th",
+            referent!(Rdp.BEN) => "kh",
+            referent!(Rdp.DET) => "ph",
+
+            referent!(Obv.NEU) => "lç",
+            referent!(Obv.BEN) => "rç",
+            referent!(Obv.DET) => "řç",
+
+            referent!(PVS.NEU) => "mç",
+            referent!(PVS.BEN) => "nç",
+            referent!(PVS.DET) => "ňç",
+        }
+    }
+
+    /// Gets the string representing this referent in a non-referential affix.
+    pub const fn to_normal_str(self) -> &'static str {
+        match self {
+            referent!(M1.NEU) => "l",
+            referent!(M1.BEN) => "r",
+            referent!(M1.DET) => "ř",
+
+            referent!(M2.NEU) => "s",
+            referent!(M2.BEN) => "š",
+            referent!(M2.DET) => "ž",
+
+            referent!(P2.NEU) => "n",
+            referent!(P2.BEN) => "t",
+            referent!(P2.DET) => "d",
+
+            referent!(MA.NEU) => "m",
+            referent!(MA.BEN) => "p",
+            referent!(MA.DET) => "b",
+
+            referent!(PA.NEU) => "ň",
+            referent!(PA.BEN) => "k",
+            referent!(PA.DET) => "g",
+
+            referent!(MI.NEU) => "z",
+            referent!(MI.BEN) => "ţ",
+            referent!(MI.DET) => "ḑ",
+
+            referent!(PI.NEU) => "ẓ",
+            referent!(PI.BEN) => "f",
+            referent!(PI.DET) => "v",
+
+            referent!(Mx.NEU) => "c",
+            referent!(Mx.BEN) => "č",
+            referent!(Mx.DET) => "j",
+
+            referent!(Rdp.NEU) => "th",
+            referent!(Rdp.BEN) => "kh",
+            referent!(Rdp.DET) => "ph",
+
+            referent!(Obv.NEU) => "ll",
+            referent!(Obv.BEN) => "rr",
+            referent!(Obv.DET) => "řř",
+
+            referent!(PVS.NEU) => "mm",
+            referent!(PVS.BEN) => "nn",
+            referent!(PVS.DET) => "ňň",
+        }
+    }
+}
+
 impl Gloss for Referent {
     fn gloss(&self, flags: GlossFlags) -> String {
         let mut output = self.target.gloss(flags);
@@ -438,15 +539,6 @@ impl FromStr for PerspectivelessReferentList {
         let mut chars: Vec<_> = s.chars().collect();
         chars.reverse();
 
-        macro_rules! referent {
-            ($effect:ident, $target:ident) => {
-                Referent {
-                    effect: ReferentEffect::$effect,
-                    target: ReferentTarget::$target,
-                }
-            };
-        }
-
         macro_rules! alternate_referent {
             ($char:pat, $default:expr, $alt:expr) => {
                 match chars.last() {
@@ -466,37 +558,37 @@ impl FromStr for PerspectivelessReferentList {
             let referent = match chars.pop() {
                 None => break,
 
-                Some('l') => alternate_referent!('l', referent!(NEU, M1), referent!(NEU, Obv)),
-                Some('r') => alternate_referent!('r', referent!(BEN, M1), referent!(BEN, Obv)),
-                Some('ř') => alternate_referent!('ř', referent!(DET, M1), referent!(DET, Obv)),
+                Some('l') => alternate_referent!('l', referent!(M1.NEU), referent!(Obv.NEU)),
+                Some('r') => alternate_referent!('r', referent!(M1.BEN), referent!(Obv.BEN)),
+                Some('ř') => alternate_referent!('ř', referent!(M1.DET), referent!(Obv.DET)),
 
-                Some('s') => referent!(NEU, M2),
-                Some('š') => referent!(BEN, M2),
-                Some('ž') => referent!(DET, M2),
+                Some('s') => referent!(M2.NEU),
+                Some('š') => referent!(M2.BEN),
+                Some('ž') => referent!(M2.DET),
 
-                Some('n') => alternate_referent!('n', referent!(NEU, P2), referent!(BEN, PVS)),
-                Some('t') => alternate_referent!('h', referent!(BEN, P2), referent!(NEU, Rdp)),
-                Some('d') => referent!(DET, P2),
+                Some('n') => alternate_referent!('n', referent!(P2.NEU), referent!(PVS.BEN)),
+                Some('t') => alternate_referent!('h', referent!(P2.BEN), referent!(Rdp.NEU)),
+                Some('d') => referent!(P2.DET),
 
-                Some('m') => alternate_referent!('m', referent!(NEU, MA), referent!(NEU, PVS)),
-                Some('p') => alternate_referent!('h', referent!(BEN, MA), referent!(BEN, Rdp)),
-                Some('b') => referent!(DET, MA),
+                Some('m') => alternate_referent!('m', referent!(MA.NEU), referent!(PVS.NEU)),
+                Some('p') => alternate_referent!('h', referent!(MA.BEN), referent!(Rdp.BEN)),
+                Some('b') => referent!(MA.DET),
 
-                Some('ň') => alternate_referent!('ň', referent!(NEU, PA), referent!(DET, PVS)),
-                Some('k') => alternate_referent!('h', referent!(BEN, PA), referent!(DET, Rdp)),
-                Some('g') => referent!(DET, PA),
+                Some('ň') => alternate_referent!('ň', referent!(PA.NEU), referent!(PVS.DET)),
+                Some('k') => alternate_referent!('h', referent!(PA.BEN), referent!(Rdp.DET)),
+                Some('g') => referent!(PA.DET),
 
-                Some('z') => referent!(NEU, MI),
-                Some('ţ') => referent!(BEN, MI),
-                Some('ḑ') => referent!(DET, MI),
+                Some('z') => referent!(MI.NEU),
+                Some('ţ') => referent!(MI.BEN),
+                Some('ḑ') => referent!(MI.DET),
 
-                Some('ẓ') => referent!(NEU, PI),
-                Some('f') => referent!(BEN, PI),
-                Some('v') => referent!(DET, PI),
+                Some('ẓ') => referent!(PI.NEU),
+                Some('f') => referent!(PI.BEN),
+                Some('v') => referent!(PI.DET),
 
-                Some('c') => referent!(NEU, Mx),
-                Some('č') => referent!(BEN, Mx),
-                Some('j') => referent!(DET, Mx),
+                Some('c') => referent!(Mx.NEU),
+                Some('č') => referent!(Mx.BEN),
+                Some('j') => referent!(Mx.DET),
 
                 Some(_) => return Err(ParseError::ReferentInvalid),
             };
@@ -549,15 +641,6 @@ impl FromStr for NormalReferentList {
         let mut chars: Vec<_> = s.chars().collect();
         chars.reverse();
 
-        macro_rules! referent {
-            ($effect:ident, $target:ident) => {
-                Referent {
-                    effect: ReferentEffect::$effect,
-                    target: ReferentTarget::$target,
-                }
-            };
-        }
-
         macro_rules! alternate_referent {
             ($char:pat, $default:expr, $alt:expr) => {
                 match chars.last() {
@@ -577,37 +660,37 @@ impl FromStr for NormalReferentList {
             let referent = match chars.pop() {
                 None => break,
 
-                Some('l') => alternate_referent!('l', referent!(NEU, M1), referent!(NEU, Obv)),
-                Some('r') => alternate_referent!('r', referent!(BEN, M1), referent!(BEN, Obv)),
-                Some('ř') => alternate_referent!('ř', referent!(DET, M1), referent!(DET, Obv)),
+                Some('l') => alternate_referent!('l', referent!(M1.NEU), referent!(Obv.NEU)),
+                Some('r') => alternate_referent!('r', referent!(M1.BEN), referent!(Obv.BEN)),
+                Some('ř') => alternate_referent!('ř', referent!(M1.DET), referent!(Obv.DET)),
 
-                Some('s') => referent!(NEU, M2),
-                Some('š') => referent!(BEN, M2),
-                Some('ž') => referent!(DET, M2),
+                Some('s') => referent!(M2.NEU),
+                Some('š') => referent!(M2.BEN),
+                Some('ž') => referent!(M2.DET),
 
-                Some('n') => alternate_referent!('n', referent!(NEU, P2), referent!(BEN, PVS)),
-                Some('t') => alternate_referent!('h', referent!(BEN, P2), referent!(NEU, Rdp)),
-                Some('d') => referent!(DET, P2),
+                Some('n') => alternate_referent!('n', referent!(P2.NEU), referent!(PVS.BEN)),
+                Some('t') => alternate_referent!('h', referent!(P2.BEN), referent!(Rdp.NEU)),
+                Some('d') => referent!(P2.DET),
 
-                Some('m') => alternate_referent!('m', referent!(NEU, MA), referent!(NEU, PVS)),
-                Some('p') => alternate_referent!('h', referent!(BEN, MA), referent!(BEN, Rdp)),
-                Some('b') => referent!(DET, MA),
+                Some('m') => alternate_referent!('m', referent!(MA.NEU), referent!(PVS.NEU)),
+                Some('p') => alternate_referent!('h', referent!(MA.BEN), referent!(Rdp.BEN)),
+                Some('b') => referent!(MA.DET),
 
-                Some('ň') => alternate_referent!('ň', referent!(NEU, PA), referent!(DET, PVS)),
-                Some('k') => alternate_referent!('h', referent!(BEN, PA), referent!(DET, Rdp)),
-                Some('g') => referent!(DET, PA),
+                Some('ň') => alternate_referent!('ň', referent!(PA.NEU), referent!(PVS.DET)),
+                Some('k') => alternate_referent!('h', referent!(PA.BEN), referent!(Rdp.DET)),
+                Some('g') => referent!(PA.DET),
 
-                Some('z') => referent!(NEU, MI),
-                Some('ţ') => referent!(BEN, MI),
-                Some('ḑ') => referent!(DET, MI),
+                Some('z') => referent!(MI.NEU),
+                Some('ţ') => referent!(MI.BEN),
+                Some('ḑ') => referent!(MI.DET),
 
-                Some('ẓ') => referent!(NEU, PI),
-                Some('f') => referent!(BEN, PI),
-                Some('v') => referent!(DET, PI),
+                Some('ẓ') => referent!(PI.NEU),
+                Some('f') => referent!(PI.BEN),
+                Some('v') => referent!(PI.DET),
 
-                Some('c') => referent!(NEU, Mx),
-                Some('č') => referent!(BEN, Mx),
-                Some('j') => referent!(DET, Mx),
+                Some('c') => referent!(Mx.NEU),
+                Some('č') => referent!(Mx.BEN),
+                Some('j') => referent!(Mx.DET),
 
                 Some(_) => return Err(ParseError::ReferentInvalid),
             };
@@ -675,16 +758,6 @@ impl FromStr for AffixualReferentList {
         let mut chars: Vec<_> = s.chars().collect();
         chars.reverse();
 
-        /// A shortcut for a full referent.
-        macro_rules! referent {
-            ($effect:ident, $target:ident) => {
-                Referent {
-                    effect: ReferentEffect::$effect,
-                    target: ReferentTarget::$target,
-                }
-            };
-        }
-
         /// Matches one of two referents depending on whether the next character of the input string
         /// matches a given pattern.
         macro_rules! alternate_referent {
@@ -706,37 +779,37 @@ impl FromStr for AffixualReferentList {
             let referent = match chars.pop() {
                 None => break,
 
-                Some('l') => alternate_referent!('ç', referent!(NEU, M1), referent!(NEU, Obv)),
-                Some('r') => alternate_referent!('ç', referent!(BEN, M1), referent!(BEN, Obv)),
-                Some('ř') => alternate_referent!('ç', referent!(DET, M1), referent!(DET, Obv)),
+                Some('l') => alternate_referent!('ç', referent!(M1.NEU), referent!(Obv.NEU)),
+                Some('r') => alternate_referent!('ç', referent!(M1.BEN), referent!(Obv.BEN)),
+                Some('ř') => alternate_referent!('ç', referent!(M1.DET), referent!(Obv.DET)),
 
-                Some('s') => referent!(NEU, M2),
-                Some('š') => referent!(BEN, M2),
-                Some('ž') => referent!(DET, M2),
+                Some('s') => referent!(M2.NEU),
+                Some('š') => referent!(M2.BEN),
+                Some('ž') => referent!(M2.DET),
 
-                Some('n') => alternate_referent!('ç', referent!(NEU, P2), referent!(BEN, PVS)),
-                Some('t') => alternate_referent!('h', referent!(BEN, P2), referent!(NEU, Rdp)),
-                Some('d') => referent!(DET, P2),
+                Some('n') => alternate_referent!('ç', referent!(P2.NEU), referent!(PVS.BEN)),
+                Some('t') => alternate_referent!('h', referent!(P2.BEN), referent!(Rdp.NEU)),
+                Some('d') => referent!(P2.DET),
 
-                Some('m') => alternate_referent!('ç', referent!(NEU, MA), referent!(NEU, PVS)),
-                Some('p') => alternate_referent!('h', referent!(BEN, MA), referent!(BEN, Rdp)),
-                Some('b') => referent!(DET, MA),
+                Some('m') => alternate_referent!('ç', referent!(MA.NEU), referent!(PVS.NEU)),
+                Some('p') => alternate_referent!('h', referent!(MA.BEN), referent!(Rdp.BEN)),
+                Some('b') => referent!(MA.DET),
 
-                Some('ň') => alternate_referent!('ç', referent!(NEU, PA), referent!(DET, PVS)),
-                Some('k') => alternate_referent!('h', referent!(BEN, PA), referent!(DET, Rdp)),
-                Some('g') => referent!(DET, PA),
+                Some('ň') => alternate_referent!('ç', referent!(PA.NEU), referent!(PVS.DET)),
+                Some('k') => alternate_referent!('h', referent!(PA.BEN), referent!(Rdp.DET)),
+                Some('g') => referent!(PA.DET),
 
-                Some('z') => referent!(NEU, MI),
-                Some('ţ') => referent!(BEN, MI),
-                Some('ḑ') => referent!(DET, MI),
+                Some('z') => referent!(MI.NEU),
+                Some('ţ') => referent!(MI.BEN),
+                Some('ḑ') => referent!(MI.DET),
 
-                Some('ẓ') => referent!(NEU, PI),
-                Some('f') => referent!(BEN, PI),
-                Some('v') => referent!(DET, PI),
+                Some('ẓ') => referent!(PI.NEU),
+                Some('f') => referent!(PI.BEN),
+                Some('v') => referent!(PI.DET),
 
-                Some('c') => referent!(NEU, Mx),
-                Some('č') => referent!(BEN, Mx),
-                Some('j') => referent!(DET, Mx),
+                Some('c') => referent!(Mx.NEU),
+                Some('č') => referent!(Mx.BEN),
+                Some('j') => referent!(Mx.DET),
 
                 Some(_) => return Err(ParseError::ReferentInvalid),
             };
@@ -751,5 +824,59 @@ impl FromStr for AffixualReferentList {
             }),
             Err(_) => Err(ParseError::ReferentEmpty),
         }
+    }
+}
+
+impl ToString for PerspectivelessReferentList {
+    fn to_string(&self) -> String {
+        // HACK: This isn't exact, but it's better than just reallocating constantly.
+        let mut output = String::with_capacity(self.referents.len() * 3 / 2);
+
+        for referent in &self.referents {
+            output += referent.to_normal_str();
+        }
+
+        output
+    }
+}
+
+impl ToString for NormalReferentList {
+    fn to_string(&self) -> String {
+        // HACK: This isn't exact, but it's better than just reallocating constantly.
+        let mut output = String::with_capacity(self.referents.len() * 3 / 2);
+
+        for referent in &self.referents {
+            output += referent.to_normal_str();
+        }
+
+        // TODO: Use -ç- when possible.
+        match self.perspective {
+            Perspective::M => {}
+            Perspective::G => output += "ļ",
+            Perspective::N => output += "x",
+            Perspective::A => output += "w",
+        }
+
+        output
+    }
+}
+
+impl ToString for AffixualReferentList {
+    fn to_string(&self) -> String {
+        // HACK: This isn't exact, but it's better than just reallocating constantly.
+        let mut output = String::with_capacity(self.referents.len() * 3 / 2);
+
+        for referent in &self.referents {
+            output += referent.to_referential_affix_str();
+        }
+
+        // TODO: Use -ç- when possible.
+        match self.perspective {
+            ReferentialAffixPerspective::M => {}
+            ReferentialAffixPerspective::G => output += "ļ",
+            ReferentialAffixPerspective::N => output += "x",
+        }
+
+        output
     }
 }

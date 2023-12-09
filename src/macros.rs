@@ -254,3 +254,21 @@ help: any and all segments may be omitted") };
         ca_pat!(@ $($x)*)
     };
 }
+
+/// A shortcut for a full referent. Works in expressions and patterns.
+#[macro_export]
+macro_rules! referent {
+    ($target:ident) => {
+        $crate::category::Referent {
+            target: $crate::category::ReferentTarget::$target,
+            effect: $crate::category::ReferentEffect::NEU,
+        }
+    };
+
+    ($target:ident . $effect:ident) => {
+        $crate::category::Referent {
+            target: $crate::category::ReferentTarget::$target,
+            effect: $crate::category::ReferentEffect::$effect,
+        }
+    };
+}

@@ -6,6 +6,7 @@ use crate::{
         Stress, Valence, Vn,
     },
     gloss::{Gloss, GlossFlags, GlossHelpers},
+    prelude::{IntoTokens, TokenList},
     romanize::{
         flags::FromTokenFlags,
         segment::{VnCm, VnCn},
@@ -156,6 +157,50 @@ impl FromTokens for ModularAdjunct {
                 vn2: vn2.map(|x| x.vn),
                 vn3: stream.parse(flags)?,
             }),
+        }
+    }
+}
+
+impl IntoTokens for ModularAdjunct {
+    fn append_to(&self, list: &mut TokenList) {
+        match *self {
+            Self::Aspect { mode, aspect } => {
+                list.append(&mode);
+                list.push(aspect);
+                list.set_stress(Some(Stress::Penultimate));
+            }
+
+            Self::NonScoped {
+                mode,
+                vn1,
+                cn,
+                vn2,
+                vn3,
+            } => {
+                list.append(&mode);
+                list.append(&VnCn { vn: vn1, cn });
+                if let Some(vn) = vn2 {
+                    list.append(&VnCm { vn });
+                }
+                list.push(vn3);
+                list.set_stress(Some(Stress::Penultimate));
+            }
+
+            Self::Scoped {
+                mode,
+                vn1,
+                cn,
+                vn2,
+                scope,
+            } => {
+                list.append(&mode);
+                list.append(&VnCn { vn: vn1, cn });
+                if let Some(vn) = vn2 {
+                    list.append(&VnCm { vn });
+                }
+                list.push(scope);
+                list.set_stress(Some(Stress::Ultimate));
+            }
         }
     }
 }

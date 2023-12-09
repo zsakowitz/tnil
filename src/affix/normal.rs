@@ -10,6 +10,7 @@ use crate::{
         VowelFormSequence,
     },
     gloss::{Gloss, GlossFlags},
+    prelude::{token::Token, IntoVxCs},
     romanize::{stream::ParseError, token::VowelForm},
 };
 
@@ -33,19 +34,6 @@ pub enum RegularAffix {
 
     /// A referential affix with a thematic case.
     Referential(ThematicReferentialAffix),
-}
-
-impl Gloss for RegularAffix {
-    fn gloss(&self, flags: GlossFlags) -> String {
-        match self {
-            Self::Plain(value) => value.gloss(flags),
-            Self::Numeric(value) => value.gloss(flags),
-            Self::Ca(value) => value.gloss(flags),
-            Self::CaseStacking(value) => value.gloss(flags),
-            Self::CaseAccessor(value) => value.gloss(flags),
-            Self::Referential(value) => value.gloss(flags),
-        }
-    }
 }
 
 impl RegularAffix {
@@ -147,5 +135,31 @@ impl RegularAffix {
             r#type,
             degree,
         }))
+    }
+}
+
+impl Gloss for RegularAffix {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        match self {
+            Self::Plain(value) => value.gloss(flags),
+            Self::Numeric(value) => value.gloss(flags),
+            Self::Ca(value) => value.gloss(flags),
+            Self::CaseStacking(value) => value.gloss(flags),
+            Self::CaseAccessor(value) => value.gloss(flags),
+            Self::Referential(value) => value.gloss(flags),
+        }
+    }
+}
+
+impl IntoVxCs for RegularAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        match self {
+            Self::Plain(value) => value.into_vx_cs(),
+            Self::Numeric(value) => value.into_vx_cs(),
+            Self::Ca(value) => value.into_vx_cs(),
+            Self::CaseStacking(value) => value.into_vx_cs(),
+            Self::CaseAccessor(value) => value.into_vx_cs(),
+            Self::Referential(value) => value.into_vx_cs(),
+        }
     }
 }

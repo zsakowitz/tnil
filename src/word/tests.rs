@@ -16,9 +16,9 @@ fn traits() {
     assert_is_word::<word::NormalReferential>();
     assert_is_word::<word::SuppletiveReferential>();
 
-    assert_is_word::<word::AffixualAdjunct>();
-    assert_is_word::<word::SingleAffixAdjunct>();
-    assert_is_word::<word::MultipleAffixAdjunct>();
+    check::<word::AffixualAdjunct>();
+    check::<word::SingleAffixAdjunct>();
+    check::<word::MultipleAffixAdjunct>();
 
     check::<word::ModularAdjunct>();
     check::<word::MCSAdjunct>();

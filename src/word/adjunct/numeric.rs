@@ -1,5 +1,6 @@
 use crate::{
     gloss::{Gloss, GlossFlags},
+    prelude::{token::Token, IntoToken},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -34,6 +35,14 @@ impl FromTokens for NumericAdjunct {
 
         Ok(NumericAdjunct {
             integer_part: nn.integer_part,
+        })
+    }
+}
+
+impl IntoToken for NumericAdjunct {
+    fn into_token(self) -> Token {
+        Token::N(NumeralForm {
+            integer_part: self.integer_part,
         })
     }
 }

@@ -3,6 +3,7 @@
 use crate::{
     category::{Case, SuppletiveAdjunctMode},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    prelude::{IntoTokens, TokenList},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -34,5 +35,12 @@ impl FromTokens for SuppletiveAdjunct {
             mode: stream.parse(flags)?,
             case: stream.parse(flags)?,
         })
+    }
+}
+
+impl IntoTokens for SuppletiveAdjunct {
+    fn append_to(&self, list: &mut TokenList) {
+        list.push(self.mode);
+        list.push(self.case);
     }
 }

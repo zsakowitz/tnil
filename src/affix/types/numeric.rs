@@ -1,6 +1,10 @@
 use crate::{
     category::{AffixDegree, AffixType},
     gloss::{Gloss, GlossFlags, GlossStatic},
+    prelude::{
+        token::{NumeralForm, Token, VowelForm},
+        IntoVxCs,
+    },
 };
 
 /// A numeric adjunct.
@@ -36,5 +40,20 @@ impl Gloss for NumericAffix {
         output += self.degree.gloss_static(GlossFlags::NONE);
         output += self.r#type.gloss_static(GlossFlags::NONE);
         output
+    }
+}
+
+impl IntoVxCs for NumericAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: self.r#type.into(),
+                degree: self.degree.into(),
+            },
+            Token::N(NumeralForm {
+                integer_part: self.integer_part,
+            }),
+        )
     }
 }

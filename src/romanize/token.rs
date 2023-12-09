@@ -103,6 +103,26 @@ pub enum Token {
     GlottalStop,
 }
 
+impl Token {
+    /// Checks if this token is phonotactically valid in word-initial position.
+    pub fn is_valid_word_initial(&self) -> bool {
+        match self {
+            Self::C(cs) => cs.is_valid_word_initial(),
+            Self::N(NumeralForm { integer_part }) => *integer_part < 16,
+            _ => true,
+        }
+    }
+
+    /// Checks if this token is phonotactically valid in word-final position.
+    pub fn is_valid_word_final(&self) -> bool {
+        match self {
+            Self::C(cs) => cs.is_valid_word_final(),
+            Self::N(NumeralForm { integer_part }) => *integer_part < 16,
+            _ => true,
+        }
+    }
+}
+
 impl IntoToken for Token {
     fn into_token(self) -> Token {
         self

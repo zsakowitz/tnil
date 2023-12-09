@@ -1,6 +1,12 @@
 use crate::{
-    category::{AffixualReferentList, AppositiveCase, ThematicCase},
+    category::{
+        AffixualReferentList, AppositiveCase, ThematicCase, VowelFormDegree, VowelFormSequence,
+    },
     gloss::{Gloss, GlossFlags, GlossStatic},
+    prelude::{
+        token::{OwnedConsonantForm, Token, VowelForm},
+        IntoVxCs,
+    },
 };
 
 /// A referential affix. The `CaseType` generic specifies the type of case this affix uses, to allow
@@ -30,10 +36,7 @@ pub type ThematicReferentialAffix = ReferentialAffix<ThematicCase>;
 /// A referential affix containing an [`AppositiveCase`].
 pub type AppositiveReferentialAffix = ReferentialAffix<AppositiveCase>;
 
-impl<CaseType> Gloss for ReferentialAffix<CaseType>
-where
-    CaseType: Copy + GlossStatic,
-{
+impl<CaseType: Copy + GlossStatic> Gloss for ReferentialAffix<CaseType> {
     fn gloss(&self, flags: GlossFlags) -> String {
         let mut output = "(".to_owned();
         output += &self.referents.gloss(flags);
@@ -41,5 +44,51 @@ where
         output += self.case.gloss_static(flags);
         output += ")";
         output
+    }
+}
+
+impl IntoVxCs for ThematicReferentialAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S4,
+                degree: match self.case {
+                    ThematicCase::THM => VowelFormDegree::D1,
+                    ThematicCase::INS => VowelFormDegree::D2,
+                    ThematicCase::ABS => VowelFormDegree::D3,
+                    ThematicCase::AFF => VowelFormDegree::D4,
+                    ThematicCase::STM => VowelFormDegree::D5,
+                    ThematicCase::EFF => VowelFormDegree::D6,
+                    ThematicCase::ERG => VowelFormDegree::D7,
+                    ThematicCase::DAT => VowelFormDegree::D8,
+                    ThematicCase::IND => VowelFormDegree::D9,
+                },
+            },
+            Token::C(OwnedConsonantForm(self.referents.to_string())),
+        )
+    }
+}
+
+impl IntoVxCs for AppositiveReferentialAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S3,
+                degree: match self.case {
+                    AppositiveCase::POS => VowelFormDegree::D1,
+                    AppositiveCase::PRP => VowelFormDegree::D2,
+                    AppositiveCase::GEN => VowelFormDegree::D3,
+                    AppositiveCase::ATT => VowelFormDegree::D4,
+                    AppositiveCase::PDC => VowelFormDegree::D5,
+                    AppositiveCase::ITP => VowelFormDegree::D6,
+                    AppositiveCase::OGN => VowelFormDegree::D7,
+                    AppositiveCase::IDP => VowelFormDegree::D8,
+                    AppositiveCase::PAR => VowelFormDegree::D9,
+                },
+            },
+            Token::C(OwnedConsonantForm(self.referents.to_string())),
+        )
     }
 }

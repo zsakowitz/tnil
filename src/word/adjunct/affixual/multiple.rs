@@ -1,7 +1,8 @@
 use crate::{
     affix::RegularAffix,
-    category::{AffixualAdjunctMode, AffixualAdjunctScope, Stress},
+    category::{AffixualAdjunctMode, AffixualAdjunctScope, HFormDegree, HFormSequence, Stress},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    prelude::{token::HForm, IntoTokens, IntoVxCs, TokenList},
     romanize::{
         flags::FromTokenFlags,
         segment::{CsVxCz, VxCs, Vz},
@@ -80,5 +81,82 @@ impl FromTokens for MultipleAffixAdjunct {
             other_scope,
             mode,
         })
+    }
+}
+
+impl IntoTokens for MultipleAffixAdjunct {
+    fn append_to(&self, list: &mut TokenList) {
+        let (mut first_vx, first_cs) = self.first_affix.into_vx_cs();
+        if !first_cs.is_valid_word_initial() {
+            list.push(Schwa);
+        }
+        let (needs_glottal_stop, first_cz) = match self.first_scope {
+            AffixualAdjunctScope::VDom => (
+                false,
+                HForm {
+                    sequence: HFormSequence::S0,
+                    degree: HFormDegree::D1,
+                },
+            ),
+            AffixualAdjunctScope::Formative => (
+                false,
+                HForm {
+                    sequence: HFormSequence::SW,
+                    degree: HFormDegree::D2,
+                },
+            ),
+            AffixualAdjunctScope::VSub => (
+                true,
+                HForm {
+                    sequence: HFormSequence::S0,
+                    degree: HFormDegree::D1,
+                },
+            ),
+            AffixualAdjunctScope::VIIDom => (
+                true,
+                HForm {
+                    sequence: HFormSequence::S0,
+                    degree: HFormDegree::D2,
+                },
+            ),
+            AffixualAdjunctScope::VIISub => (
+                true,
+                HForm {
+                    sequence: HFormSequence::S0,
+                    degree: HFormDegree::D3,
+                },
+            ),
+            AffixualAdjunctScope::OverAdj => (
+                true,
+                HForm {
+                    sequence: HFormSequence::SW,
+                    degree: HFormDegree::D2,
+                },
+            ),
+        };
+        first_vx.has_glottal_stop = needs_glottal_stop;
+        list.push(first_cs);
+        list.push(first_vx);
+        list.push(first_cz);
+        let vz = if self.other_scope.is_some()
+            || !self
+                .other_affixes
+                .last()
+                .into_vx_cs()
+                .1
+                .is_valid_word_final()
+        {
+            Some(self.other_scope)
+        } else {
+            None
+        };
+        for affix in &self.other_affixes {
+            let (vx, cs) = affix.into_vx_cs();
+            list.push(vx);
+            list.push(cs);
+        }
+        if let Some(vz) = vz {
+            list.push(Vz { scope: vz });
+        }
     }
 }

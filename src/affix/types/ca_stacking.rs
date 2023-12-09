@@ -1,6 +1,10 @@
 use crate::{
-    category::Ca,
+    category::{Ca, VowelFormDegree, VowelFormSequence},
     gloss::{Gloss, GlossFlags},
+    prelude::{
+        token::{OwnedConsonantForm, Token, VowelForm},
+        IntoVxCs,
+    },
 };
 
 /// A case-stacking affix.
@@ -23,5 +27,18 @@ impl Gloss for CaStackingAffix {
         output += &self.ca.gloss(flags);
         output += ")";
         output
+    }
+}
+
+impl IntoVxCs for CaStackingAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            VowelForm {
+                has_glottal_stop: false,
+                sequence: VowelFormSequence::S4,
+                degree: VowelFormDegree::D0,
+            },
+            Token::C(OwnedConsonantForm(self.ca.to_ungeminated_string())),
+        )
     }
 }

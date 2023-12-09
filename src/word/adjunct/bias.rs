@@ -3,6 +3,7 @@
 use crate::{
     category::Bias,
     gloss::{GlossFlags, GlossStatic},
+    prelude::{token::Token, IntoToken},
     romanize::{
         flags::FromTokenFlags,
         stream::{ParseError, TokenStream},
@@ -28,5 +29,11 @@ impl FromTokens for BiasAdjunct {
         Ok(BiasAdjunct {
             bias: stream.parse(flags)?,
         })
+    }
+}
+
+impl IntoToken for BiasAdjunct {
+    fn into_token(self) -> Token {
+        self.bias.into_token()
     }
 }

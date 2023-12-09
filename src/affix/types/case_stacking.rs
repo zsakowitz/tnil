@@ -1,6 +1,10 @@
 use crate::{
     category::Case,
     gloss::{Gloss, GlossFlags, GlossStatic},
+    prelude::{
+        token::{OwnedConsonantForm, Token, VowelForm},
+        IntoVowelForm, IntoVxCs,
+    },
 };
 
 /// A case-stacking affix.
@@ -29,5 +33,20 @@ impl Gloss for CaseStackingAffix {
         output += ")";
 
         output
+    }
+}
+
+impl IntoVxCs for CaseStackingAffix {
+    fn into_vx_cs(&self) -> (VowelForm, Token) {
+        (
+            {
+                let mut case = self.case.into_vowel_form();
+                case.has_glottal_stop = false;
+                case
+            },
+            Token::C(OwnedConsonantForm(
+                if self.case >= Case::PRN { "ly" } else { "lw" }.to_owned(),
+            )),
+        )
     }
 }
