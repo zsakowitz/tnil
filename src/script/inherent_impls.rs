@@ -1,12 +1,14 @@
-use vec1::Vec1;
-
 use super::{character::*, flags::IntoScriptFlags};
-use crate::category::{
-    Affiliation, AffixSlot, AffixType, Case, CaseAccessorMode, CaseScope, Context,
-    DatalessRelation, Essence, Extension, Function, Illocution, Mood, Perspective, Plexity,
-    Separability, Similarity, SimilarityAndSeparability, Specification, Stem, Validation, VcOrVk,
-    Version,
+use crate::{
+    ca_pat,
+    category::{
+        Affiliation, AffixDegree, AffixSlot, AffixType, Case, CaseAccessorMode, CaseScope, Context,
+        DatalessRelation, Essence, Extension, Function, Illocution, Mood, Perspective, Plexity,
+        Separability, Similarity, SimilarityAndSeparability, Specification, Stem, Validation,
+        VcOrVk, Version,
+    },
 };
+use vec1::Vec1;
 
 impl Core {
     /// Gets the core of a primary character.
@@ -276,6 +278,30 @@ impl Ext {
 }
 
 impl Diacritic {
+    /// Gets the diacritic representing an elided primary.
+    ///
+    /// Returns [`None`] if the primary cannot be elided, [`Some(None)`] if the primary elides to
+    /// nothing, and [`Some(Some(...))`] if the primary elides to a diacritic.
+    pub const fn primary_elided(primary: Primary) -> Option<Option<Self>> {
+        match primary {
+            Primary {
+                specification: Specification::BSC,
+                ca: ca_pat!(),
+                function: Function::STA,
+                version: Version::PRC,
+                stem: Stem::S1,
+                context: Context::EXS,
+                relation,
+            } => match relation {
+                DatalessRelation::NOM => Some(None),
+                DatalessRelation::VRB => Some(Some(Self::Dot)),
+                DatalessRelation::FRM => Some(Some(Self::HorizBar)),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
     /// Gets the superposed diacritic for a primary character.
     pub const fn primary_superposed(context: Context) -> Option<Self> {
         match context {
@@ -375,6 +401,65 @@ impl Diacritic {
         }
     }
 
+    /// Gets the diacritic pair for when a quaternary is elided onto a secondary character.
+    pub const fn elided_quaternary_pair(vc_or_vk: VcOrVk) -> (Option<Self>, Option<Self>) {
+        match vc_or_vk {
+            VcOrVk::Case(case) => (
+                match (case as u8) / 9 {
+                    0 => None,
+                    1 => Some(Diacritic::Dot),
+                    2 => Some(Diacritic::HorizBar),
+                    3 => Some(Diacritic::CurveTowardsLeft),
+                    4 => Some(Diacritic::CurveTowardsRight),
+                    5 => Some(Diacritic::HorizBarWithBottomLine),
+                    6 => Some(Diacritic::HorizBarWithTopLine),
+                    7 => Some(Diacritic::CurveTowardsTop),
+                    _ => unreachable!(),
+                },
+                match (case as u8) % 9 {
+                    0 => None,
+                    1 => Some(Diacritic::Dot),
+                    2 => Some(Diacritic::HorizBar),
+                    3 => Some(Diacritic::CurveTowardsLeft),
+                    4 => Some(Diacritic::CurveTowardsRight),
+                    5 => Some(Diacritic::HorizBarWithBottomLine),
+                    6 => Some(Diacritic::HorizBarWithTopLine),
+                    7 => Some(Diacritic::CurveTowardsTop),
+                    8 => Some(Diacritic::CurveTowardsBottom),
+                    _ => unreachable!(),
+                },
+            ),
+            VcOrVk::Illocution(illocution) => (
+                match illocution {
+                    Illocution::ASR => None,
+                    Illocution::DIR => Some(Diacritic::Dot),
+                    Illocution::DEC => Some(Diacritic::HorizBar),
+                    Illocution::IRG => Some(Diacritic::CurveTowardsLeft),
+                    Illocution::VER => Some(Diacritic::CurveTowardsRight),
+                    Illocution::ADM => Some(Diacritic::HorizBarWithBottomLine),
+                    Illocution::POT => Some(Diacritic::HorizBarWithTopLine),
+                    Illocution::HOR => Some(Diacritic::CurveTowardsTop),
+                    Illocution::CNJ => Some(Diacritic::CurveTowardsBottom),
+                },
+                None,
+            ),
+            VcOrVk::Validation(validation) => (
+                None,
+                match validation {
+                    Validation::OBS => None,
+                    Validation::REC => Some(Diacritic::Dot),
+                    Validation::PUP => Some(Diacritic::HorizBar),
+                    Validation::RPR => Some(Diacritic::CurveTowardsLeft),
+                    Validation::USP => Some(Diacritic::CurveTowardsRight),
+                    Validation::IMA => Some(Diacritic::HorizBarWithBottomLine),
+                    Validation::CVN => Some(Diacritic::HorizBarWithTopLine),
+                    Validation::ITU => Some(Diacritic::CurveTowardsTop),
+                    Validation::INF => Some(Diacritic::CurveTowardsBottom),
+                },
+            ),
+        }
+    }
+
     /// Gets the superposed diacritic for a standard quaternary character.
     pub const fn standard_quaternary_superposed(mood: Mood) -> Option<Self> {
         match mood {
@@ -421,6 +506,25 @@ impl Diacritic {
             },
         }
     }
+
+    /// Gets the diacritic associated with an affix degree.
+    pub const fn affix_degree_underposed(degree: AffixDegree) -> Self {
+        match degree {
+            AffixDegree::D0 => Self::CurveTowardsRight,
+            AffixDegree::D1 => Self::Dot,
+            AffixDegree::D2 => Self::HorizBarWithBottomLine,
+            AffixDegree::D3 => Self::VertBarWithRightLine,
+            AffixDegree::D4 => Self::CurveTowardsTop,
+            AffixDegree::D5 => Self::DiagBar,
+            AffixDegree::D6 => Self::CurveTowardsBottom,
+            AffixDegree::D7 => Self::VertBarWithLeftLine,
+            AffixDegree::D8 => Self::HorizBarWithTopLine,
+            AffixDegree::D9 => Self::HorizBar,
+        }
+    }
+
+    /// The diacritic representing a Ca-stacking affix.
+    pub const CA_STACKING_UNDERPOSED: Self = Self::CurveTowardsLeft;
 }
 
 impl Secondary {

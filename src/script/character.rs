@@ -2,11 +2,8 @@
 
 use crate::category::{
     AffixSlot, AffixType, Aspect, Ca, Case, CaseAccessorMode, CaseScope, Context, DatalessRelation,
-    DestructuredConfiguration, Effect, Function, Level, Mood, Phase, Specification, Stem, Valence,
-    VcOrVk, Version,
+    Effect, Function, Level, Mood, Phase, Specification, Stem, Valence, VcOrVk, Version,
 };
-
-use super::traits::{IntoCharacter, IntoSecondary};
 
 macro_rules! item {
     (
@@ -324,82 +321,4 @@ pub struct AccessorQuaternary {
 
     /// The type of this case-accessor.
     pub r#type: AffixType,
-}
-
-impl IntoSecondary for Secondary {
-    fn into_secondary(self) -> Secondary {
-        self
-    }
-}
-
-impl IntoCharacter for Tertiary {
-    fn into_character(self) -> Character {
-        Character::Tertiary(self)
-    }
-}
-
-impl IntoCharacter for Register {
-    fn into_character(self) -> Character {
-        Character::Register(self)
-    }
-}
-
-impl IntoCharacter for Diacritic {
-    fn into_character(self) -> Character {
-        Character::Diacritic(self)
-    }
-}
-
-impl IntoSecondary for Primary {
-    fn into_secondary(self) -> Secondary {
-        let DestructuredConfiguration {
-            plexity,
-            similarity_and_separability,
-        } = self.ca.configuration.destructure();
-
-        Secondary {
-            is_rotated: false,
-            core: Core::primary_core(self.specification),
-            top: Ext::primary_top(self.ca.extension, self.ca.perspective),
-            bottom: Ext::primary_bottom(self.function, self.version, plexity, self.stem),
-            superposed: Diacritic::primary_superposed(self.context),
-            underposed: Diacritic::primary_underposed(self.relation),
-            leftposed: Diacritic::primary_leftposed(similarity_and_separability),
-            rightposed: Diacritic::primary_rightposed(self.ca.affiliation, self.ca.essence),
-        }
-    }
-}
-
-impl IntoSecondary for StandardQuaternary {
-    fn into_secondary(self) -> Secondary {
-        let (top, bottom) = Ext::standard_quaternary_exts(self.vc_or_vk);
-
-        Secondary {
-            is_rotated: false,
-            core: Core::VertBar,
-            top,
-            bottom,
-            superposed: Diacritic::standard_quaternary_superposed(self.mood),
-            underposed: Diacritic::standard_quaternary_underposed(self.case_scope),
-            leftposed: None,
-            rightposed: None,
-        }
-    }
-}
-
-impl IntoSecondary for AccessorQuaternary {
-    fn into_secondary(self) -> Secondary {
-        let (top, bottom) = Ext::accessor_quaternary_exts(self.case);
-
-        Secondary {
-            is_rotated: false,
-            core: Core::VertBar,
-            top,
-            bottom,
-            superposed: Diacritic::affix_type_superposed(self.r#type),
-            underposed: Diacritic::accessor_quaternary_underposed(self.slot, self.mode).into(),
-            leftposed: None,
-            rightposed: None,
-        }
-    }
 }

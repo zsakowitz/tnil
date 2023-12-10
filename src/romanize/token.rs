@@ -67,7 +67,7 @@ pub enum WYForm {
 }
 
 /// A numeral form.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive] // TODO: Remove non_exhaustive once we decide how to work with decimals.
 pub struct NumeralForm {
     /// The integral part of this numeral.

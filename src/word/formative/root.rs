@@ -5,6 +5,7 @@ use std::str::FromStr;
 use crate::{
     category::{AffixDegree, PerspectivelessReferentList},
     gloss::{Gloss, GlossFlags, GlossStatic},
+    prelude::token::NumeralForm,
     romanize::{stream::ParseError, token::OwnedConsonantForm},
     specificity::{AsGeneral, TryAsSpecific},
 };
@@ -41,23 +42,15 @@ impl Gloss for NormalFormativeRoot {
 
 /// A numeric formative root.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[non_exhaustive] // TODO: Remove non_exhaustive once we decide how to work with decimals.
 pub struct NumericFormativeRoot {
-    /// The integer part of this root.
-    pub integer_part: u64,
-}
-
-impl NumericFormativeRoot {
-    /// Creates a new [`NumericFormativeRoot`] from an integer part.
-    pub const fn new(integer_part: u64) -> Self {
-        NumericFormativeRoot { integer_part }
-    }
+    /// The numeral of this root.
+    pub form: NumeralForm,
 }
 
 impl Gloss for NumericFormativeRoot {
     fn gloss(&self, _flags: GlossFlags) -> String {
         let mut output = "“".to_owned();
-        output += &self.integer_part.to_string();
+        output += &self.form.integer_part.to_string();
         output += "”";
         output
     }

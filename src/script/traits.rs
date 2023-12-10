@@ -1,6 +1,7 @@
 //! Defines traits used to convert words into Ithkuil.
 
 use super::{
+    buf::CharacterBuf,
     character::{Character, Secondary},
     flags::IntoScriptFlags,
 };
@@ -19,8 +20,15 @@ pub trait IntoCharacter {
 
 /// Allows types to be converted into script characters.
 pub trait IntoScript {
-    /// Appends this item as script characters to a [`Vec<Character>`].
-    fn append_script_to(&self, list: &mut Vec<Character>, flags: IntoScriptFlags);
+    /// Appends this item as script characters to a [`CharacterBuf`].
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags);
+
+    /// Converts this item into a [`CharacterBuf`].
+    fn into_script(&self, flags: IntoScriptFlags) -> CharacterBuf {
+        let mut list = CharacterBuf::new();
+        self.append_script_to(&mut list, flags);
+        list
+    }
 }
 
 impl<T: IntoSecondary> IntoCharacter for T {
@@ -30,7 +38,7 @@ impl<T: IntoSecondary> IntoCharacter for T {
 }
 
 impl<T: Clone + IntoCharacter> IntoScript for T {
-    fn append_script_to(&self, list: &mut Vec<Character>, _flags: IntoScriptFlags) {
-        list.push(self.clone().into_character());
+    fn append_script_to(&self, list: &mut CharacterBuf, _flags: IntoScriptFlags) {
+        list.push(self.clone());
     }
 }

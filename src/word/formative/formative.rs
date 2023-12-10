@@ -1149,9 +1149,9 @@ impl FromTokens for ShortcutCheckedFormative {
                 },
                 match root {
                     Root::C(cr) => ShortcutCheckedFormativeRoot::Normal(NormalFormativeRoot { cr }),
-                    Root::N(n) => ShortcutCheckedFormativeRoot::Numeric(NumericFormativeRoot {
-                        integer_part: n.integer_part,
-                    }),
+                    Root::N(form) => {
+                        ShortcutCheckedFormativeRoot::Numeric(NumericFormativeRoot { form })
+                    }
                 },
             ),
 
@@ -1965,9 +1965,7 @@ impl IntoTokens for UncheckedFormative {
 
         let cr = match &self.root {
             ShortcutCheckedFormativeRoot::Normal(cr) => Token::C(cr.cr.clone()),
-            ShortcutCheckedFormativeRoot::Numeric(nr) => Token::N(NumeralForm {
-                integer_part: nr.integer_part,
-            }),
+            ShortcutCheckedFormativeRoot::Numeric(nr) => Token::N(nr.form),
             ShortcutCheckedFormativeRoot::Affixual(cs) => {
                 Token::C(OwnedConsonantForm(cs.cs.clone()))
             }

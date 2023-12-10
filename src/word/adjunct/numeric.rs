@@ -10,17 +10,16 @@ use crate::{
 };
 
 /// A numeric adjunct.
-#[non_exhaustive] // TODO: Remove this once we deal with decimals.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NumericAdjunct {
-    /// The integer part of this adjunct.
-    pub integer_part: u64,
+    /// The numeral form of this adjunct.
+    pub form: NumeralForm,
 }
 
 impl Gloss for NumericAdjunct {
     fn gloss(&self, _flags: GlossFlags) -> String {
         let mut output = "‘".to_owned();
-        output += &self.integer_part.to_string();
+        output += &self.form.integer_part.to_string();
         output += "’";
         output
     }
@@ -31,18 +30,14 @@ impl FromTokens for NumericAdjunct {
         stream: &mut TokenStream,
         _flags: FromTokenFlags,
     ) -> Result<Self, ParseError> {
-        let nn: NumeralForm = stream.next().ok_or(ParseError::ExpectedNn)?;
-
         Ok(NumericAdjunct {
-            integer_part: nn.integer_part,
+            form: stream.next().ok_or(ParseError::ExpectedNn)?,
         })
     }
 }
 
 impl IntoToken for NumericAdjunct {
     fn into_token(self) -> Token {
-        Token::N(NumeralForm {
-            integer_part: self.integer_part,
-        })
+        Token::N(self.form)
     }
 }
