@@ -34,7 +34,7 @@ impl FromTokens for ParsingAdjunct {
 }
 
 impl IntoTokens for ParsingAdjunct {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(self.stress);
         list.push(GlottalStop);
     }

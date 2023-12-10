@@ -39,7 +39,7 @@ impl FromTokens for SuppletiveAdjunct {
 }
 
 impl IntoTokens for SuppletiveAdjunct {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(self.mode);
         list.push(self.case);
     }

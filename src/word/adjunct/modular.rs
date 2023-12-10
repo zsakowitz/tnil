@@ -162,7 +162,7 @@ impl FromTokens for ModularAdjunct {
 }
 
 impl IntoTokens for ModularAdjunct {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         match *self {
             Self::Aspect { mode, aspect } => {
                 list.append(&mode, flags);

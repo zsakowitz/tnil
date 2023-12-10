@@ -77,12 +77,12 @@ pub trait FromTokens: Sized {
 /// Allows types to be turned into a sequence of tokens.
 pub trait IntoTokens {
     /// Appends `self` as a list of tokens into the passed [`TokenList`].
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags);
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags);
 
     /// Creates a new [`TokenList`] from the tokens this item represents.
     fn into_tokens(&self, flags: IntoTokensFlags) -> TokenList {
         let mut list = TokenList::new();
-        self.append_to(&mut list, flags);
+        self.append_tokens_to(&mut list, flags);
         list
     }
 
@@ -99,7 +99,7 @@ impl<T: IntoVowelForm> IntoToken for T {
 }
 
 impl<T: Clone + IntoToken> IntoTokens for T {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(self.clone().into_token());
     }
 }

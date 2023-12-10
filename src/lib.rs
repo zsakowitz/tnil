@@ -30,3 +30,4 @@ pub mod prelude;
 pub mod romanize;
 pub mod specificity;
 pub mod word;
+pub mod script;

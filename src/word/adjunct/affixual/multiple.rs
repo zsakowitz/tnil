@@ -85,7 +85,7 @@ impl FromTokens for MultipleAffixAdjunct {
 }
 
 impl IntoTokens for MultipleAffixAdjunct {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         let (mut first_vx, first_cs) = self.first_affix.into_vx_cs();
         if flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL) || !first_cs.is_valid_word_initial() {
             list.push(Schwa);

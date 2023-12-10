@@ -1,7 +1,7 @@
 //! Contains types related to register adjuncts.
 
 use crate::{
-    category::Register,
+    category::RegisterType,
     gloss::{Gloss, GlossFlags},
     prelude::{IntoTokens, IntoTokensFlags, TokenList},
     romanize::{
@@ -16,7 +16,7 @@ use crate::{
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RegisterAdjunct {
     /// The register of this adjunct.
-    pub register: Register,
+    pub register: RegisterType,
 }
 
 impl Gloss for RegisterAdjunct {
@@ -36,7 +36,7 @@ impl FromTokens for RegisterAdjunct {
 }
 
 impl IntoTokens for RegisterAdjunct {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         list.push(Hh);
         list.push(self.register);
     }

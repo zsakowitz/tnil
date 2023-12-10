@@ -893,7 +893,7 @@ mod register {
 
     category!(
         #no_default,
-        Register,
+        RegisterType,
         (DSV, "Discursive Start", "discursive"),
         (DSV_END, "Discursive End", "discursive_end"),
         (PNT, "Parenthetical Start", "parenthetical"),

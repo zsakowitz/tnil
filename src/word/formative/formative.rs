@@ -1854,20 +1854,20 @@ impl FromTokens for UncheckedFormative {
 }
 
 impl IntoTokens for CheckedFormative {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         let unchecked: UncheckedFormative = self.clone().as_general();
-        unchecked.append_to(list, flags)
+        unchecked.append_tokens_to(list, flags)
     }
 }
 
 impl IntoTokens for ShortcutCheckedFormative {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
-        self.clone().as_general().append_to(list, flags)
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+        self.clone().as_general().append_tokens_to(list, flags)
     }
 }
 
 impl IntoTokens for UncheckedFormative {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         // The implementation here is guaranteed to work on properly constructed formatives and will
         // likely fail for everything else. It's _not intended_ to handle edge cases.
 

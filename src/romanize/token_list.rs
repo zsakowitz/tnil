@@ -49,7 +49,7 @@ impl TokenList {
 
     /// Appends an item as tokens to `self`.
     pub fn append<T: IntoTokens>(&mut self, item: &T, flags: IntoTokensFlags) {
-        item.append_to(self, flags);
+        item.append_tokens_to(self, flags);
     }
 
     /// Modifies the stress of `self`.

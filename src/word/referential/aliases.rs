@@ -237,7 +237,7 @@ macro_rules! into_tokens_impl {
     ) => {
         #[allow(redundant_semicolons)]
         impl IntoTokens for $ty {
-            fn append_to(&self, $list: &mut TokenList, $flags: IntoTokensFlags) {
+            fn append_tokens_to(&self, $list: &mut TokenList, $flags: IntoTokensFlags) {
                 match self {
                     Self::Single {
                         $referent,

@@ -16,7 +16,7 @@ use crate::{
     category::{
         AffixualAdjunctScope, ArbitraryMoodOrCaseScope, Aspect, Bias, Case, CaseScope, HFormDegree,
         HFormSequence, ModularAdjunctMode, ModularAdjunctScope, Mood, MoodOrCaseScope,
-        NonAspectualVn, Register, Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree,
+        NonAspectualVn, RegisterType, Stress, SuppletiveAdjunctMode, Vn, VowelFormDegree,
         VowelFormSequence,
     },
     prelude::TokenList,
@@ -253,60 +253,60 @@ impl FromTokens for Case {
     }
 }
 
-impl IntoVowelForm for Register {
+impl IntoVowelForm for RegisterType {
     fn into_vowel_form(self) -> VowelForm {
         match self {
-            Register::DSV => VowelForm {
+            RegisterType::DSV => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D1,
             },
-            Register::PNT => VowelForm {
+            RegisterType::PNT => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D3,
             },
-            Register::SPF => VowelForm {
+            RegisterType::SPF => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D4,
             },
-            Register::EXM => VowelForm {
+            RegisterType::EXM => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D7,
             },
-            Register::CGT => VowelForm {
+            RegisterType::CGT => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D9,
             },
-            Register::DSV_END => VowelForm {
+            RegisterType::DSV_END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D1,
             },
-            Register::PNT_END => VowelForm {
+            RegisterType::PNT_END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D3,
             },
-            Register::SPF_END => VowelForm {
+            RegisterType::SPF_END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D8,
             },
-            Register::EXM_END => VowelForm {
+            RegisterType::EXM_END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D7,
             },
-            Register::CGT_END => VowelForm {
+            RegisterType::CGT_END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S2,
                 degree: VowelFormDegree::D9,
             },
-            Register::END => VowelForm {
+            RegisterType::END => VowelForm {
                 has_glottal_stop: false,
                 sequence: VowelFormSequence::S1,
                 degree: VowelFormDegree::D8,
@@ -315,7 +315,7 @@ impl IntoVowelForm for Register {
     }
 }
 
-impl FromTokens for Register {
+impl FromTokens for RegisterType {
     fn parse_volatile(stream: &mut TokenStream, _: FromTokenFlags) -> Result<Self, ParseError> {
         match stream.next_any() {
             Some(Token::V(VowelForm {
@@ -323,17 +323,17 @@ impl FromTokens for Register {
                 sequence,
                 degree,
             })) => match (sequence, degree) {
-                (VowelFormSequence::S1, VowelFormDegree::D1) => Ok(Register::DSV),
-                (VowelFormSequence::S1, VowelFormDegree::D3) => Ok(Register::PNT),
-                (VowelFormSequence::S1, VowelFormDegree::D4) => Ok(Register::SPF),
-                (VowelFormSequence::S1, VowelFormDegree::D7) => Ok(Register::EXM),
-                (VowelFormSequence::S1, VowelFormDegree::D9) => Ok(Register::CGT),
-                (VowelFormSequence::S2, VowelFormDegree::D1) => Ok(Register::DSV_END),
-                (VowelFormSequence::S2, VowelFormDegree::D3) => Ok(Register::PNT_END),
-                (VowelFormSequence::S2, VowelFormDegree::D8) => Ok(Register::SPF_END),
-                (VowelFormSequence::S2, VowelFormDegree::D7) => Ok(Register::EXM_END),
-                (VowelFormSequence::S2, VowelFormDegree::D9) => Ok(Register::CGT_END),
-                (VowelFormSequence::S1, VowelFormDegree::D8) => Ok(Register::END),
+                (VowelFormSequence::S1, VowelFormDegree::D1) => Ok(RegisterType::DSV),
+                (VowelFormSequence::S1, VowelFormDegree::D3) => Ok(RegisterType::PNT),
+                (VowelFormSequence::S1, VowelFormDegree::D4) => Ok(RegisterType::SPF),
+                (VowelFormSequence::S1, VowelFormDegree::D7) => Ok(RegisterType::EXM),
+                (VowelFormSequence::S1, VowelFormDegree::D9) => Ok(RegisterType::CGT),
+                (VowelFormSequence::S2, VowelFormDegree::D1) => Ok(RegisterType::DSV_END),
+                (VowelFormSequence::S2, VowelFormDegree::D3) => Ok(RegisterType::PNT_END),
+                (VowelFormSequence::S2, VowelFormDegree::D8) => Ok(RegisterType::SPF_END),
+                (VowelFormSequence::S2, VowelFormDegree::D7) => Ok(RegisterType::EXM_END),
+                (VowelFormSequence::S2, VowelFormDegree::D9) => Ok(RegisterType::CGT_END),
+                (VowelFormSequence::S1, VowelFormDegree::D8) => Ok(RegisterType::END),
                 _ => Err(ParseError::ExpectedVm),
             },
             _ => Err(ParseError::ExpectedVm),
@@ -475,7 +475,7 @@ impl FromTokens for MoodOrCaseScope {
 }
 
 impl IntoTokens for ModularAdjunctMode {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self {
             ModularAdjunctMode::Parent => list.push(WYForm::W),
             ModularAdjunctMode::Concatenated => list.push(WYForm::Y),
@@ -716,7 +716,7 @@ impl FromTokens for VnCn {
 }
 
 impl IntoTokens for VnCn {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(non_aspectual) => {
                 list.push(non_aspectual);
@@ -761,7 +761,7 @@ impl FromTokens for VnCm {
 }
 
 impl IntoTokens for VnCm {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(non_aspectual) => {
                 list.push(non_aspectual);
@@ -803,7 +803,7 @@ impl FromTokens for VnCnWithGlottalStop {
 }
 
 impl IntoTokens for VnCnWithGlottalStop {
-    fn append_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, _flags: IntoTokensFlags) {
         match self.vn.as_non_aspectual_vn() {
             Ok(vn) => {
                 let mut vn = vn.into_vowel_form();

@@ -47,10 +47,10 @@ impl FromTokens for AffixualAdjunct {
 }
 
 impl IntoTokens for AffixualAdjunct {
-    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+    fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         match self {
-            Self::Single(value) => value.append_to(list, flags),
-            Self::Multiple(value) => value.append_to(list, flags),
+            Self::Single(value) => value.append_tokens_to(list, flags),
+            Self::Multiple(value) => value.append_tokens_to(list, flags),
         }
     }
 }

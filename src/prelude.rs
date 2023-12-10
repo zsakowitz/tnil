@@ -10,6 +10,10 @@ pub use crate::{
         token_list::TokenList,
         traits::{FromToken, FromTokens, IntoToken, IntoTokens},
     },
+    script::{
+        character::{self, Character},
+        traits::IntoScript,
+    },
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
     word::{self, Word},
 };
