@@ -1,12 +1,14 @@
 //! Defines complexes (groups of core categories) and their glossing methods.
 
 use super::{
-    Affiliation, Aspect, CaseScope, Category, Configuration, Effect, Essence, Extension, Level,
-    Mood, Perspective, Phase, Plexity, ReferentEffect, ReferentTarget, ReferentialAffixPerspective,
-    Separability, Similarity, Valence,
+    Affiliation, AppositiveCase, Aspect, Case, CaseScope, Category, Configuration, Effect, Essence,
+    Extension, Illocution, IllocutionOrValidation, Level, Mood, Perspective, Phase, Plexity,
+    ReferentEffect, ReferentTarget, ReferentialAffixPerspective, Separability, Similarity,
+    ThematicCase, Valence, Validation,
 };
 use crate::{
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
+    prelude::{AsGeneral, TryAsGeneral, TryAsSpecific},
     referent,
     romanize::stream::ParseError,
 };
@@ -878,5 +880,165 @@ impl ToString for AffixualReferentList {
         }
 
         output
+    }
+}
+
+/// A case or illocution/validation form.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum VcOrVk {
+    /// A variant containing a case.
+    Case(Case),
+
+    /// A variant containing an illocution.
+    Illocution(Illocution),
+
+    /// A variant containing a validation.
+    Validation(Validation),
+}
+
+// That's literally 18 impls right there. Unrelatedly, multiple cursors is a wonderful feature.
+
+impl AsGeneral<VcOrVk> for ThematicCase {
+    fn as_general(self) -> VcOrVk {
+        VcOrVk::Case(self.as_general())
+    }
+}
+
+impl From<ThematicCase> for VcOrVk {
+    fn from(value: ThematicCase) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<ThematicCase> for VcOrVk {
+    fn try_as_specific(self) -> Option<ThematicCase> {
+        match self {
+            Self::Case(value) => value.try_as_specific(),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<VcOrVk> for AppositiveCase {
+    fn as_general(self) -> VcOrVk {
+        VcOrVk::Case(self.as_general())
+    }
+}
+
+impl From<AppositiveCase> for VcOrVk {
+    fn from(value: AppositiveCase) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<AppositiveCase> for VcOrVk {
+    fn try_as_specific(self) -> Option<AppositiveCase> {
+        match self {
+            Self::Case(value) => value.try_as_specific(),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<VcOrVk> for Case {
+    fn as_general(self) -> VcOrVk {
+        VcOrVk::Case(self)
+    }
+}
+
+impl From<Case> for VcOrVk {
+    fn from(value: Case) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<Case> for VcOrVk {
+    fn try_as_specific(self) -> Option<Case> {
+        match self {
+            Self::Case(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<VcOrVk> for Illocution {
+    fn as_general(self) -> VcOrVk {
+        VcOrVk::Illocution(self)
+    }
+}
+
+impl From<Illocution> for VcOrVk {
+    fn from(value: Illocution) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<Illocution> for VcOrVk {
+    fn try_as_specific(self) -> Option<Illocution> {
+        match self {
+            Self::Illocution(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<VcOrVk> for Validation {
+    fn as_general(self) -> VcOrVk {
+        VcOrVk::Validation(self)
+    }
+}
+
+impl From<Validation> for VcOrVk {
+    fn from(value: Validation) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<Validation> for VcOrVk {
+    fn try_as_specific(self) -> Option<Validation> {
+        match self {
+            Self::Validation(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
+impl AsGeneral<VcOrVk> for IllocutionOrValidation {
+    fn as_general(self) -> VcOrVk {
+        match self {
+            Self::OBS => VcOrVk::Validation(Validation::OBS),
+            Self::REC => VcOrVk::Validation(Validation::REC),
+            Self::PUP => VcOrVk::Validation(Validation::PUP),
+            Self::RPR => VcOrVk::Validation(Validation::RPR),
+            Self::USP => VcOrVk::Validation(Validation::USP),
+            Self::IMA => VcOrVk::Validation(Validation::IMA),
+            Self::CVN => VcOrVk::Validation(Validation::CVN),
+            Self::ITU => VcOrVk::Validation(Validation::ITU),
+            Self::INF => VcOrVk::Validation(Validation::INF),
+            Self::DIR => VcOrVk::Illocution(Illocution::DIR),
+            Self::DEC => VcOrVk::Illocution(Illocution::DEC),
+            Self::IRG => VcOrVk::Illocution(Illocution::IRG),
+            Self::VER => VcOrVk::Illocution(Illocution::VER),
+            Self::ADM => VcOrVk::Illocution(Illocution::ADM),
+            Self::POT => VcOrVk::Illocution(Illocution::POT),
+            Self::HOR => VcOrVk::Illocution(Illocution::HOR),
+            Self::CNJ => VcOrVk::Illocution(Illocution::CNJ),
+        }
+    }
+}
+
+impl From<IllocutionOrValidation> for VcOrVk {
+    fn from(value: IllocutionOrValidation) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<IllocutionOrValidation> for VcOrVk {
+    fn try_as_specific(self) -> Option<IllocutionOrValidation> {
+        match self {
+            Self::Illocution(value) => value.try_as_general(),
+            Self::Validation(value) => Some(value.as_general()),
+            _ => None,
+        }
     }
 }

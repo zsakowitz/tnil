@@ -884,6 +884,12 @@ category!(
     (Cn, "Cn", "cn"),
 );
 
+category!(
+    AffixSlot,
+    (V, "Slot V", "slot V"),
+    (VII, "Slot VII", "slot VII"),
+);
+
 /// HACK: Using a module here allows lints to be allowed properly, which we want need in order to
 /// have variants ending in `_END`. The variants are named as such because PntEnd frankly looks
 /// disgusting, and PNTEnd looks worse. Also, we get consistency with @ırburučpaızya, which is nice.

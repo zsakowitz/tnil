@@ -1,6 +1,12 @@
 //! Defines character types.
 
-use crate::category::{Aspect, Effect, Level, Phase, Valence};
+use crate::category::{
+    AffixSlot, AffixType, Aspect, Ca, Case, CaseAccessorMode, CaseScope, Context, DatalessRelation,
+    DestructuredConfiguration, Effect, Function, Level, Mood, Phase, Specification, Stem, Valence,
+    VcOrVk, Version,
+};
+
+use super::traits::{IntoCharacter, IntoSecondary};
 
 macro_rules! item {
     (
@@ -10,10 +16,9 @@ macro_rules! item {
     ) => {
         ::paste::paste! {
             #[repr(u8)]
-            #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
             #[doc = "Represents a " $enum_name " value."]
             pub enum $enum_name {
-                #[default]
                 $(
                     #[doc = "The " $variant " " $name "."]
                     $variant,
@@ -28,8 +33,8 @@ item!(
     "secondary core",
     StandardPlaceholder,
     AlphabeticPlaceholder,
-    TonalPlaceholder,
-    StressedSyllablePlaceholder,
+    GiantZ,
+    VertBar,
     B,
     C,
     Ç,
@@ -76,7 +81,7 @@ item!(
 );
 
 item!(
-    Extension,
+    Ext,
     "secondary extension",
     B,
     C,
@@ -112,8 +117,8 @@ item!(
     Z,
     Ż,
     Ž,
-    CoreGeminate,
-    ExtensionGeminate,
+    GeminateCore,
+    GeminateExt,
     GlottalStop,
     Ejective,
     Velar,
@@ -159,14 +164,14 @@ item!(
     Diacritic,
     "diacritic",
     Dot,
-    HorizontalBar,
-    HorizontalBarWithTopLine,
-    HorizontalBarWithBottomLine,
-    VerticalBar,
-    VerticalBarWithLeftLine,
-    VerticalBarWithRightLine,
-    DiagonalBar,
-    TwoPartHorizontalAndDiagonalBar,
+    HorizBar,
+    HorizBarWithTopLine,
+    HorizBarWithBottomLine,
+    VertBar,
+    VertBarWithLeftLine,
+    VertBarWithRightLine,
+    DiagBar,
+    TwoPartHorizAndDiagBar,
     CurveTowardsLeft,
     CurveTowardsLeftWithDot,
     CurveTowardsRight,
@@ -186,7 +191,7 @@ item!(
 );
 
 /// A secondary character.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Secondary {
     /// Whether this character is rotated.
     pub is_rotated: bool,
@@ -195,10 +200,10 @@ pub struct Secondary {
     pub core: Core,
 
     /// The top extension of this character.
-    pub top: Option<Extension>,
+    pub top: Option<Ext>,
 
     /// The bottom extension of this character.
-    pub bottom: Option<Extension>,
+    pub bottom: Option<Ext>,
 
     /// The diacritic superposed on this character.
     pub superposed: Option<Diacritic>,
@@ -227,7 +232,7 @@ pub enum TertiarySegment {
 }
 
 /// A tertiary character.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Tertiary {
     /// The valence of this character.
     pub valence: Valence,
@@ -246,7 +251,7 @@ pub struct Tertiary {
 }
 
 /// A general character.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Character {
     /// A secondary character.
     Secondary(Secondary),
@@ -265,4 +270,136 @@ pub enum Character {
 
     /// A sentence break.
     SentenceBreak,
+}
+
+/// A primary character.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Primary {
+    /// The specification of this primary.
+    pub specification: Specification,
+
+    /// The ca of this primary.
+    pub ca: Ca,
+
+    /// The function of this primary.
+    pub function: Function,
+
+    /// The version of this primary.
+    pub version: Version,
+
+    /// The stem of this primary.
+    pub stem: Stem,
+
+    /// The context of this primary.
+    pub context: Context,
+
+    /// The relation of this primary.
+    pub relation: DatalessRelation,
+}
+
+/// A standard quaternary character.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StandardQuaternary {
+    /// The case, illocution, or validation of this quaternary character.
+    pub vc_or_vk: VcOrVk,
+
+    /// The case-scope of this quaternary character.
+    pub case_scope: CaseScope,
+
+    /// The mood of this quaternary character.
+    pub mood: Mood,
+}
+
+/// A case-accessor quaternary character.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct AccessorQuaternary {
+    /// The slot this case-accessor is in.
+    pub slot: AffixSlot,
+
+    /// The case of this quaternary character.
+    pub case: Case,
+
+    /// The mode of this case-accessor.
+    pub mode: CaseAccessorMode,
+
+    /// The type of this case-accessor.
+    pub r#type: AffixType,
+}
+
+impl IntoSecondary for Secondary {
+    fn into_secondary(self) -> Secondary {
+        self
+    }
+}
+
+impl IntoCharacter for Tertiary {
+    fn into_character(self) -> Character {
+        Character::Tertiary(self)
+    }
+}
+
+impl IntoCharacter for Register {
+    fn into_character(self) -> Character {
+        Character::Register(self)
+    }
+}
+
+impl IntoCharacter for Diacritic {
+    fn into_character(self) -> Character {
+        Character::Diacritic(self)
+    }
+}
+
+impl IntoSecondary for Primary {
+    fn into_secondary(self) -> Secondary {
+        let DestructuredConfiguration {
+            plexity,
+            similarity_and_separability,
+        } = self.ca.configuration.destructure();
+
+        Secondary {
+            is_rotated: false,
+            core: Core::primary_core(self.specification),
+            top: Ext::primary_top(self.ca.extension, self.ca.perspective),
+            bottom: Ext::primary_bottom(self.function, self.version, plexity, self.stem),
+            superposed: Diacritic::primary_superposed(self.context),
+            underposed: Diacritic::primary_underposed(self.relation),
+            leftposed: Diacritic::primary_leftposed(similarity_and_separability),
+            rightposed: Diacritic::primary_rightposed(self.ca.affiliation, self.ca.essence),
+        }
+    }
+}
+
+impl IntoSecondary for StandardQuaternary {
+    fn into_secondary(self) -> Secondary {
+        let (top, bottom) = Ext::standard_quaternary_exts(self.vc_or_vk);
+
+        Secondary {
+            is_rotated: false,
+            core: Core::VertBar,
+            top,
+            bottom,
+            superposed: Diacritic::standard_quaternary_superposed(self.mood),
+            underposed: Diacritic::standard_quaternary_underposed(self.case_scope),
+            leftposed: None,
+            rightposed: None,
+        }
+    }
+}
+
+impl IntoSecondary for AccessorQuaternary {
+    fn into_secondary(self) -> Secondary {
+        let (top, bottom) = Ext::accessor_quaternary_exts(self.case);
+
+        Secondary {
+            is_rotated: false,
+            core: Core::VertBar,
+            top,
+            bottom,
+            superposed: Diacritic::affix_type_superposed(self.r#type),
+            underposed: Diacritic::accessor_quaternary_underposed(self.slot, self.mode).into(),
+            leftposed: None,
+            rightposed: None,
+        }
+    }
 }

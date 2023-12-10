@@ -27,11 +27,12 @@ use crate::{
     romanize::token::{NumeralForm, OwnedConsonantForm, Token},
 };
 
-/// Normalizes a string into proper New Ithkuil format. This means consolidating extending
-/// diacritics into single letters, turning allomorphs such as ṭ into their actual letters, and
-/// removing word-initial glottal stops.
+/// Normalizes a string into proper New Ithkuil format. This means making it lowercase,
+/// consolidating extending diacritics into single letters, turning allomorphs such as ṭ into their
+/// actual letters, and removing word-initial glottal stops.
 pub fn normalize(word: &str) -> String {
     let word = word
+        .to_lowercase()
         .replace('​', "")
         .replace("á", "á")
         .replace("ä", "ä")
