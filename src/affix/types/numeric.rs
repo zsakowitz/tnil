@@ -1,10 +1,8 @@
 use crate::{
     category::{AffixDegree, AffixType},
     gloss::{Gloss, GlossFlags, GlossStatic},
-    prelude::{
-        token::{NumeralForm, Token, VowelForm},
-        IntoVxCs,
-    },
+    prelude::token::{NumeralForm, Token, VowelForm},
+    romanize::traits::IntoVxCs,
 };
 
 /// A numeric adjunct.

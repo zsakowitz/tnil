@@ -2,8 +2,9 @@ use crate::{
     category::{AffixDegree, AffixType},
     prelude::{
         token::{OwnedConsonantForm, Token, VowelForm},
-        *,
+        Gloss, GlossFlags, GlossStatic,
     },
+    romanize::traits::IntoVxCs,
 };
 
 /// A plain affix.

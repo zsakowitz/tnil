@@ -3,10 +3,8 @@ use crate::{
         AffixualReferentList, AppositiveCase, ThematicCase, VowelFormDegree, VowelFormSequence,
     },
     gloss::{Gloss, GlossFlags, GlossStatic},
-    prelude::{
-        token::{OwnedConsonantForm, Token, VowelForm},
-        IntoVxCs,
-    },
+    prelude::token::{OwnedConsonantForm, Token, VowelForm},
+    romanize::traits::IntoVxCs,
 };
 
 /// A referential affix. The `CaseType` generic specifies the type of case this affix uses, to allow

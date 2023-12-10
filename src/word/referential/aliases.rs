@@ -4,13 +4,13 @@ use crate::{
         Case, Essence, NormalReferentList, Specification, Stress, SuppletiveAdjunctMode,
         VowelFormDegree, VowelFormSequence,
     },
-    prelude::{token::WYForm, IntoTokens, IntoVxCs, TokenList},
+    prelude::{token::WYForm, IntoTokens, TokenList},
     romanize::{
         flags::{FromTokenFlags, IntoTokensFlags},
         segment::{Vc2, VxCs},
         stream::{ParseError, TokenStream},
         token::{HForm, OwnedConsonantForm, Schwa, Token, VowelForm, ÜA},
-        traits::FromTokens,
+        traits::{FromTokens, IntoVxCs},
     },
 };
 

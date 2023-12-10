@@ -1,10 +1,8 @@
 use crate::{
     category::Case,
     gloss::{Gloss, GlossFlags, GlossStatic},
-    prelude::{
-        token::{OwnedConsonantForm, Token, VowelForm},
-        IntoVowelForm, IntoVxCs,
-    },
+    prelude::token::{OwnedConsonantForm, Token, VowelForm},
+    romanize::traits::{IntoVowelForm, IntoVxCs},
 };
 
 /// A case-stacking affix.

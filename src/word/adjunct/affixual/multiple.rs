@@ -2,13 +2,13 @@ use crate::{
     affix::RegularAffix,
     category::{AffixualAdjunctMode, AffixualAdjunctScope, Stress},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
-    prelude::{token::HForm, IntoTokens, IntoVxCs, TokenList},
+    prelude::{token::HForm, IntoTokens, TokenList},
     romanize::{
         flags::{FromTokenFlags, IntoTokensFlags},
         segment::{CsVxCz, VxCs, Vz},
         stream::{ParseError, TokenStream},
         token::Schwa,
-        traits::FromTokens,
+        traits::{FromTokens, IntoVxCs},
     },
 };
 use vec1::Vec1;

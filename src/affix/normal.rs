@@ -10,8 +10,8 @@ use crate::{
         VowelFormSequence,
     },
     gloss::{Gloss, GlossFlags},
-    prelude::{token::Token, IntoVxCs},
-    romanize::{stream::ParseError, token::VowelForm},
+    prelude::token::Token,
+    romanize::{stream::ParseError, token::VowelForm, traits::IntoVxCs},
 };
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]

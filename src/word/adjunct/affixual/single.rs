@@ -5,6 +5,7 @@ use crate::{
     romanize::{
         segment::{Vs, VxCs},
         stream::TokenStream,
+        traits::IntoVxCs,
     },
 };
 

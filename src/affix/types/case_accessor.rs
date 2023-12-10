@@ -1,10 +1,8 @@
 use crate::{
     category::{AffixType, Case, CaseAccessorMode},
     gloss::{Gloss, GlossFlags, GlossStatic},
-    prelude::{
-        token::{OwnedConsonantForm, Token, VowelForm},
-        IntoVowelForm, IntoVxCs,
-    },
+    prelude::token::{OwnedConsonantForm, Token, VowelForm},
+    romanize::traits::{IntoVowelForm, IntoVxCs},
 };
 
 /// A case-accessor affix.

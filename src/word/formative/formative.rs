@@ -12,6 +12,7 @@ use crate::{
         segment::VnCnWithGlottalStop,
         stream::TokenStream,
         token::{HForm, NumeralForm, OwnedConsonantForm, Token, VowelForm},
+        traits::{IntoVowelForm, IntoVxCs},
     },
     word::formative::{
         additions::{
