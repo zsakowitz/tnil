@@ -1,25 +1,27 @@
 A crate to parse, generate, transform, and operate on text in the language of
 New Ithkuil.
 
+See [the documentation](https://docs.rs/tnil) for programmer-facing information.
+
 ## Completed Goals
 
 - **To model all words and grammatical categories in New Ithkuil.** Structs and
   enums are provided for all parts of the Ithkuil language and model it
   precisely, even if this leads to types that end up being difficult to work
-  with. See the [`CheckedFormative`][crate::word::formative::Formative] type for
-  an example of this complexity in action.
+  with. See the `CheckedFormative` type for an example of this complexity in
+  action.
 
 - **To provide glossing functionality.** Ithkuil text is often shown as glosses,
   which show the grammatical categories and roots of a word in a form easy to
-  parse for humans. This crate provides the [`Gloss`][crate::gloss::Gloss] and
-  [`GlossStatic`][crate::gloss::GlossStatic] traits to allow all types in the
-  crate to be glossed.
-
-## Incomplete Goals
+  parse for humans. This crate provides the `Gloss` and `GlossStatic` traits to
+  allow all types in the crate to be glossed.
 
 - **To easily convert to and from romanized text.** The most prominent form of
-  Ithkuil text is in its romanization system, and this crate aims to have
-  first-class support for it with parsing and generation functions.
+  Ithkuil text is in its romanization system, and this crate has first-class
+  support for it with parsing and generation functions using the `FromTokens`
+  and `IntoTokens` traits.
+
+## Incomplete Goals
 
 - **To convert into Ithkuil script.** Natively, Ithkuil is written using a
   morphophonemic script. This crate aims to be able to generate representations

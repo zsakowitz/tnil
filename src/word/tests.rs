@@ -42,35 +42,36 @@ fn check(input_word: &str, expected_gloss: &str, expected_string: &str) -> Resul
 #[test]
 #[rustfmt::skip]
 fn parsing_and_glossing() -> Result<(), ParseError> {
-    // Formative tests
-    check("hliosulţe",     "T1-S2.N-s-lţ/9₁-ABS",              "hliosulţe")?;
-    check("ašflaleče",     "S1-šfl-č/3₁-ABS",                  "ašflaleče")?;
-    check("aesmlal",        "[2m+ma+1m]",                      "aesmlal")?;
-    check("holřäksa",      "T1-S0-lř-CTE-DSC",                 "holřäks")?;
-    check("açbala",        "S1-çb",                            "açbal")?;
-    check("ırburučpaızya", "S2.CPT-rb-DYN-G-čp/9₁-(acc:ACT)₂", "irburučpaizya")?;
-    check("second",        "S1-s-CSV-DSS-nd/7₁",               "second")?;
-    check("changed",       "S1-ch-MSC.GRA-d/3₁",               "changed")?;
-    check("alasa",         "S1-l-DPX",                         "lasa")?;
-    check("nomic",         "S1-n-DYN.CSV-N.RPV-c/4₁",          "nomic")?;
-    check("moved",         "S1-m-DYN.CSV-N-d/3₁",              "moved")?;
-    check("slot",          "S1-sl-DYN.CSV-MSS-OBS",            "slot")?;
-    check("psalaekpa",     "S1-ps-kp/0₁",                      "psalaekpa")?;
-    check("psakpaevv",     "S1-ps-kp/0₁-N",                    "psakpaevv")?;
-    check("oëtil",         "CPT.DYN-t/4-D4",                   "oëtil")?;
-    check("'oëtil",        "CPT.DYN-t/4-D4",                   "oëtil")?;
+    // ..("input word",    "expected gloss",                   "expected output")?;
+    // Formatives
+    check("hliosulţe",     "T1-S2.N-s-lţ/9₁-ABS",              "hliosulţe"      )?;
+    check("ašflaleče",     "S1-šfl-č/3₁-ABS",                  "ašflaleče"      )?;
+    check("aesmlal",       "[2m+ma+1m]",                       "aesmlal"        )?;
+    check("holřäksa",      "T1-S0-lř-CTE-DSC",                 "holřäks"        )?;
+    check("açbala",        "S1-çb",                            "açbal"          )?;
+    check("ırburučpaızya", "S2.CPT-rb-DYN-G-čp/9₁-(acc:ACT)₂", "irburučpaizya"  )?;
+    check("second",        "S1-s-CSV-DSS-nd/7₁",               "second"         )?;
+    check("changed",       "S1-ch-MSC.GRA-d/3₁",               "changed"        )?;
+    check("alasa",         "S1-l-DPX",                         "lasa"           )?;
+    check("nomic",         "S1-n-DYN.CSV-N.RPV-c/4₁",          "nomic"          )?;
+    check("moved",         "S1-m-DYN.CSV-N-d/3₁",              "moved"          )?;
+    check("slot",          "S1-sl-DYN.CSV-MSS-OBS",            "slot"           )?;
+    check("psalaekpa",     "S1-ps-kp/0₁",                      "psalaekpa"      )?;
+    check("psakpaevv",     "S1-ps-kp/0₁-N",                    "psakpaevv"      )?;
+    check("oëtil",         "CPT.DYN-t/4-D4",                   "oëtil"          )?;
+    check("'oëtil",        "CPT.DYN-t/4-D4",                   "oëtil"          )?;
     // Referentials
-    check("lo",            "1m-ERG",                           "lo")?;
-    check("la",            "1m",                               "la")?;
-    check("lawe",          "1m-THM-ABS",                       "lawe")?;
-    check("ëlawe",         "1m-THM-ABS",                       "lawe")?;
-    check("'ëlawe",        "1m-THM-ABS",                       "lawe")?;
-    check("ahňax",         "[PHR]-BSC",                        "ahňax")?;
-    check("ahňaxelta",      "[PHR]-BSC-lt/3₁",                 "ahňaxelt")?;
-    check("ahňaxeltüa",     "[PHR]-BSC-lt/3₁-THM",             "ahňaxeltüa")?;
+    check("lo",            "1m-ERG",                           "lo"             )?;
+    check("la",            "1m",                               "la"             )?;
+    check("lawe",          "1m-THM-ABS",                       "lawe"           )?;
+    check("ëlawe",         "1m-THM-ABS",                       "lawe"           )?;
+    check("'ëlawe",        "1m-THM-ABS",                       "lawe"           )?;
+    check("ahňax",         "[PHR]-BSC",                        "ahňax"          )?;
+    check("ahňaxelta",     "[PHR]-BSC-lt/3₁",                  "ahňaxelt"       )?;
+    check("ahňaxeltüa",    "[PHR]-BSC-lt/3₁-THM",              "ahňaxeltüa"     )?;
     // Affixual adjuncts
-    check("er",            "r/3₁",                             "er")?;
-    check("eru",           "r/3₁-{v.sub}",                     "eru")?;
+    check("er",            "r/3₁",                             "er"             )?;
+    check("eru",           "r/3₁-{v.sub}",                     "eru"            )?;
 
     Ok(())
 }
