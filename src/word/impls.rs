@@ -1,7 +1,7 @@
 use crate::prelude::{word::*, *};
 use std::str::FromStr;
 
-macro_rules! from_str_impl {
+macro_rules! impls {
     ($($ty:ty,)+) => {
         $(impl FromStr for $ty {
             type Err = ParseError;
@@ -9,11 +9,17 @@ macro_rules! from_str_impl {
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 Self::parse_str(s, FromTokenFlags::NONE)
             }
+        }
+
+        impl ToString for $ty {
+            fn to_string(&self) -> String {
+                self.to_string_with(IntoTokensFlags::NONE)
+            }
         })+
     };
 }
 
-from_str_impl!(
+impls!(
     Word,
     CheckedFormative,
     ShortcutCheckedFormative,

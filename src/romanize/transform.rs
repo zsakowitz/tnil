@@ -19,6 +19,8 @@
 //! and [`unstress_vowels`]) could definitely be implemented more efficiently. But it's good enough,
 //! and replacing text probably isn't the slow part of the program anyway.
 
+use std::fmt::Write;
+
 use super::stream::ParseError;
 use crate::{
     category::Stress,
@@ -365,4 +367,158 @@ pub fn tokenize(word: &str) -> Result<Vec<Token>, ParseError> {
     }
 
     Ok(tokens)
+}
+
+/// Converts a list of tokens into a string.
+pub fn tokens_to_string(tokens: &[Token]) -> String {
+    let mut output = String::new();
+    let final_index = match tokens.len().checked_sub(1) {
+        Some(value) => value,
+        _ => return output,
+    };
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            Token::C(value) => output += value,
+            Token::V(value) => output += value.as_str_after(&output, final_index == index),
+            Token::H(value) => output += value.as_str(),
+            Token::N(value) => write!(output, "{}", value.integer_part)
+                .expect("a Display implementation errored unexpectedly"),
+            Token::ÜA => output += "üa",
+            Token::Schwa => output += "ë",
+            Token::GlottalStop => output += "'",
+        }
+    }
+
+    output
+}
+
+/// Adds a stress marker to an unstressed word.
+///
+/// Returns [`None`] if it is not possible.
+pub fn add_stress(word: &str, stress: Stress) -> Option<String> {
+    let vowels_required = match stress {
+        Stress::Monosyllabic => 1,
+        Stress::Ultimate => 1,
+        Stress::Penultimate => 2,
+        Stress::Antepenultimate => 3,
+    };
+
+    let mut vowels_found = 0;
+    let mut char_list: Vec<char> = Vec::new();
+    let mut chars = word.chars().rev().peekable();
+
+    loop {
+        let char = chars.next()?;
+
+        match char {
+            'a' | 'ä' | 'e' | 'ë' | 'o' | 'ö' | 'ü' => {
+                vowels_found += 1;
+
+                if vowels_found == vowels_required {
+                    match stress {
+                        Stress::Monosyllabic => {
+                            if chars.any(|x| {
+                                matches!(x, 'a' | 'ä' | 'e' | 'ë' | 'i' | 'o' | 'ö' | 'u' | 'ü')
+                            }) {
+                                return None;
+                            } else {
+                                return Some(word.to_owned());
+                            }
+                        }
+
+                        Stress::Ultimate => {
+                            if !chars.any(|x| {
+                                matches!(x, 'a' | 'ä' | 'e' | 'ë' | 'i' | 'o' | 'ö' | 'u' | 'ü')
+                            }) {
+                                return Some(word.to_owned());
+                            }
+                        }
+
+                        Stress::Penultimate => return Some(word.to_owned()),
+
+                        Stress::Antepenultimate => {}
+                    }
+
+                    let mut output = chars.rev().collect::<String>();
+                    output.push(match char {
+                        'a' => 'á',
+                        'ä' => 'â',
+                        'e' => 'é',
+                        'ë' => 'ê',
+                        'o' => 'ó',
+                        'ö' => 'ô',
+                        'ü' => 'û',
+                        _ => unreachable!(),
+                    });
+                    for char in char_list.into_iter().rev() {
+                        output.push(char);
+                    }
+                    return Some(output);
+                } else {
+                    char_list.push(char);
+                }
+            }
+
+            'i' | 'u' => {
+                vowels_found += 1;
+
+                // We can't use `matches!()` here because rustfmt can't handle it.
+                let char = match chars.next_if(|next_char| match next_char {
+                    'a' | 'e' | 'ë' | 'i' | 'o' | 'u' if *next_char != char => true,
+                    _ => false,
+                }) {
+                    Some(next_char) => {
+                        char_list.push(char);
+                        next_char
+                    }
+                    None => char,
+                };
+
+                if vowels_found == vowels_required {
+                    match stress {
+                        Stress::Monosyllabic => {
+                            if chars.any(|x| {
+                                matches!(x, 'a' | 'ä' | 'e' | 'ë' | 'i' | 'o' | 'ö' | 'u' | 'ü')
+                            }) {
+                                return None;
+                            } else {
+                                return Some(word.to_owned());
+                            }
+                        }
+
+                        Stress::Ultimate => {
+                            if !chars.any(|x| {
+                                matches!(x, 'a' | 'ä' | 'e' | 'ë' | 'i' | 'o' | 'ö' | 'u' | 'ü')
+                            }) {
+                                return Some(word.to_owned());
+                            }
+                        }
+
+                        Stress::Penultimate => return Some(word.to_owned()),
+
+                        Stress::Antepenultimate => {}
+                    }
+
+                    let mut output = chars.rev().collect::<String>();
+                    output.push(match char {
+                        'a' => 'á',
+                        'e' => 'é',
+                        'ë' => 'ê',
+                        'i' => 'í',
+                        'o' => 'ó',
+                        'u' => 'ú',
+                        _ => unreachable!(),
+                    });
+                    for char in char_list.into_iter().rev() {
+                        output.push(char);
+                    }
+                    return Some(output);
+                } else {
+                    char_list.push(char);
+                }
+            }
+
+            _ => char_list.push(char),
+        }
+    }
 }

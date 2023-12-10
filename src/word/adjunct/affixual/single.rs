@@ -60,8 +60,8 @@ impl IntoTokens for SingleAffixAdjunct {
             list.push(vs);
         }
         list.set_stress(match self.mode {
-            AffixualAdjunctMode::Concatenated => Some(Stress::Ultimate),
-            AffixualAdjunctMode::Full => Some(Stress::Penultimate),
+            AffixualAdjunctMode::Concatenated => Stress::Ultimate,
+            AffixualAdjunctMode::Full => Stress::Penultimate,
         });
     }
 }

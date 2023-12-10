@@ -64,7 +64,7 @@ impl RegularAffix {
             "sw" | "zw" | "čw" | "šw" | "žw" | "jw" | "sy" | "zy" | "čy" | "šy" | "žy" | "jy" =>
             {
                 let mut vx = vx;
-                vx.has_glottal_stop = cs == "ly";
+                vx.has_glottal_stop = cs.ends_with("y");
                 let case = Case::from_vc(vx)?;
                 let mode = if cs.starts_with(['š', 'ž', 'j']) {
                     CaseAccessorMode::Inverse

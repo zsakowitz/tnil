@@ -167,7 +167,7 @@ impl IntoTokens for ModularAdjunct {
             Self::Aspect { mode, aspect } => {
                 list.append(&mode, flags);
                 list.push(aspect);
-                list.set_stress(Some(Stress::Penultimate));
+                list.set_stress(Stress::Penultimate);
             }
 
             Self::NonScoped {
@@ -183,7 +183,7 @@ impl IntoTokens for ModularAdjunct {
                     list.append(&VnCm { vn }, flags);
                 }
                 list.push(vn3);
-                list.set_stress(Some(Stress::Penultimate));
+                list.set_stress(Stress::Penultimate);
             }
 
             Self::Scoped {
@@ -199,7 +199,7 @@ impl IntoTokens for ModularAdjunct {
                     list.append(&VnCm { vn }, flags);
                 }
                 list.push(scope);
-                list.set_stress(Some(Stress::Ultimate));
+                list.set_stress(Stress::Ultimate);
             }
         }
     }

@@ -98,3 +98,20 @@ impl FromTokens for Word {
         }
     }
 }
+
+impl IntoTokens for Word {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+        match self {
+            Self::Formative(value) => value.append_to(list, flags),
+            Self::Referential(value) => value.append_to(list, flags),
+            Self::Affixual(value) => value.append_to(list, flags),
+            Self::Modular(value) => value.append_to(list, flags),
+            Self::MCS(value) => value.append_to(list, flags),
+            Self::Parsing(value) => value.append_to(list, flags),
+            Self::Register(value) => value.append_to(list, flags),
+            Self::Suppletive(value) => value.append_to(list, flags),
+            Self::Bias(value) => value.append_to(list, flags),
+            Self::Numeric(value) => value.append_to(list, flags),
+        }
+    }
+}

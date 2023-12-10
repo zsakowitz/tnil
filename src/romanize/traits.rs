@@ -78,6 +78,18 @@ pub trait FromTokens: Sized {
 pub trait IntoTokens {
     /// Appends `self` as a list of tokens into the passed [`TokenList`].
     fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags);
+
+    /// Creates a new [`TokenList`] from the tokens this item represents.
+    fn into_tokens(&self, flags: IntoTokensFlags) -> TokenList {
+        let mut list = TokenList::new();
+        self.append_to(&mut list, flags);
+        list
+    }
+
+    /// Creates a new string from the tokens this item represents.
+    fn to_string_with(&self, flags: IntoTokensFlags) -> String {
+        self.into_tokens(flags).to_string()
+    }
 }
 
 impl<T: IntoVowelForm> IntoToken for T {

@@ -251,10 +251,10 @@ macro_rules! into_tokens_impl {
                             $list.push(WYForm::W);
                             $list.push($second_case);
                         }
-                        $list.set_stress(Some(match $essence {
+                        $list.set_stress(match $essence {
                             Essence::NRM => Stress::Penultimate,
                             Essence::RPV => Stress::Ultimate,
-                        }));
+                        });
                     }
 
                     Self::Dual {
@@ -274,10 +274,10 @@ macro_rules! into_tokens_impl {
                         if should_add_schwa {
                             $list.push(Schwa);
                         }
-                        $list.set_stress(Some(match $essence {
+                        $list.set_stress(match $essence {
                             Essence::NRM => Stress::Penultimate,
                             Essence::RPV => Stress::Ultimate,
-                        }));
+                        });
                     }
 
                     Self::Combination {
@@ -320,10 +320,10 @@ macro_rules! into_tokens_impl {
                         {
                             $list.push(VowelForm::default());
                         }
-                        $list.set_stress(Some(match $essence {
+                        $list.set_stress(match $essence {
                             Essence::NRM => Stress::Penultimate,
                             Essence::RPV => Stress::Ultimate,
-                        }));
+                        });
                     }
                 }
             }

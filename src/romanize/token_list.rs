@@ -5,7 +5,9 @@ use super::{
     stream::{ParseError, TokenStream},
     token::Token,
     traits::{IntoToken, IntoTokens},
-    transform::{detect_stress, normalize, tokenize, unstress_vowels},
+    transform::{
+        add_stress, detect_stress, normalize, tokenize, tokens_to_string, unstress_vowels,
+    },
 };
 use crate::category::Stress;
 use std::str::FromStr;
@@ -51,8 +53,8 @@ impl TokenList {
     }
 
     /// Modifies the stress of `self`.
-    pub fn set_stress(&mut self, stress: Option<Stress>) {
-        self.stress = stress;
+    pub fn set_stress(&mut self, stress: Stress) {
+        self.stress = Some(stress);
     }
 }
 
@@ -65,5 +67,15 @@ impl FromStr for TokenList {
         let source = unstress_vowels(&source);
         let tokens = tokenize(&source)?;
         Ok(TokenList { tokens, stress })
+    }
+}
+
+impl ToString for TokenList {
+    fn to_string(&self) -> String {
+        let word = tokens_to_string(&self.tokens);
+        if let Some(stress) = self.stress {
+            return add_stress(&word, stress).unwrap_or(word);
+        }
+        return word;
     }
 }

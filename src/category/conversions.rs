@@ -12,6 +12,7 @@ use super::{
     VowelFormSequence,
 };
 use crate::{
+    ca,
     romanize::{stream::ParseError, token::VowelForm},
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
 };
@@ -1015,69 +1016,14 @@ impl TryAsSpecific<NonDefaultCaseScope> for CaseScope {
 impl AsGeneral<Ca> for NormalCaShortcut {
     fn as_general(self) -> Ca {
         match self {
-            Self::Default => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::M,
-                essence: Essence::NRM,
-            },
-
-            Self::PRX => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::PRX,
-                perspective: Perspective::M,
-                essence: Essence::NRM,
-            },
-
-            Self::G => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::G,
-                essence: Essence::NRM,
-            },
-
-            Self::RPV => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::M,
-                essence: Essence::RPV,
-            },
-
-            Self::N => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::N,
-                essence: Essence::NRM,
-            },
-
-            Self::A => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::A,
-                essence: Essence::NRM,
-            },
-
-            Self::G_RPV => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::G,
-                essence: Essence::RPV,
-            },
-
-            Self::PRX_RPV => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::PRX,
-                perspective: Perspective::M,
-                essence: Essence::RPV,
-            },
+            Self::Default => ca!(),
+            Self::PRX => ca!(PRX),
+            Self::G => ca!(G),
+            Self::RPV => ca!(RPV),
+            Self::N => ca!(N),
+            Self::A => ca!(A),
+            Self::G_RPV => ca!(G, RPV),
+            Self::PRX_RPV => ca!(PRX, RPV),
         }
     }
 }
@@ -1163,21 +1109,8 @@ impl TryAsSpecific<NormalCaShortcut> for Ca {
 impl AsGeneral<Ca> for ReferentialCaShortcut {
     fn as_general(self) -> Ca {
         match self {
-            Self::Default => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::DEL,
-                perspective: Perspective::M,
-                essence: Essence::NRM,
-            },
-
-            Self::PRX => Ca {
-                affiliation: Affiliation::CSL,
-                configuration: Configuration::UPX,
-                extension: Extension::PRX,
-                perspective: Perspective::M,
-                essence: Essence::NRM,
-            },
+            Self::Default => ca!(),
+            Self::PRX => ca!(PRX),
         }
     }
 }

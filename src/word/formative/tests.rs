@@ -7,8 +7,9 @@ use crate::{
         Valence, Version, Vn,
     },
     gloss::{Gloss, GlossFlags},
+    prelude::{IntoTokens, IntoTokensFlags},
     relation,
-    romanize::stream::ParseError,
+    romanize::{stream::ParseError, transform::normalize},
     word::{
         formative::{
             additions::{
@@ -19,7 +20,7 @@ use crate::{
             relation::NormalRelation,
             root::{NormalFormativeRoot, ShortcutCheckedFormativeRoot},
         },
-        CheckedFormative, ShortcutCheckedFormative,
+        CheckedFormative, ShortcutCheckedFormative, UncheckedFormative,
     },
 };
 
@@ -147,18 +148,25 @@ fn parse_and_gloss() -> Result<(), ParseError> {
         let formative: CheckedFormative = source.parse()?;
         assert_eq!(formative.gloss(GlossFlags::NONE), gloss);
 
+        let formative: UncheckedFormative = source.parse()?;
+        assert_eq!(formative.gloss(GlossFlags::NONE), gloss);
+        assert_eq!(
+            formative.to_string_with(IntoTokensFlags::NONE),
+            normalize(source)
+        );
+
         Ok(())
     }
 
     check("hliosulţe", "T1-S2.N-s-lţ/9₁-ABS")?;
     check("ašflaleče", "S1-šfl-č/3₁-ABS")?;
     check("aesmlal", "[2m+ma+1m]")?;
-    check("holřäksa", "T1-S0-lř-CTE-DSC")?;
-    check("açbala", "S1-çb")?;
+    check("holřäks", "T1-S0-lř-CTE-DSC")?;
+    check("açbal", "S1-çb")?;
     check("ırburučpaızya", "S2.CPT-rb-DYN-G-čp/9₁-(acc:ACT)₂")?;
     check("second", "S1-s-CSV-DSS-nd/7₁")?;
     check("changed", "S1-ch-MSC.GRA-d/3₁")?;
-    check("alasa", "S1-l-DPX")?;
+    check("las", "S1-l-DPX-OBS")?;
     check("nomic", "S1-n-DYN.CSV-N.RPV-c/4₁")?;
     check("moved", "S1-m-DYN.CSV-N-d/3₁")?;
     check("slot", "S1-sl-DYN.CSV-MSS-OBS")?;

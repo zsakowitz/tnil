@@ -1,21 +1,18 @@
 use crate::{
     affix::AffixList,
-    ca,
+    ca, ca_pat,
     category::{
         AffixShortcut, ArbitraryMoodOrCaseScope, Ca, Case, Context, DatalessRelation, Function,
         HFormDegree, HFormSequence, IllocutionOrValidation, Mood, NominalMode, NormalCaShortcut,
         ShortcutType, Specification, Stem, Stress, Valence, Version, Vn, VowelFormDegree,
         VowelFormSequence,
     },
-    gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
-    prelude::{IntoTokens, IntoTokensFlags, TokenList},
+    prelude::*,
     romanize::{
-        flags::FromTokenFlags,
-        stream::{ParseError, TokenStream},
+        segment::VnCnWithGlottalStop,
+        stream::TokenStream,
         token::{HForm, NumeralForm, OwnedConsonantForm, Token, VowelForm},
-        traits::FromTokens,
     },
-    specificity::{AsGeneral, AsSpecific, TryAsSpecific},
     word::formative::{
         additions::{
             AffixualFormativeAdditions, NormalCaShortcutAdditions, NormalCnShortcutAdditions,
@@ -1855,9 +1852,357 @@ impl FromTokens for UncheckedFormative {
     }
 }
 
+impl IntoTokens for CheckedFormative {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+        let unchecked: UncheckedFormative = self.clone().as_general();
+        unchecked.append_to(list, flags)
+    }
+}
+
+impl IntoTokens for ShortcutCheckedFormative {
+    fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
+        self.clone().as_general().append_to(list, flags)
+    }
+}
+
 impl IntoTokens for UncheckedFormative {
     fn append_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
         // The implementation here is guaranteed to work on properly constructed formatives and will
         // likely fail for everything else. It's _not intended_ to handle edge cases.
+
+        let ca_shortcut_mode = match self.shortcut {
+            ShortcutType::Ca => match self.ca {
+                ca_pat!(PRX) | ca_pat!(RPV) | ca_pat!(A) | ca_pat!(PRX, RPV) => Some(true),
+                _ => Some(false),
+            },
+            _ => None,
+        };
+
+        let cc = match self.relation {
+            DatalessRelation::T1 => match ca_shortcut_mode {
+                None => Some(HForm::H),
+                Some(false) => Some(HForm::HL),
+                Some(true) => Some(HForm::HM),
+            },
+            DatalessRelation::T2 => match ca_shortcut_mode {
+                None => Some(HForm::HW),
+                Some(false) => Some(HForm::HR),
+                Some(true) => Some(HForm::HN),
+            },
+            _ => match ca_shortcut_mode {
+                None => None,
+                Some(false) => Some(HForm::W),
+                Some(true) => Some(HForm::Y),
+            },
+        };
+
+        if let Some(cc) = cc {
+            list.push(cc);
+        }
+
+        let does_vv_need_glottal_stop = self.slot_v_affixes.len() >= 2;
+
+        let mut vc = self.vc.into_vowel_form();
+
+        if matches!(self.relation, DatalessRelation::T1 | DatalessRelation::T2) {
+            if vc.has_glottal_stop {
+                vc.has_glottal_stop = false;
+                list.set_stress(Stress::Ultimate);
+            } else {
+                list.set_stress(Stress::Penultimate);
+            }
+        }
+
+        let vv = match self.root {
+            ShortcutCheckedFormativeRoot::Affixual(_) => VowelForm {
+                has_glottal_stop: does_vv_need_glottal_stop,
+                sequence: match (self.version, self.function) {
+                    (Version::PRC, Function::STA) => VowelFormSequence::S1,
+                    (Version::CPT, Function::STA) => VowelFormSequence::S2,
+                    (Version::PRC, Function::DYN) => VowelFormSequence::S3,
+                    (Version::CPT, Function::DYN) => VowelFormSequence::S4,
+                },
+                degree: VowelFormDegree::D5,
+            },
+            ShortcutCheckedFormativeRoot::Referential(_) => VowelForm {
+                has_glottal_stop: does_vv_need_glottal_stop,
+                sequence: match self.version {
+                    Version::PRC => VowelFormSequence::S1,
+                    Version::CPT => VowelFormSequence::S2,
+                },
+                degree: VowelFormDegree::D0,
+            },
+            _ => VowelForm {
+                has_glottal_stop: does_vv_need_glottal_stop,
+                sequence: if ca_shortcut_mode.is_some() {
+                    match self.ca {
+                        ca_pat!(G) | ca_pat!(RPV) => VowelFormSequence::S2,
+                        ca_pat!(N) | ca_pat!(A) => VowelFormSequence::S3,
+                        ca_pat!(G, RPV) | ca_pat!(PRX, RPV) => VowelFormSequence::S4,
+                        _ => VowelFormSequence::S1,
+                    }
+                } else {
+                    match self.affix_shortcut {
+                        AffixShortcut::None => VowelFormSequence::S1,
+                        AffixShortcut::NEG4 => VowelFormSequence::S2,
+                        AffixShortcut::DCD4 => VowelFormSequence::S3,
+                        AffixShortcut::DCD5 => VowelFormSequence::S4,
+                    }
+                },
+                degree: match (self.stem, self.version) {
+                    (Stem::S1, Version::PRC) => VowelFormDegree::D1,
+                    (Stem::S1, Version::CPT) => VowelFormDegree::D2,
+                    (Stem::S2, Version::PRC) => VowelFormDegree::D3,
+                    (Stem::S2, Version::CPT) => VowelFormDegree::D4,
+                    (Stem::S0, Version::CPT) => VowelFormDegree::D6,
+                    (Stem::S0, Version::PRC) => VowelFormDegree::D7,
+                    (Stem::S3, Version::CPT) => VowelFormDegree::D8,
+                    (Stem::S3, Version::PRC) => VowelFormDegree::D9,
+                },
+            },
+        };
+
+        let cr = match &self.root {
+            ShortcutCheckedFormativeRoot::Normal(cr) => Token::C(cr.cr.clone()),
+            ShortcutCheckedFormativeRoot::Numeric(nr) => Token::N(NumeralForm {
+                integer_part: nr.integer_part,
+            }),
+            ShortcutCheckedFormativeRoot::Affixual(cs) => {
+                Token::C(OwnedConsonantForm(cs.cs.clone()))
+            }
+            ShortcutCheckedFormativeRoot::Referential(referents) => {
+                Token::C(OwnedConsonantForm(referents.referents.to_string()))
+            }
+        };
+
+        let mut vowel_forms_pushed = 0;
+
+        // Ca shortcut: (Vv) Cr Vr (VxCs... ') (VxCs...) (VnCn) (Vc/Vk)
+
+        if vv == VowelForm::default()
+            && cc.is_none()
+            && !flags.matches(IntoTokensFlags::WORD_INITIAL_VOWEL)
+            && cr.is_valid_word_initial()
+        {
+            // Vr is always present if Cc is absent, so we count that.
+            // We'll also count Vc/Vk, because we prefer that over using Vv.
+            let mut vowel_forms = 2 + self.slot_v_affixes.len() + self.slot_vii_affixes.len();
+            if self.shortcut != ShortcutType::Cn {
+                if self.cn != Default::default() || self.vn != Default::default() {
+                    vowel_forms += 1;
+                }
+            }
+            // We only push a default Vv if we absolutely need it.
+            if self.relation == DatalessRelation::FRM && vowel_forms == 2 {
+                list.push(vv);
+                vowel_forms_pushed += 1;
+            }
+        } else {
+            list.push(vv);
+            vowel_forms_pushed += 1;
+        }
+
+        let mut has_valid_word_final = cr.is_valid_word_final();
+
+        list.push(cr);
+
+        let vr = if ca_shortcut_mode.is_some() {
+            None
+        } else {
+            match &self.root {
+                ShortcutCheckedFormativeRoot::Affixual(data) => Some(VowelForm {
+                    has_glottal_stop: false,
+                    sequence: match self.context {
+                        Context::EXS => VowelFormSequence::S1,
+                        Context::FNC => VowelFormSequence::S2,
+                        Context::RPS => VowelFormSequence::S3,
+                        Context::AMG => VowelFormSequence::S4,
+                    },
+                    degree: data.degree.into(),
+                }),
+                _ => Some(VowelForm {
+                    has_glottal_stop: false,
+                    sequence: match self.context {
+                        Context::EXS => VowelFormSequence::S1,
+                        Context::FNC => VowelFormSequence::S2,
+                        Context::RPS => VowelFormSequence::S3,
+                        Context::AMG => VowelFormSequence::S4,
+                    },
+                    degree: match (self.function, self.specification) {
+                        (Function::STA, Specification::BSC) => VowelFormDegree::D1,
+                        (Function::STA, Specification::CTE) => VowelFormDegree::D2,
+                        (Function::STA, Specification::CSV) => VowelFormDegree::D3,
+                        (Function::STA, Specification::OBJ) => VowelFormDegree::D4,
+                        (Function::DYN, Specification::OBJ) => VowelFormDegree::D6,
+                        (Function::DYN, Specification::CSV) => VowelFormDegree::D7,
+                        (Function::DYN, Specification::CTE) => VowelFormDegree::D8,
+                        (Function::DYN, Specification::BSC) => VowelFormDegree::D9,
+                    },
+                }),
+            }
+        };
+
+        if let Some(mut vr) = vr {
+            if vc.has_glottal_stop && flags.matches(IntoTokensFlags::MOVE_VC_GLOTTAL_STOP) {
+                vr.has_glottal_stop = true;
+                vc.has_glottal_stop = false;
+            }
+
+            list.push(vr);
+            vowel_forms_pushed += 1;
+        }
+
+        if ca_shortcut_mode.is_some() {
+            match &self.slot_v_affixes {
+                AffixList::AppositiveReferential(affix) => {
+                    let (mut vx, cs) = affix.into_vx_cs();
+                    vx.has_glottal_stop = true;
+                    list.push(vx);
+                    vowel_forms_pushed += 1;
+                    has_valid_word_final = cs.is_valid_word_final();
+                    list.push(cs);
+                }
+                AffixList::Normal(affixes) => {
+                    let final_affix_index = affixes.len();
+                    for (index, affix) in affixes.iter().enumerate() {
+                        let (mut vx, cs) = affix.into_vx_cs();
+                        if index + 1 == final_affix_index {
+                            vx.has_glottal_stop = true;
+                        }
+                        list.push(vx);
+                        vowel_forms_pushed += 1;
+                        has_valid_word_final = cs.is_valid_word_final();
+                        list.push(cs);
+                    }
+                }
+            }
+        } else {
+            match &self.slot_v_affixes {
+                AffixList::AppositiveReferential(affix) => {
+                    let (vx, cs) = affix.into_vx_cs();
+                    list.push(cs);
+                    list.push(vx);
+                    vowel_forms_pushed += 1;
+                }
+                AffixList::Normal(affixes) => {
+                    for affix in affixes {
+                        let (vx, cs) = affix.into_vx_cs();
+                        list.push(cs);
+                        list.push(vx);
+                        vowel_forms_pushed += 1;
+                    }
+                }
+            }
+        }
+
+        match self.shortcut {
+            ShortcutType::Normal => list.push(Token::C({
+                let ca = OwnedConsonantForm(self.ca.to_string(self.slot_v_affixes.len() > 0));
+                has_valid_word_final = ca.is_valid_word_final();
+                ca
+            })),
+            ShortcutType::Ca => {}
+            ShortcutType::Cn => {
+                list.push(Token::H(HForm {
+                    sequence: HFormSequence::S0,
+                    degree: match self.cn {
+                        ArbitraryMoodOrCaseScope::FAC_CCN => HFormDegree::D1,
+                        ArbitraryMoodOrCaseScope::SUB_CCA => HFormDegree::D2,
+                        ArbitraryMoodOrCaseScope::ASM_CCS => HFormDegree::D3,
+                        ArbitraryMoodOrCaseScope::SPC_CCQ => HFormDegree::D4,
+                        ArbitraryMoodOrCaseScope::COU_CCP => HFormDegree::D5,
+                        ArbitraryMoodOrCaseScope::HYP_CCV => HFormDegree::D6,
+                    },
+                }));
+                has_valid_word_final = false;
+            }
+        }
+
+        match &self.slot_vii_affixes {
+            AffixList::AppositiveReferential(affix) => {
+                let (vx, cs) = affix.into_vx_cs();
+                list.push(vx);
+                vowel_forms_pushed += 1;
+                has_valid_word_final = cs.is_valid_word_final();
+                list.push(cs);
+            }
+            AffixList::Normal(affixes) => {
+                for affix in affixes {
+                    let (vx, cs) = affix.into_vx_cs();
+                    list.push(vx);
+                    vowel_forms_pushed += 1;
+                    has_valid_word_final = cs.is_valid_word_final();
+                    list.push(cs);
+                }
+            }
+        }
+
+        match self.shortcut {
+            ShortcutType::Cn => {}
+            _ => {
+                if self.cn != Default::default()
+                    || self.vn != Default::default()
+                    || (self.relation == DatalessRelation::FRM && vowel_forms_pushed == 1)
+                {
+                    let vncn = VnCnWithGlottalStop {
+                        vn: self.vn,
+                        has_glottal_stop: if vc.has_glottal_stop
+                            && flags.matches(IntoTokensFlags::MOVE_VC_GLOTTAL_STOP)
+                        {
+                            vc.has_glottal_stop = false;
+                            true
+                        } else {
+                            false
+                        },
+                        cn: self.cn,
+                    };
+
+                    list.append(&vncn, flags);
+                    has_valid_word_final = false;
+                    vowel_forms_pushed += 1;
+                }
+            }
+        }
+
+        if has_valid_word_final && !flags.matches(IntoTokensFlags::WORD_FINAL_VOWEL) {
+            match vc {
+                // THM can be elided if we have a non-monosyllabic word.
+                VowelForm {
+                    has_glottal_stop: false,
+                    sequence: VowelFormSequence::S1,
+                    degree: VowelFormDegree::D1,
+                } => {
+                    let required_vowel_forms = match self.relation {
+                        DatalessRelation::VRB => 1,
+                        DatalessRelation::FRM => 3,
+                        _ => 2,
+                    };
+
+                    if vowel_forms_pushed < required_vowel_forms {
+                        list.push(vc);
+                    }
+                }
+
+                // PRN can be elided if we have a monosyllabic word.
+                VowelForm {
+                    has_glottal_stop: true,
+                    sequence: VowelFormSequence::S1,
+                    degree: VowelFormDegree::D1,
+                } if vowel_forms_pushed == 1 && self.relation == DatalessRelation::VRB => {}
+
+                _ => list.push(vc),
+            }
+        } else {
+            list.push(vc);
+        }
+
+        match self.relation {
+            DatalessRelation::NOM => list.set_stress(Stress::Penultimate),
+            DatalessRelation::VRB => list.set_stress(Stress::Ultimate),
+            DatalessRelation::FRM => list.set_stress(Stress::Antepenultimate),
+            DatalessRelation::T1 | DatalessRelation::T2 => {
+                // We already set stress for concatenated formatives.
+            }
+        }
     }
 }

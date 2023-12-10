@@ -219,10 +219,10 @@ impl IntoVowelForm for Case {
         VowelForm {
             has_glottal_stop: value >= 36,
             sequence: match value / 9 {
-                0 => VowelFormSequence::S1,
-                1 => VowelFormSequence::S2,
-                2 => VowelFormSequence::S3,
-                3 => VowelFormSequence::S4,
+                0 | 4 => VowelFormSequence::S1,
+                1 | 5 => VowelFormSequence::S2,
+                2 | 6 => VowelFormSequence::S3,
+                3 | 7 => VowelFormSequence::S4,
                 _ => unreachable!(),
             },
             degree: match value % 9 {

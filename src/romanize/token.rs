@@ -118,6 +118,7 @@ impl Token {
         match self {
             Self::C(cs) => cs.is_valid_word_final(),
             Self::N(NumeralForm { integer_part }) => *integer_part < 16,
+            Self::H(_) => false,
             _ => true,
         }
     }
@@ -156,6 +157,150 @@ impl VowelForm {
             Ok(())
         }
     }
+
+    /// Gets the string associated with a vowel form.
+    pub fn as_str_after(&self, string_before: &str, is_word_final: bool) -> &'static str {
+        let data = if string_before.ends_with("w") {
+            if self.has_glottal_stop {
+                if is_word_final {
+                    vowel_sequence::AFTER_W_WORD_FINAL_GLOTTAL_STOP
+                } else {
+                    vowel_sequence::AFTER_W_GLOTTAL_STOP
+                }
+            } else {
+                vowel_sequence::AFTER_W
+            }
+        } else if string_before.ends_with("y") {
+            if self.has_glottal_stop {
+                if is_word_final {
+                    vowel_sequence::AFTER_Y_WORD_FINAL_GLOTTAL_STOP
+                } else {
+                    vowel_sequence::AFTER_Y_GLOTTAL_STOP
+                }
+            } else {
+                vowel_sequence::AFTER_Y
+            }
+        } else {
+            if self.has_glottal_stop {
+                if is_word_final {
+                    vowel_sequence::STANDARD_WORD_FINAL_GLOTTAL_STOP
+                } else {
+                    vowel_sequence::STANDARD_GLOTTAL_STOP
+                }
+            } else {
+                vowel_sequence::STANDARD
+            }
+        };
+
+        data[self.sequence as usize][self.degree as usize]
+    }
+}
+
+mod vowel_sequence {
+    pub const STANDARD: [[&str; 10]; 4] = [
+        ["ae", "a", "ä", "e", "i", "ëi", "ö", "o", "ü", "u"],
+        ["ea", "ai", "au", "ei", "eu", "ëu", "ou", "oi", "iu", "ui"],
+        ["üo", "ia", "ie", "io", "iö", "eë", "uö", "uo", "ue", "ua"],
+        ["üö", "ao", "aö", "eo", "ëo", "oë", "öe", "oe", "öa", "oa"],
+    ];
+
+    pub const AFTER_W: [[&str; 10]; 4] = [
+        ["ae", "a", "ä", "e", "i", "ëi", "ö", "o", "ü", "u"],
+        ["ea", "ai", "au", "ei", "eu", "ëu", "ou", "oi", "iu", "ui"],
+        ["üo", "ia", "ie", "io", "iö", "eë", "öë", "öä", "ië", "iä"],
+        ["üö", "ao", "aö", "eo", "ëo", "oë", "öe", "oe", "öa", "oa"],
+    ];
+
+    pub const AFTER_Y: [[&str; 10]; 4] = [
+        ["ae", "a", "ä", "e", "i", "ëi", "ö", "o", "ü", "u"],
+        ["ea", "ai", "au", "ei", "eu", "ëu", "ou", "oi", "iu", "ui"],
+        ["üo", "uä", "uë", "üä", "üë", "eë", "uö", "uo", "ue", "ua"],
+        ["üö", "ao", "aö", "eo", "ëo", "oë", "öe", "oe", "öa", "oa"],
+    ];
+
+    pub const STANDARD_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        ["a'e", "a'", "ä'", "e'", "i'", "ëi'", "ö'", "o'", "ü'", "u'"],
+        [
+            "e'a", "ai'", "au'", "ei'", "eu'", "ëu'", "ou'", "oi'", "iu'", "ui'",
+        ],
+        [
+            "ü'o", "i'a", "i'e", "i'o", "i'ö", "e'ë", "u'ö", "u'o", "u'e", "u'a",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
+
+    pub const AFTER_W_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        ["a'e", "a'", "ä'", "e'", "i'", "ëi'", "ö'", "o'", "ü'", "u'"],
+        [
+            "e'a", "ai'", "au'", "ei'", "eu'", "ëu'", "ou'", "oi'", "iu'", "ui'",
+        ],
+        [
+            "ü'o", "i'a", "i'e", "i'o", "i'ö", "e'ë", "ö'ë", "ö'ä", "i'ë", "i'ä",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
+
+    pub const AFTER_Y_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        ["a'e", "a'", "ä'", "e'", "i'", "ëi'", "ö'", "o'", "ü'", "u'"],
+        [
+            "e'a", "ai'", "au'", "ei'", "eu'", "ëu'", "ou'", "oi'", "iu'", "ui'",
+        ],
+        [
+            "ü'o", "u'ä", "u'ë", "ü'ä", "ü'ë", "e'ë", "u'ö", "u'o", "u'e", "u'a",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
+
+    pub const STANDARD_WORD_FINAL_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        [
+            "a'e", "a'a", "ä'ä", "e'e", "i'i", "ë'i", "ö'ö", "o'o", "ü'ü", "u'u",
+        ],
+        [
+            "e'a", "a'i", "a'u", "e'i", "e'u", "ë'u", "o'u", "o'i", "i'u", "u'i",
+        ],
+        [
+            "ü'o", "i'a", "i'e", "i'o", "i'ö", "e'ë", "u'ö", "u'o", "u'e", "u'a",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
+
+    pub const AFTER_W_WORD_FINAL_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        [
+            "a'e", "a'a", "ä'ä", "e'e", "i'i", "ë'i", "ö'ö", "o'o", "ü'ü", "u'u",
+        ],
+        [
+            "e'a", "a'i", "a'u", "e'i", "e'u", "ë'u", "o'u", "o'i", "i'u", "u'i",
+        ],
+        [
+            "ü'o", "i'a", "i'e", "i'o", "i'ö", "e'ë", "ö'ë", "ö'ä", "i'ë", "i'ä",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
+
+    pub const AFTER_Y_WORD_FINAL_GLOTTAL_STOP: [[&str; 10]; 4] = [
+        [
+            "a'e", "a'a", "ä'ä", "e'e", "i'i", "ë'i", "ö'ö", "o'o", "ü'ü", "u'u",
+        ],
+        [
+            "e'a", "a'i", "a'u", "e'i", "e'u", "ë'u", "o'u", "o'i", "i'u", "u'i",
+        ],
+        [
+            "ü'o", "u'ä", "u'ë", "ü'ä", "ü'ë", "e'ë", "u'ö", "u'o", "u'e", "u'a",
+        ],
+        [
+            "ü'ö", "a'o", "a'ö", "e'o", "ë'o", "o'ë", "ö'e", "o'e", "ö'a", "o'a",
+        ],
+    ];
 }
 
 impl FromStr for VowelForm {
@@ -351,12 +496,6 @@ impl HForm {
         degree: HFormDegree::D1,
     };
 
-    /// The h-form "y".
-    pub const Y: Self = Self {
-        sequence: HFormSequence::SY,
-        degree: HFormDegree::D1,
-    };
-
     /// The h-form "hw".
     pub const HW: Self = Self {
         sequence: HFormSequence::SW,
@@ -386,4 +525,59 @@ impl HForm {
         sequence: HFormSequence::SW,
         degree: HFormDegree::D6,
     };
+
+    /// The h-form "y".
+    pub const Y: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D1,
+    };
+
+    /// An alternate form of the h-form "hw".
+    pub const HW_ALT: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D2,
+    };
+
+    /// An alternate form of the h-form "hrw".
+    pub const HRW_ALT: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D3,
+    };
+
+    /// An alternate form of the h-form "hmw".
+    pub const HMW_ALT: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D4,
+    };
+
+    /// An alternate form of the h-form "hnw".
+    pub const HNW_ALT: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D5,
+    };
+
+    /// An alternate form of the h-form "hňw".
+    pub const HŇW_ALT: Self = Self {
+        sequence: HFormSequence::SY,
+        degree: HFormDegree::D6,
+    };
+
+    /// Gets the string form associated with this h-form.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            HForm::H => "h",
+            HForm::HL => "hl",
+            HForm::HR => "hr",
+            HForm::HM => "hm",
+            HForm::HN => "hn",
+            HForm::HŇ => "hň",
+            HForm::W => "w",
+            HForm::Y => "y",
+            HForm::HW | HForm::HW_ALT => "hw",
+            HForm::HRW | HForm::HRW_ALT => "hrw",
+            HForm::HMW | HForm::HMW_ALT => "hmw",
+            HForm::HNW | HForm::HNW_ALT => "hnw",
+            HForm::HŇW | HForm::HŇW_ALT => "hňw",
+        }
+    }
 }
