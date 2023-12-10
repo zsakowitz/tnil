@@ -1,5 +1,5 @@
-//! Implements [`TokenType`] and [`FromTokens`] for many types, and provides wrappers on sequences
-//! of types (such as a VnCn pair) to aid with parsing them.
+//! Implements traits for conversion from and into tokens for many types, and provides wrappers on
+//! sequences of types (such as a VnCn pair) to aid with parsing them.
 
 use super::{
     flags::{FromTokenFlags, IntoTokensFlags},

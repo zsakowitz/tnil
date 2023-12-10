@@ -36,8 +36,9 @@
 //!    include relations.
 //!
 //! To mitigate this nesting problem, this crate uses generics extensively to avoid code duplication
-//! and an explosion of types, and includes an enum named [`CheckedFormative`] which represents all
-//! possible formative types (normal, numeric, referential, and affixual).
+//! and an explosion of types, and includes an enum named
+//! [`CheckedFormative`][formative::CheckedFormative] which represents all possible formative types
+//! (normal, numeric, referential, and affixual).
 
 pub mod additions;
 pub mod core;

@@ -30,7 +30,7 @@ impl<'a> TokenStream<'a> {
         self.start >= self.end
     }
 
-    /// Gets the stress of the corresponding [`TokenList`].
+    /// Gets the stress of this [`TokenStream`].
     #[must_use]
     pub const fn stress(&self) -> Option<Stress> {
         self.stress

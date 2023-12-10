@@ -17,7 +17,7 @@ pub struct NormalFormativeRoot {
 }
 
 impl NormalFormativeRoot {
-    /// Creates a new [`NormalRoot`] from a Cr form.
+    /// Creates a new [`NormalFormativeRoot`] from a Cr form.
     pub fn new(cr: impl Into<String>) -> Self {
         Self {
             cr: OwnedConsonantForm(cr.into()),
@@ -48,7 +48,7 @@ pub struct NumericFormativeRoot {
 }
 
 impl NumericFormativeRoot {
-    /// Creates a new [`NumericRoot`] from an integer part.
+    /// Creates a new [`NumericFormativeRoot`] from an integer part.
     pub const fn new(integer_part: u64) -> Self {
         NumericFormativeRoot { integer_part }
     }
