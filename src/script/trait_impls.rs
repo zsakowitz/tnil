@@ -969,6 +969,7 @@ mod tests {
             assert_eq!(encoded.0, expected_encoded, "word was {source}");
         }
 
-        check("lo", "|_kl^ä");
+        check("lo", r#"|_kl^ä"#);
+        check("luxar", r#"\l'^ar'_a|_m"#);
     }
 }
