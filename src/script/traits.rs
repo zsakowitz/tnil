@@ -31,6 +31,15 @@ pub trait IntoScript {
     }
 }
 
+/// Allows script characters to be converted into a type.
+pub trait ScriptRepr {
+    /// Represents a character in this script format.
+    fn from_char(char: Character) -> Self;
+
+    /// Represents a set of characters in this script format.
+    fn from_chars(chars: &[Character]) -> Self;
+}
+
 impl<T: IntoSecondary> IntoCharacter for T {
     fn into_character(self) -> Character {
         Character::Secondary(self.into_secondary())

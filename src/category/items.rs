@@ -293,30 +293,29 @@ category!(
     (VAR, "Variative", "variative"),
 );
 
-#[rustfmt::skip]
-category!(
+category! {
     Configuration,
-    (UPX, "Uniplex", "uniplex"),
-    (MSS, "Multiplex Similar Separate", "multiplex_similar_separate"),
-    (MSC, "Multiplex Similar Connected", "multiplex_similar_connected"),
-    (MSF, "Multiplex Similar Fused", "multiplex_similar_fused"),
-    (MDS, "Multiplex Dissimilar Separate", "multiplex_dissimilar_separate"),
+    (UPX, "Uniplex",                        "uniplex"                       ),
+    (MSS, "Multiplex Similar Separate",     "multiplex_similar_separate"    ),
+    (MSC, "Multiplex Similar Connected",    "multiplex_similar_connected"   ),
+    (MSF, "Multiplex Similar Fused",        "multiplex_similar_fused"       ),
+    (MDS, "Multiplex Dissimilar Separate",  "multiplex_dissimilar_separate" ),
     (MDC, "Multiplex Dissimilar Connected", "multiplex_dissimilar_connected"),
-    (MDF, "Multiplex Dissimilar Fused", "multiplex_dissimilar_fused"),
-    (MFS, "Multiplex Fuzzy Separate", "multiplex_fuzzy_separate"),
-    (MFC, "Multiplex Fuzzy Connected", "multiplex_fuzzy_connected"),
-    (MFF, "Multiplex Fuzzy Fused", "multiplex_fuzzy_fused"),
-    (DPX, "Duplex", "duplex"),
-    (DSS, "Duplex Similar Separate", "duplex_similar_separate"),
-    (DSC, "Duplex Similar Connected", "duplex_similar_connected"),
-    (DSF, "Duplex Similar Fused", "duplex_similar_fused"),
-    (DDS, "Duplex Dissimilar Separate", "duplex_dissimilar_separate"),
-    (DDC, "Duplex Dissimilar Connected", "duplex_dissimilar_connected"),
-    (DDF, "Duplex Dissimilar Fused", "duplex_dissimilar_fused"),
-    (DFS, "Duplex Fuzzy Separate", "duplex_fuzzy_separate"),
-    (DFC, "Duplex Fuzzy Connected", "duplex_fuzzy_connected"),
-    (DFF, "Duplex Fuzzy Fused", "duplex_fuzzy_fused"),
-);
+    (MDF, "Multiplex Dissimilar Fused",     "multiplex_dissimilar_fused"    ),
+    (MFS, "Multiplex Fuzzy Separate",       "multiplex_fuzzy_separate"      ),
+    (MFC, "Multiplex Fuzzy Connected",      "multiplex_fuzzy_connected"     ),
+    (MFF, "Multiplex Fuzzy Fused",          "multiplex_fuzzy_fused"         ),
+    (DPX, "Duplex",                         "duplex"                        ),
+    (DSS, "Duplex Similar Separate",        "duplex_similar_separate"       ),
+    (DSC, "Duplex Similar Connected",       "duplex_similar_connected"      ),
+    (DSF, "Duplex Similar Fused",           "duplex_similar_fused"          ),
+    (DDS, "Duplex Dissimilar Separate",     "duplex_dissimilar_separate"    ),
+    (DDC, "Duplex Dissimilar Connected",    "duplex_dissimilar_connected"   ),
+    (DDF, "Duplex Dissimilar Fused",        "duplex_dissimilar_fused"       ),
+    (DFS, "Duplex Fuzzy Separate",          "duplex_fuzzy_separate"         ),
+    (DFC, "Duplex Fuzzy Connected",         "duplex_fuzzy_connected"        ),
+    (DFF, "Duplex Fuzzy Fused",             "duplex_fuzzy_fused"            ),
+}
 
 category!(
     Plexity,
@@ -398,8 +397,7 @@ category!(
     (FLC, "Fluctuative", "fluctuative"),
 );
 
-#[rustfmt::skip]
-custom_abbr_category!(
+custom_abbr_category! {
     #no_default,
     Effect,
     (BEN1,    "1:BEN",   "Beneficial to Speaker",    "beneficial_to_speaker"),
@@ -411,7 +409,7 @@ custom_abbr_category!(
     (DET3,    "3:DET",   "Detrimental to 3rd Part",  "detrimental_to_3rd_party"),
     (DET2,    "2:DET",   "Detrimental to Addressee", "detrimental_to_addressee"),
     (DET1,    "1:DET",   "Detrimental to Speaker",   "detrimental_to_speaker"),
-);
+}
 
 category!(
     #no_default,
@@ -430,6 +428,7 @@ category!(
 category!(
     #no_default,
     Aspect,
+
     (RTR, "Retrospective", "retrospective"),
     (PRS, "Prospective", "prospective"),
     (HAB, "Habitual", "habitual"),
@@ -439,6 +438,7 @@ category!(
     (REG, "Regulative", "regulative"),
     (SMM, "Summative", "summative"),
     (ATP, "Anticipatory", "anticipatory"),
+
     (RSM, "Resumptive", "resumptive"),
     (CSS, "Cessative", "cessative"),
     (PAU, "Pausal", "pausal"),
@@ -448,6 +448,7 @@ category!(
     (ICS, "Incessative", "incessative"),
     (EXP, "Experiential", "experiential"),
     (IRP, "Interruptive", "interruptive"),
+
     (PMP, "Preemptive", "preemptive"),
     (CLM, "Climactic", "climactic"),
     (DLT, "Dilatory", "dilatory"),
@@ -457,6 +458,7 @@ category!(
     (EPD, "Expeditive", "expeditive"),
     (PTC, "Protractive", "protractive"),
     (PPR, "Preparatory", "preparatory"),
+
     (DCL, "Disclusive", "disclusive"),
     (CCL, "Conclusive", "conclusive"),
     (CUL, "Culminative", "culminative"),
@@ -466,6 +468,20 @@ category!(
     (ITC, "Intercommutative", "intercommutative"),
     (MTV, "Motive", "motive"),
     (SQN, "Sequential", "sequential"),
+);
+
+category!(
+    #no_default,
+    Sanction,
+    (PPS, "Propositional","propositional"),
+    (EPI, "Epistemic","epistemic"),
+    (ALG, "Allegative","allegative"),
+    (IPU, "Imputative","imputative"),
+    (RFU, "Refutative","refutative"),
+    (REB, "Rebuttative","rebuttative"),
+    (CJT, "Conjectural","conjectural"),
+    (EXV, "Expatiative","expatiative"),
+    (AXM, "Axiomatic","axiomatic"),
 );
 
 category!(

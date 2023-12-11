@@ -12,7 +12,8 @@ pub use crate::{
     },
     script::{
         character::{self, Character},
-        traits::IntoScript,
+        flags::IntoScriptFlags,
+        traits::{IntoScript, ScriptRepr},
     },
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
     word::{self, Word},

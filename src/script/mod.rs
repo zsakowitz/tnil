@@ -5,3 +5,4 @@ mod inherent_impls;
 mod trait_impls;
 pub mod traits;
 pub mod buf;
+pub mod repr;

@@ -58,7 +58,7 @@ item!(
     V,
     X,
     Z,
-    Ż,
+    Ẓ,
     Ž,
     Sigma,
     BSC,
@@ -112,7 +112,7 @@ item!(
     X,
     Y,
     Z,
-    Ż,
+    Ẓ,
     Ž,
     GeminateCore,
     GeminateExt,
@@ -321,4 +321,12 @@ pub struct AccessorQuaternary {
 
     /// The type of this case-accessor.
     pub r#type: AffixType,
+}
+
+/// A numeral character.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Numeral {
+    /// The value of this character. If greater than 9999, extra bits will be ignored during
+    /// conversion to a secondary.
+    pub value: u16,
 }

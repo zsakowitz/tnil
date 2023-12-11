@@ -7,9 +7,9 @@ use super::{
     Ca, Case, CaseScope, Configuration, DatalessRelation, DestructuredConfiguration, Effect,
     Essence, Extension, Illocution, IllocutionOrValidation, Level, Mood, MoodOrCaseScope,
     NominalMode, NonAspectualVn, NonDefaultCaseScope, NonDefaultMood, NormalCaShortcut,
-    Perspective, Phase, Plexity, ReferentialAffixPerspective, ReferentialCaShortcut, Separability,
-    Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn, VowelFormDegree,
-    VowelFormSequence,
+    Perspective, Phase, Plexity, ReferentialAffixPerspective, ReferentialCaShortcut, Sanction,
+    Separability, Similarity, SimilarityAndSeparability, ThematicCase, Valence, Validation, Vn,
+    VowelFormDegree, VowelFormSequence,
 };
 use crate::{
     ca,
@@ -1941,4 +1941,37 @@ impl TryAsSpecific<NominalMode> for DatalessRelation {
             Self::FRM => Some(NominalMode::FRM),
         }
     }
+}
+
+macro_rules! cs_forms {
+    ($($ty:ident :: $name:ident = $value:literal,)+) => {
+        $(impl $ty {
+            /// The Cs form used in the affix representing this type.
+            pub const $name: &'static str = $value;
+        })+
+    };
+}
+
+cs_forms!(
+    Valence::CS_FORM = "ẓk",
+    Phase::CS_FORM = "bž",
+    Effect::CS_FORM = "m",
+    Level::CS_FORM = "řž",
+    Sanction::CS_FORM = "gj",
+    IllocutionOrValidation::CS_FORM = "nļ",
+    MoodOrCaseScope::CS_FORM = "bẓ",
+);
+
+impl Aspect {
+    /// The first Cs form used in the affix representing this type.
+    pub const CS_FORM_1: &'static str = "mc";
+
+    /// The second Cs form used in the affix representing this type.
+    pub const CS_FORM_2: &'static str = "mč";
+
+    /// The third Cs form used in the affix representing this type.
+    pub const CS_FORM_3: &'static str = "mẓ";
+
+    /// The fourth Cs form used in the affix representing this type.
+    pub const CS_FORM_4: &'static str = "mj";
 }

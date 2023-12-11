@@ -1,12 +1,13 @@
-use super::{character::*, flags::IntoScriptFlags};
+use super::{character::*, flags::IntoScriptFlags, traits::IntoSecondary};
 use crate::{
     ca_pat,
     category::{
         Affiliation, AffixDegree, AffixSlot, AffixType, Case, CaseAccessorMode, CaseScope, Context,
-        DatalessRelation, Essence, Extension, Function, Illocution, Mood, Perspective, Plexity,
-        Separability, Similarity, SimilarityAndSeparability, Specification, Stem, Validation,
-        VcOrVk, Version,
+        DatalessRelation, Essence, Extension, Function, Illocution, Level, Mood, Perspective,
+        Plexity, Separability, Similarity, SimilarityAndSeparability, Specification, Stem,
+        Validation, VcOrVk, Version,
     },
+    prelude::token::NumeralForm,
 };
 use vec1::Vec1;
 
@@ -50,7 +51,7 @@ impl Core {
             'v' => Some(Self::V),
             'x' => Some(Self::X),
             'z' => Some(Self::Z),
-            'ż' => Some(Self::Ż),
+            'ż' => Some(Self::Ẓ),
             'ž' => Some(Self::Ž),
             _ => None,
         }
@@ -90,7 +91,7 @@ impl Ext {
                 Extension::PRX => Some(Ext::K),
                 Extension::ICP => Some(Ext::C),
                 Extension::ATV => Some(Ext::Č),
-                Extension::GRA => Some(Ext::Ż),
+                Extension::GRA => Some(Ext::Ẓ),
                 Extension::DPL => Some(Ext::J),
             },
         }
@@ -270,7 +271,7 @@ impl Ext {
             'x' => Some(Self::X),
             'y' => Some(Self::Y),
             'z' => Some(Self::Z),
-            'ż' => Some(Self::Ż),
+            'ż' => Some(Self::Ẓ),
             'ž' => Some(Self::Ž),
             _ => None,
         }
@@ -485,11 +486,27 @@ impl Diacritic {
     }
 
     /// Gets the superposed diacritic representing an affix type.
-    pub const fn affix_type_superposed(r#type: AffixType) -> Option<Self> {
+    pub const fn affix_type(r#type: AffixType) -> Option<Self> {
         match r#type {
             AffixType::T1 => None,
             AffixType::T2 => Some(Diacritic::Dot),
             AffixType::T3 => Some(Diacritic::HorizBar),
+        }
+    }
+
+    /// Gets the _nonstandard_ superposed diacritic representing a numeric affix type.
+    ///
+    /// This is used because numerals can't be rotated, and thus need special handling to
+    /// distinguish when they're in slot V vs VII.
+    pub const fn numeric_affix_type(r#type: AffixType, slot: AffixSlot) -> Option<Self> {
+        match (slot, r#type) {
+            (AffixSlot::V, AffixType::T1) => None,
+            (AffixSlot::V, AffixType::T2) => Some(Diacritic::Dot),
+            (AffixSlot::V, AffixType::T3) => Some(Diacritic::HorizBar),
+
+            (AffixSlot::VII, AffixType::T1) => Some(Diacritic::DiagBar),
+            (AffixSlot::VII, AffixType::T2) => Some(Diacritic::CurveTowardsLeftWithDot),
+            (AffixSlot::VII, AffixType::T3) => Some(Diacritic::CurveTowardsRightWithDot),
         }
     }
 
@@ -508,7 +525,7 @@ impl Diacritic {
     }
 
     /// Gets the diacritic associated with an affix degree.
-    pub const fn affix_degree_underposed(degree: AffixDegree) -> Self {
+    pub const fn affix_degree(degree: AffixDegree) -> Self {
         match degree {
             AffixDegree::D0 => Self::CurveTowardsRight,
             AffixDegree::D1 => Self::Dot,
@@ -525,6 +542,21 @@ impl Diacritic {
 
     /// The diacritic representing a Ca-stacking affix.
     pub const CA_STACKING_UNDERPOSED: Self = Self::CurveTowardsLeft;
+
+    /// Gets the diacritic representing a level.
+    pub const fn level(level: Level) -> Self {
+        match level {
+            Level::MIN => Self::Dot,
+            Level::SBE => Self::HorizBarWithTopLine,
+            Level::IFR => Self::VertBarWithLeftLine,
+            Level::DFC => Self::CurveTowardsTop,
+            Level::EQU => Self::DiagBar,
+            Level::SUR => Self::CurveTowardsBottom,
+            Level::SPL => Self::VertBarWithRightLine,
+            Level::SPQ => Self::HorizBarWithBottomLine,
+            Level::MAX => Self::HorizBar,
+        }
+    }
 }
 
 impl Secondary {
@@ -671,5 +703,42 @@ impl Secondary {
         }
 
         Some(output)
+    }
+
+    /// Gets a sequence of secondaries representing a numeric form.
+    pub fn numeral(form: NumeralForm) -> Vec1<Self> {
+        Numeral::numeral(form).mapped(IntoSecondary::into_secondary)
+    }
+}
+
+impl Numeral {
+    /// Gets a sequence of numerals representing a numeric form.
+    pub fn numeral(form: NumeralForm) -> Vec1<Numeral> {
+        let mut value = form.integer_part;
+
+        let mut data = Vec1::new({
+            let my_value = value % 10_000;
+            value /= 10_000;
+            Numeral {
+                value: my_value as u16,
+            }
+        });
+
+        loop {
+            if value == 0 {
+                break;
+            }
+
+            let my_value = value % 10_000;
+            value /= 10_000;
+
+            data.push(Numeral {
+                value: my_value as u16,
+            });
+        }
+
+        data.reverse();
+
+        data
     }
 }
