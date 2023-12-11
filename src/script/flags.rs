@@ -39,6 +39,12 @@ impl IntoScriptFlags {
     /// If passed to `.append_script_to()`, tertiaries with a single segment will place that segment
     /// on the bottom of the character.
     pub const PREFER_BOTTOM_TERTIARIES: Self = Self(1 << 4);
+
+    /// A [`IntoScriptFlags`] instance with only the `inline_referential_perspectives` flag enabled.
+    ///
+    /// If passed to `.append_script_to()`, referentials with perspectives will write their
+    /// perspectives as usual, instead of turning into referential-root formatives.
+    pub const INLINE_REFERENTIAL_PERSPECTIVES: Self = Self(1 << 5);
 }
 
 bitflags!(IntoScriptFlags);

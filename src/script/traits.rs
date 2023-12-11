@@ -1,4 +1,4 @@
-//! Defines traits used to convert words into Ithkuil.
+//! Defines traits used to convert words into native Ithkuil script.
 
 use super::{
     buf::CharacterBuf,
@@ -32,12 +32,41 @@ pub trait IntoScript {
 }
 
 /// Allows script characters to be converted into a type.
-pub trait ScriptRepr {
+pub trait ScriptRepr: Sized {
+    /// Constructs an empty representation.
+    fn new() -> Self;
+
+    /// Pushes a character as script into this representation.
+    fn push(&mut self, char: Character);
+
     /// Represents a character in this script format.
-    fn from_char(char: Character) -> Self;
+    fn from_char(char: Character) -> Self {
+        let mut this = Self::new();
+        this.push(char);
+        this
+    }
 
     /// Represents a set of characters in this script format.
-    fn from_chars(chars: &[Character]) -> Self;
+    fn from_chars(chars: &[Character]) -> Self {
+        let mut this = Self::new();
+        for char in chars {
+            this.push(*char);
+        }
+        this
+    }
+
+    /// Pushes an item as script characters into this representation.
+    fn append<T: IntoScript>(&mut self, item: &T, flags: IntoScriptFlags) {
+        for char in item.into_script(flags).vec {
+            self.push(char);
+        }
+    }
+
+    /// Encodes an item in this script representation.
+    fn encode<T: IntoScript>(item: &T, flags: IntoScriptFlags) -> Self {
+        let buf = item.into_script(flags);
+        Self::from_chars(&buf.vec[..])
+    }
 }
 
 impl<T: IntoSecondary> IntoCharacter for T {

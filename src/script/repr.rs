@@ -269,7 +269,11 @@ impl Display for IthkuilBasicEncoding {
 }
 
 impl ScriptRepr for IthkuilBasicEncoding {
-    fn from_char(char: Character) -> Self {
+    fn new() -> Self {
+        Self(String::new())
+    }
+
+    fn push(&mut self, char: Character) {
         match char {
             Character::Secondary(Secondary {
                 is_rotated,
@@ -281,43 +285,41 @@ impl ScriptRepr for IthkuilBasicEncoding {
                 leftposed,
                 rightposed,
             }) => {
-                let mut output = Self::repr_core(core).to_owned();
+                self.0 += Self::repr_core(core);
 
                 if is_rotated {
-                    output += "'";
+                    self.0 += "'";
                 }
 
                 if let Some(top) = top {
-                    output += "^";
-                    output += Self::repr_ext(top);
+                    self.0 += "^";
+                    self.0 += Self::repr_ext(top);
                 }
 
                 if let Some(bottom) = bottom {
-                    output += "_";
-                    output += Self::repr_ext(bottom);
+                    self.0 += "_";
+                    self.0 += Self::repr_ext(bottom);
                 }
 
                 if let Some(superposed) = superposed {
-                    output += "^";
-                    output += Self::repr_diacritic(superposed);
+                    self.0 += "^";
+                    self.0 += Self::repr_diacritic(superposed);
                 }
 
                 if let Some(underposed) = underposed {
-                    output += "_";
-                    output += Self::repr_diacritic(underposed);
+                    self.0 += "_";
+                    self.0 += Self::repr_diacritic(underposed);
                 }
 
                 if let Some(leftposed) = leftposed {
-                    output += "<";
-                    output += Self::repr_diacritic(leftposed);
+                    self.0 += "<";
+                    self.0 += Self::repr_diacritic(leftposed);
                 }
 
                 if let Some(rightposed) = rightposed {
-                    output += ">";
-                    output += Self::repr_diacritic(rightposed);
+                    self.0 += ">";
+                    self.0 += Self::repr_diacritic(rightposed);
                 }
-
-                Self(output)
             }
 
             Character::Tertiary(Tertiary {
@@ -327,52 +329,45 @@ impl ScriptRepr for IthkuilBasicEncoding {
                 superposed,
                 underposed,
             }) => {
-                let mut output = Self::repr_valence(valence).to_owned();
+                self.0 += Self::repr_valence(valence);
 
                 if let Some(top) = top {
-                    output += "^";
-                    output += Self::repr_tertiary_segment(top);
+                    self.0 += "^";
+                    self.0 += Self::repr_tertiary_segment(top);
                 }
 
                 if let Some(bottom) = bottom {
-                    output += "_";
-                    output += Self::repr_tertiary_segment(bottom);
+                    self.0 += "_";
+                    self.0 += Self::repr_tertiary_segment(bottom);
                 }
 
                 if let Some(superposed) = superposed {
-                    output += "^";
-                    output += Self::repr_diacritic(Diacritic::level(superposed));
+                    self.0 += "^";
+                    self.0 += Self::repr_diacritic(Diacritic::level(superposed));
                 }
 
                 if let Some(underposed) = underposed {
-                    output += "_";
-                    output += Self::repr_diacritic(Diacritic::level(underposed));
+                    self.0 += "_";
+                    self.0 += Self::repr_diacritic(Diacritic::level(underposed));
                 }
-
-                Self(output)
             }
 
             Character::Diacritic(diacritic) => {
-                let mut output = ";<".to_owned();
-                output += Self::repr_diacritic(diacritic);
-                Self(output)
+                self.0 += ";<";
+                self.0 += Self::repr_diacritic(diacritic);
             }
 
-            Character::Register(register) => Self(Self::repr_register(register).to_owned()),
+            Character::Register(register) => {
+                self.0 += Self::repr_register(register);
+            }
 
-            Character::WordBreak => Self("".to_owned()),
+            Character::WordBreak => {}
 
-            Character::SentenceBreak => Self(" ".to_owned()),
+            Character::SentenceBreak => {
+                if !self.0.is_empty() {
+                    self.0 += " "
+                }
+            }
         }
-    }
-
-    fn from_chars(chars: &[Character]) -> Self {
-        let mut output = String::new();
-
-        for char in chars {
-            output += &IthkuilBasicEncoding::from_char(*char).0;
-        }
-
-        Self(output)
     }
 }

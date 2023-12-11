@@ -159,6 +159,14 @@ impl ShortcutCheckedFormativeRoot {
     }
 }
 
+impl Default for ShortcutCheckedFormativeRoot {
+    fn default() -> Self {
+        Self::Normal(NormalFormativeRoot {
+            cr: OwnedConsonantForm("t".to_owned()),
+        })
+    }
+}
+
 impl Gloss for ShortcutCheckedFormativeRoot {
     fn gloss(&self, flags: GlossFlags) -> String {
         match self {

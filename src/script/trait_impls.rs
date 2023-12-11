@@ -1,5 +1,3 @@
-use std::mem::replace;
-
 use super::{
     buf::CharacterBuf,
     character::{
@@ -15,9 +13,9 @@ use crate::{
         PlainAffix, RegularAffix, ThematicReferentialAffix,
     },
     category::{
-        AffixDegree, AffixSlot, AffixType, ArbitraryMoodOrCaseScope, Aspect, Bias, CaseScope,
-        DatalessRelation, DestructuredConfiguration, Effect, Illocution, Level, Mood, Phase,
-        Valence, VcOrVk, Vn,
+        AffixDegree, AffixSlot, AffixType, ArbitraryMoodOrCaseScope, Aspect, Bias, Ca, Case,
+        CaseScope, DatalessRelation, DestructuredConfiguration, Effect, Essence, Illocution, Level,
+        Mood, Perspective, Phase, ReferentList, Specification, Valence, VcOrVk, Vn,
     },
     prelude::{token::NumeralForm, AsGeneral, AsSpecific},
     word::{
@@ -25,9 +23,11 @@ use crate::{
             AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
             ReferentialFormativeRoot, ShortcutCheckedFormativeRoot,
         },
-        UncheckedFormative,
+        referential::Referential,
+        CheckedFormative, NormalReferential, ShortcutCheckedFormative, UncheckedFormative,
     },
 };
+use std::mem::replace;
 use vec1::Vec1;
 
 impl IntoCharacter for Character {
@@ -298,6 +298,17 @@ impl IntoScript for NumeralForm {
     }
 }
 
+impl IntoSecondary for Case {
+    fn into_secondary(self) -> Secondary {
+        StandardQuaternary {
+            case_scope: CaseScope::CCN,
+            mood: Mood::FAC,
+            vc_or_vk: VcOrVk::Case(self),
+        }
+        .into_secondary()
+    }
+}
+
 fn vec1_h() -> Vec1<Secondary> {
     return Vec1::new(Secondary {
         is_rotated: false,
@@ -309,6 +320,20 @@ fn vec1_h() -> Vec1<Secondary> {
         leftposed: None,
         rightposed: None,
     });
+}
+
+impl IntoScript for CheckedFormative {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let unchecked: UncheckedFormative = self.clone().as_general();
+        unchecked.append_script_to(list, flags);
+    }
+}
+
+impl IntoScript for ShortcutCheckedFormative {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let unchecked: UncheckedFormative = self.clone().as_general();
+        unchecked.append_script_to(list, flags);
+    }
 }
 
 impl IntoScript for UncheckedFormative {
@@ -596,20 +621,18 @@ impl IntoScript for UncheckedFormative {
                     case,
                     referents,
                 }) => {
-                    referentials.push(StandardQuaternary {
-                        case_scope: CaseScope::CCN,
-                        mood: Mood::FAC,
-                        vc_or_vk: VcOrVk::Case(case.as_general()),
-                    });
-
-                    let mut data = Secondary::cr_or_cs(&referents.to_string(), false, flags)
-                        .expect("referent lists should become valid Cr roots");
-
-                    data.first_mut().superposed = Some(Diacritic::HorizBar);
-
-                    for el in data {
-                        referentials.push(el);
-                    }
+                    referentials.append(
+                        NormalReferential::Single {
+                            referent: ReferentList {
+                                referents: referents.referents.clone(),
+                                perspective: referents.perspective.as_general(),
+                            },
+                            first_case: case.as_general(),
+                            second_case: None,
+                            essence: Essence::NRM,
+                        },
+                        flags,
+                    );
                 }
 
                 AffixList::Normal(affixes) => {
@@ -682,21 +705,18 @@ impl IntoScript for UncheckedFormative {
                                 case,
                                 referents,
                             }) => {
-                                referentials.push(StandardQuaternary {
-                                    case_scope: CaseScope::CCN,
-                                    mood: Mood::FAC,
-                                    vc_or_vk: VcOrVk::Case(case.as_general()),
-                                });
-
-                                let mut data =
-                                    Secondary::cr_or_cs(&referents.to_string(), false, flags)
-                                        .expect("referent lists should become valid Cr roots");
-
-                                data.first_mut().superposed = Some(Diacritic::HorizBar);
-
-                                for el in data {
-                                    referentials.push(el);
-                                }
+                                referentials.append(
+                                    NormalReferential::Single {
+                                        referent: ReferentList {
+                                            referents: referents.referents.clone(),
+                                            perspective: referents.perspective.as_general(),
+                                        },
+                                        first_case: case.as_general(),
+                                        second_case: None,
+                                        essence: Essence::NRM,
+                                    },
+                                    flags,
+                                );
                             }
                         }
                     }
@@ -760,17 +780,195 @@ impl IntoScript for UncheckedFormative {
     }
 }
 
+fn append_single_referential(
+    list: &mut CharacterBuf,
+    flags: IntoScriptFlags,
+    referent: &ReferentList<Perspective>,
+    first_case: Case,
+    second_case: Option<Case>,
+) {
+    list.push(first_case);
+
+    let mut data = Secondary::cr_or_cs(&referent.to_string(), false, flags)
+        .expect("a valid referent list should generate a valid Cr form");
+    data.first_mut().superposed = Some(Diacritic::HorizBar);
+    for item in data {
+        list.push(item);
+    }
+
+    if let Some(second_case) = second_case {
+        list.push(second_case);
+    }
+}
+
+fn append_script_to_with_inline_perspectives(
+    this: &NormalReferential,
+    list: &mut CharacterBuf,
+    flags: IntoScriptFlags,
+) {
+    match this {
+        Referential::Single {
+            referent,
+            first_case,
+            second_case,
+            essence: Essence::NRM,
+        } => {
+            append_single_referential(list, flags, referent, *first_case, *second_case);
+        }
+
+        Referential::Dual {
+            first_referent,
+            first_case,
+            second_case,
+            second_referent,
+            essence: Essence::NRM,
+        } => {
+            append_single_referential(list, flags, first_referent, *first_case, None);
+            append_single_referential(list, flags, second_referent, *second_case, None);
+        }
+
+        Referential::Combination {
+            referent,
+            first_case,
+            specification: Specification::BSC,
+            affixes,
+            second_case,
+            essence: Essence::NRM,
+        } if affixes.len() == 0 => {
+            append_single_referential(list, flags, referent, *first_case, *second_case);
+        }
+
+        _ => {
+            let (a, b) = this.to_formative();
+            list.append(a, flags);
+            if let Some(b) = b {
+                list.append(b, flags);
+            }
+        }
+    }
+}
+
+fn append_script_to_with_external_perspectives(
+    this: &NormalReferential,
+    list: &mut CharacterBuf,
+    flags: IntoScriptFlags,
+) {
+    match this {
+        Referential::Single {
+            referent,
+            first_case,
+            second_case,
+            essence: Essence::NRM,
+        } if referent.perspective == Perspective::M => {
+            append_single_referential(list, flags, referent, *first_case, *second_case);
+        }
+
+        Referential::Dual {
+            first_referent,
+            first_case,
+            second_case,
+            second_referent,
+            essence: Essence::NRM,
+        } => {
+            if first_referent.perspective == Perspective::M {
+                append_single_referential(list, flags, first_referent, *first_case, None);
+            } else {
+                let formative = UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: first_referent.referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    ca: Ca {
+                        perspective: first_referent.perspective,
+                        ..Default::default()
+                    },
+                    vc: *first_case,
+                    ..Default::default()
+                };
+                list.append(formative, flags);
+            }
+
+            if second_referent.perspective == Perspective::M {
+                append_single_referential(list, flags, second_referent, *second_case, None);
+            } else {
+                let formative = UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: second_referent.referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    ca: Ca {
+                        perspective: second_referent.perspective,
+                        ..Default::default()
+                    },
+                    vc: *second_case,
+                    ..Default::default()
+                };
+                list.append(formative, flags);
+            }
+        }
+
+        Referential::Combination {
+            referent,
+            first_case,
+            specification: Specification::BSC,
+            affixes,
+            second_case,
+            essence: Essence::NRM,
+        } if referent.perspective == Perspective::M && affixes.len() == 0 => {
+            append_single_referential(list, flags, referent, *first_case, *second_case);
+        }
+
+        _ => {
+            let (a, b) = this.to_formative();
+            list.append(a, flags);
+            if let Some(b) = b {
+                list.append(b, flags);
+            }
+        }
+    }
+}
+
+impl IntoScript for NormalReferential {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        if flags.matches(IntoScriptFlags::INLINE_REFERENTIAL_PERSPECTIVES) {
+            append_script_to_with_inline_perspectives(self, list, flags);
+        } else {
+            append_script_to_with_external_perspectives(self, list, flags);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::word::UncheckedFormative;
+    use crate::word::{NormalReferential, UncheckedFormative};
 
     #[test]
-    fn irburučpaizya() {
+    fn formative() {
         use crate::{prelude::*, script::repr::IthkuilBasicEncoding};
 
-        let word = UncheckedFormative::parse_str("irburučpaizya", FromTokenFlags::NONE).unwrap();
-        let script = word.into_script(IntoScriptFlags::NONE);
-        let encoded = IthkuilBasicEncoding::from_chars(&script.vec[..]);
-        assert_eq!(encoded.0, r#"\^p_xr_bč'_p_ä|^t^a_aò"#);
+        fn check(source: &str, expected_encoded: &str) {
+            let word: UncheckedFormative = source.parse().unwrap();
+            let encoded = IthkuilBasicEncoding::encode(&word, IntoScriptFlags::NONE);
+            assert_eq!(encoded.0, expected_encoded, "word was {source}");
+        }
+
+        check("ırburučpaızya", r#"\^p_xr_bč'_p_ä|^t^a_aò"#);
+    }
+
+    #[test]
+    fn referential() {
+        use crate::{prelude::*, script::repr::IthkuilBasicEncoding};
+
+        fn check(source: &str, expected_encoded: &str) {
+            let word: NormalReferential = source.parse().unwrap();
+            let encoded = IthkuilBasicEncoding::encode(&word, IntoScriptFlags::NONE);
+            assert_eq!(encoded.0, expected_encoded, "word was {source}");
+        }
+
+        check("lo", "|_kl^ä");
     }
 }

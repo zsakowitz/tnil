@@ -3,12 +3,19 @@
 pub(super) mod aliases;
 
 use crate::{
-    affix::RegularAffix,
-    category::{Case, Essence, NormalReferentList, Specification, SuppletiveAdjunctMode},
+    affix::{AffixList, CaseStackingAffix, RegularAffix},
+    category::{
+        Ca, Case, Essence, NormalReferentList, ReferentList, Specification, SuppletiveAdjunctMode,
+    },
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     specificity::{AsGeneral, TryAsSpecific},
 };
 use aliases::*;
+
+use super::{
+    formative::root::{ReferentialFormativeRoot, ShortcutCheckedFormativeRoot},
+    UncheckedFormative,
+};
 
 /// A referential. The type parameter indicates which kind of referents are received.
 ///
@@ -70,6 +77,139 @@ pub enum Referential<T> {
         /// The essence of this referential.
         essence: Essence,
     },
+}
+
+impl NormalReferential {
+    /// Converts this referential into a formative.
+    ///
+    /// Returns two formatives if `self` is a dual referential.
+    pub fn to_formative(&self) -> (UncheckedFormative, Option<UncheckedFormative>) {
+        match self {
+            Self::Single {
+                referent:
+                    ReferentList {
+                        perspective,
+                        referents,
+                    },
+                first_case,
+                second_case,
+                essence,
+            } => (
+                UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    slot_vii_affixes: if second_case.is_none() {
+                        AffixList::Normal(Vec::new())
+                    } else {
+                        AffixList::Normal(vec![RegularAffix::CaseStacking(CaseStackingAffix {
+                            case: *first_case,
+                        })])
+                    },
+                    ca: Ca {
+                        perspective: *perspective,
+                        essence: *essence,
+                        ..Default::default()
+                    },
+                    vc: second_case.unwrap_or(*first_case),
+                    ..Default::default()
+                },
+                None,
+            ),
+
+            Self::Dual {
+                first_referent:
+                    ReferentList {
+                        perspective: first_perspective,
+                        referents: first_referents,
+                    },
+                first_case,
+                second_case,
+                second_referent:
+                    ReferentList {
+                        perspective: second_perspective,
+                        referents: second_referents,
+                    },
+                essence,
+            } => (
+                UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: first_referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    ca: Ca {
+                        perspective: *first_perspective,
+                        essence: *essence,
+                        ..Default::default()
+                    },
+                    vc: *first_case,
+                    ..Default::default()
+                },
+                Some(UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: second_referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    ca: Ca {
+                        perspective: *second_perspective,
+                        essence: *essence,
+                        ..Default::default()
+                    },
+                    vc: *second_case,
+                    ..Default::default()
+                }),
+            ),
+
+            Self::Combination {
+                referent:
+                    ReferentList {
+                        perspective,
+                        referents,
+                    },
+                first_case,
+                specification,
+                affixes,
+                second_case,
+                essence,
+            } => (
+                UncheckedFormative {
+                    root: ShortcutCheckedFormativeRoot::Referential(ReferentialFormativeRoot {
+                        referents: ReferentList {
+                            referents: referents.clone(),
+                            perspective: (),
+                        },
+                    }),
+                    specification: *specification,
+                    ca: Ca {
+                        perspective: *perspective,
+                        essence: *essence,
+                        ..Default::default()
+                    },
+                    slot_vii_affixes: {
+                        let mut affixes = affixes.clone();
+
+                        if second_case.is_some() {
+                            affixes.push(RegularAffix::CaseStacking(CaseStackingAffix {
+                                case: *first_case,
+                            }));
+                        }
+
+                        AffixList::Normal(affixes)
+                    },
+                    vc: second_case.unwrap_or(*first_case),
+                    ..Default::default()
+                },
+                None,
+            ),
+        }
+    }
 }
 
 impl<T: Gloss> Gloss for Referential<T> {

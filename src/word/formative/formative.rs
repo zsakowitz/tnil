@@ -74,7 +74,7 @@ pub struct ShortcutCheckedFormative(
 /// recommend sticking with [`CheckedFormative`] to ensure that formatives are checked for
 /// structural correctness or [`ShortcutCheckedFormative`] to ensure that shortcuts are checked for
 /// correctness.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UncheckedFormative {
     /// The relation of this formative.
     pub relation: DatalessRelation,
