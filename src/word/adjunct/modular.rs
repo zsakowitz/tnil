@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// A modular adjunct.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ModularAdjunct {
     /// A variant containing a single aspect.
     Aspect {

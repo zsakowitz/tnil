@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// An affixual adjunct containing a single affix.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SingleAffixAdjunct {
     /// The affix of this adjunct.
     pub affix: RegularAffix,

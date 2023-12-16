@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// A case-stacking affix.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct CaStackingAffix {
     /// The Ca of this affix.
     pub ca: Ca,

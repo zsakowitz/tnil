@@ -15,7 +15,7 @@ use crate::{
 use std::str::FromStr;
 use vec1::Vec1;
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A pair containing a Similarity and a Separability.
 pub struct SimilarityAndSeparability {
     /// The Similarity component of self.
@@ -119,7 +119,7 @@ impl Category for SimilarityAndSeparability {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 /// A destructed version of [`Configuration`].
 pub struct DestructuredConfiguration {
     /// The Plexity of this [`DestructuredConfiguration`].
@@ -160,7 +160,7 @@ impl Category for DestructuredConfiguration {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 /// A Ca value.
 pub struct Ca {
     /// The [`Affiliation`] of this Ca.
@@ -210,7 +210,7 @@ impl Gloss for Ca {
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A non-aspectual Vn value.
 pub enum NonAspectualVn {
     /// A variant containing a [`Valence`].
@@ -243,7 +243,7 @@ impl GlossStatic for NonAspectualVn {
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A Vn value.
 pub enum Vn {
     /// A variant containing a [`Valence`].
@@ -293,7 +293,7 @@ impl GlossStatic for Vn {
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A mood or case-scope value. This contains _either_ a mood _or_ a case-scope, not an arbitrary
 /// thing which could be either depending on its corresponding formative's type.
 ///
@@ -342,7 +342,7 @@ impl MoodOrCaseScope {
     }
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A referent with a target and effect.
 pub struct Referent {
     /// The target of this referent.
@@ -466,7 +466,7 @@ impl Gloss for Referent {
 }
 
 /// A list of referents with a perspective.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferentList<PerspectiveType> {
     /// The referents of this referent list.
     pub referents: Vec1<Referent>,
@@ -884,7 +884,7 @@ impl ToString for AffixualReferentList {
 }
 
 /// A case or illocution/validation form.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum VcOrVk {
     /// A variant containing a case.
     Case(Case),

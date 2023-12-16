@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// A bias adjunct.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BiasAdjunct {
     /// The bias of this adjunct.
     pub bias: Bias,

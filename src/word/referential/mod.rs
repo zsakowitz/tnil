@@ -22,7 +22,7 @@ use super::{
 /// Typically used either as [`NormalReferential`], one where the initial referent is an actual
 /// referent, or as [`SuppletiveReferential`], one where the initial referent is a suppletive
 /// adjunct mode.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Referential<T> {
     /// A single referential.
     Single {
@@ -273,7 +273,7 @@ impl<T: Gloss> Gloss for Referential<T> {
 
 /// A general referential's first referent, which may either be a [`NormalReferentList`] or
 /// [`SuppletiveAdjunctMode`].
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GeneralReferent {
     /// A normal referent list.
     Normal(NormalReferentList),

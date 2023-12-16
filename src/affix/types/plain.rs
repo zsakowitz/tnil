@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// A plain affix.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PlainAffix {
     /// The Cs form of this affix.
     pub cs: String,

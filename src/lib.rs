@@ -12,6 +12,7 @@
 //! - It lets you gloss words with the [`Gloss`][prelude::Gloss] trait.
 //! - It lets you parse words with the [`FromTokens`][prelude::FromTokens] trait.
 //! - It lets you turn words into Ithkuil with the [`IntoTokens`][prelude::IntoTokens] trait.
+//! - It lets you turn words into script with the [`IntoScript`][prelude::IntoScript] trait.
 //!
 //! More functionality is expected in the future, mostly to do with converting into Ithkuil script.
 
@@ -28,6 +29,6 @@ pub mod gloss;
 mod macros;
 pub mod prelude;
 pub mod romanize;
+pub mod script;
 pub mod specificity;
 pub mod word;
-pub mod script;

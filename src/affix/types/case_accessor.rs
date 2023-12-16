@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// A case-accessor affix.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct CaseAccessorAffix {
     /// The case this affix accesses.
     pub case: Case,

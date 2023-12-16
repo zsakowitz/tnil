@@ -178,7 +178,7 @@ macro_rules! parse_error_defn {
     (match self { $($variant:ident => $message:literal,)+ }) => {
         ::paste::paste! {
             /// The error type returned when an item cannot be parsed.
-            #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[derive(Clone, Copy, Debug, PartialEq, Eq)]
             #[non_exhaustive]
             pub enum ParseError {
                 $(

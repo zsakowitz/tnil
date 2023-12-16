@@ -14,21 +14,24 @@ use crate::{
         token::{HForm, NumeralForm, OwnedConsonantForm, Token, VowelForm},
         traits::{IntoVowelForm, IntoVxCs},
     },
-    word::formative::{
-        additions::{
-            AffixualFormativeAdditions, NormalCaShortcutAdditions, NormalCnShortcutAdditions,
-            NormalFormativeAdditions, NormalNonShortcutAdditions, ReferentialFormativeAdditions,
-            ShortcutCheckedFormativeAdditions,
+    word::{
+        formative::{
+            additions::{
+                AffixualFormativeAdditions, NormalCaShortcutAdditions, NormalCnShortcutAdditions,
+                NormalFormativeAdditions, NormalNonShortcutAdditions,
+                ReferentialFormativeAdditions, ShortcutCheckedFormativeAdditions,
+            },
+            core::{
+                AffixualFormativeCore, FormativeCore, NormalFormativeCore, NumericFormativeCore,
+                ReferentialFormativeCore, ShortcutCheckedFormativeCore,
+            },
+            relation::{NormalRelation, Relation},
+            root::{
+                AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
+                ShortcutCheckedFormativeRoot,
+            },
         },
-        core::{
-            AffixualFormativeCore, FormativeCore, NormalFormativeCore, NumericFormativeCore,
-            ReferentialFormativeCore, ShortcutCheckedFormativeCore,
-        },
-        relation::{NormalRelation, Relation},
-        root::{
-            AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
-            ShortcutCheckedFormativeRoot,
-        },
+        Extended,
     },
 };
 
@@ -39,7 +42,7 @@ use crate::{
 /// difficult to work with, and as such it is recommended to use `.as_general()`
 /// to cast to a [`ShortcutCheckedFormative`] or an [`UncheckedFormative`] if
 /// you're planning to manipulate it manually.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CheckedFormative {
     /// A normal formative.
     Normal(NormalFormativeCore, NormalFormativeAdditions),
@@ -61,7 +64,7 @@ pub enum CheckedFormative {
 /// data. These guarantees make it quite difficult to work with, and as such it is recommended to
 /// use `.as_general()` to cast to an [`UncheckedFormative`] if you're planning to manipulate it
 /// manually.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ShortcutCheckedFormative(
     pub ShortcutCheckedFormativeCore,
     pub ShortcutCheckedFormativeAdditions,
@@ -74,7 +77,7 @@ pub struct ShortcutCheckedFormative(
 /// recommend sticking with [`CheckedFormative`] to ensure that formatives are checked for
 /// structural correctness or [`ShortcutCheckedFormative`] to ensure that shortcuts are checked for
 /// correctness.
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UncheckedFormative {
     /// The relation of this formative.
     pub relation: DatalessRelation,
@@ -400,6 +403,7 @@ struct FormativeGlossInput<'a> {
     stem: &'a str,
     version: Version,
     slot_vii: String,
+    slot_xi: String,
     root_type: RootType,
 }
 
@@ -468,6 +472,7 @@ fn gloss_formative(
         stem,
         version,
         slot_vii,
+        slot_xi,
         root_type,
     } = data;
 
@@ -645,6 +650,7 @@ fn gloss_formative(
     gloss.add_dashed(&slot_vii);
     gloss.add_dashed(&slot_viii);
     gloss.add_dashed(&slot_ix);
+    gloss.add_dashed(&slot_xi);
     gloss += &slot_x;
     gloss
 }
@@ -734,6 +740,7 @@ impl Gloss for CheckedFormative {
                 stem,
                 version,
                 slot_vii,
+                slot_xi: String::new(),
                 root_type,
             },
             make_additions(&additions, flags),
@@ -772,6 +779,7 @@ impl Gloss for ShortcutCheckedFormative {
                 stem,
                 version,
                 slot_vii,
+                slot_xi: String::new(),
                 root_type,
             },
             make_additions(additions, flags),
@@ -792,6 +800,7 @@ impl Gloss for UncheckedFormative {
                 },
                 version: self.version,
                 slot_vii: self.slot_vii_affixes.gloss(flags),
+                slot_xi: String::new(),
                 root_type: match self.root {
                     ShortcutCheckedFormativeRoot::Normal(_) => RootType::Normal,
                     ShortcutCheckedFormativeRoot::Numeric(_) => RootType::Numeric,
@@ -827,6 +836,214 @@ impl Gloss for UncheckedFormative {
                     _ => self.specification,
                 },
                 context: self.context,
+                vn: None,
+            },
+            flags,
+        )
+    }
+}
+
+impl Gloss for Extended<CheckedFormative> {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        let (root, stem, version, slot_vii) = match &self.base {
+            CheckedFormative::Normal(
+                FormativeCore {
+                    root,
+                    stem,
+                    version,
+                    slot_vii_affixes,
+                },
+                _,
+            ) => (
+                root.gloss(flags),
+                stem.gloss_static(flags),
+                *version,
+                slot_vii_affixes.gloss(flags),
+            ),
+
+            CheckedFormative::Numeric(
+                FormativeCore {
+                    root,
+                    stem,
+                    version,
+                    slot_vii_affixes,
+                },
+                _,
+            ) => (
+                root.gloss(flags),
+                stem.gloss_static(flags),
+                *version,
+                slot_vii_affixes.gloss(flags),
+            ),
+
+            CheckedFormative::Referential(
+                FormativeCore {
+                    root,
+                    stem: _,
+                    version,
+                    slot_vii_affixes,
+                },
+                _,
+            ) => (
+                root.gloss(flags),
+                "",
+                *version,
+                slot_vii_affixes.gloss(flags),
+            ),
+
+            CheckedFormative::Affixual(
+                FormativeCore {
+                    root,
+                    stem: _,
+                    version,
+                    slot_vii_affixes,
+                },
+                _,
+            ) => (
+                root.gloss(flags),
+                "",
+                *version,
+                slot_vii_affixes.gloss(flags),
+            ),
+        };
+
+        let (root_type, additions) = match &self.base {
+            CheckedFormative::Normal(_, additions) => {
+                (RootType::Normal, additions.clone().as_general())
+            }
+            CheckedFormative::Numeric(_, additions) => {
+                (RootType::Numeric, additions.clone().as_general())
+            }
+            CheckedFormative::Referential(_, additions) => {
+                (RootType::Referential, additions.clone().as_general())
+            }
+            CheckedFormative::Affixual(_, additions) => {
+                (RootType::Affixual, additions.clone().as_general())
+            }
+        };
+
+        gloss_formative(
+            FormativeGlossInput {
+                root,
+                stem,
+                version,
+                slot_vii,
+                slot_xi: {
+                    let mut slot_xi = String::new();
+                    for affix in &self.slot_xi_affixes {
+                        slot_xi.add_dashed(&affix.gloss(flags));
+                    }
+                    slot_xi
+                },
+                root_type,
+            },
+            make_additions(&additions, flags),
+            flags,
+        )
+    }
+}
+
+impl Gloss for Extended<ShortcutCheckedFormative> {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        let root = self.base.0.root.gloss(flags);
+
+        let stem = match self.base.0.root {
+            ShortcutCheckedFormativeRoot::Normal(_) | ShortcutCheckedFormativeRoot::Numeric(_) => {
+                self.base.0.stem.gloss_static(flags)
+            }
+            _ => "",
+        };
+
+        let version = self.base.0.version;
+
+        let slot_vii = self.base.0.slot_vii_affixes.gloss(flags);
+
+        let root_type = match self.base.0.root {
+            ShortcutCheckedFormativeRoot::Normal(_) => RootType::Normal,
+            ShortcutCheckedFormativeRoot::Numeric(_) => RootType::Numeric,
+            ShortcutCheckedFormativeRoot::Referential(_) => RootType::Referential,
+            ShortcutCheckedFormativeRoot::Affixual(_) => RootType::Affixual,
+        };
+
+        let additions = &self.base.1;
+
+        gloss_formative(
+            FormativeGlossInput {
+                root,
+                stem,
+                version,
+                slot_vii,
+                slot_xi: {
+                    let mut slot_xi = String::new();
+                    for affix in &self.slot_xi_affixes {
+                        slot_xi.add_dashed(&affix.gloss(flags));
+                    }
+                    slot_xi
+                },
+                root_type,
+            },
+            make_additions(additions, flags),
+            flags,
+        )
+    }
+}
+
+impl Gloss for Extended<UncheckedFormative> {
+    fn gloss(&self, flags: GlossFlags) -> String {
+        gloss_formative(
+            FormativeGlossInput {
+                root: self.base.root.gloss(flags),
+                stem: match self.base.root {
+                    ShortcutCheckedFormativeRoot::Normal(_)
+                    | ShortcutCheckedFormativeRoot::Numeric(_) => {
+                        self.base.stem.gloss_static(flags)
+                    }
+                    _ => "",
+                },
+                version: self.base.version,
+                slot_vii: self.base.slot_vii_affixes.gloss(flags),
+                slot_xi: {
+                    let mut slot_xi = String::new();
+                    for affix in &self.slot_xi_affixes {
+                        slot_xi.add_dashed(&affix.gloss(flags));
+                    }
+                    slot_xi
+                },
+                root_type: match self.base.root {
+                    ShortcutCheckedFormativeRoot::Normal(_) => RootType::Normal,
+                    ShortcutCheckedFormativeRoot::Numeric(_) => RootType::Numeric,
+                    ShortcutCheckedFormativeRoot::Referential(_) => RootType::Referential,
+                    ShortcutCheckedFormativeRoot::Affixual(_) => RootType::Affixual,
+                },
+            },
+            Additions {
+                shortcut_type: self.base.shortcut,
+                relation: match self.base.relation {
+                    DatalessRelation::VRB => Relation::Verbal {
+                        mood: self.base.cn.as_specific(),
+                        ivl: self.base.vc.as_vk().unwrap_or(IllocutionOrValidation::USP),
+                    },
+
+                    _ => Relation::Nominal {
+                        mode: match self.base.relation {
+                            DatalessRelation::NOM => NominalMode::NOM,
+                            DatalessRelation::T1 => NominalMode::T1,
+                            DatalessRelation::T2 => NominalMode::T2,
+                            DatalessRelation::VRB => unreachable!(),
+                            DatalessRelation::FRM => NominalMode::FRM,
+                        },
+                        case_scope: self.base.cn.as_specific(),
+                        case: self.base.vc,
+                    },
+                },
+                ca: self.base.ca,
+                slot_v: self.base.slot_v_affixes.gloss(flags),
+                function: self.base.function,
+                specification: match self.base.root {
+                    ShortcutCheckedFormativeRoot::Affixual(_) => Specification::BSC,
+                    _ => self.base.specification,
+                },
+                context: self.base.context,
                 vn: None,
             },
             flags,
@@ -1862,7 +2079,8 @@ impl IntoTokens for CheckedFormative {
 
 impl IntoTokens for ShortcutCheckedFormative {
     fn append_tokens_to(&self, list: &mut TokenList, flags: IntoTokensFlags) {
-        self.clone().as_general().append_tokens_to(list, flags)
+        let unchecked: UncheckedFormative = self.clone().as_general();
+        unchecked.append_tokens_to(list, flags)
     }
 }
 

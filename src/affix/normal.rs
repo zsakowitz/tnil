@@ -14,7 +14,7 @@ use crate::{
     romanize::{stream::ParseError, token::VowelForm, traits::IntoVxCs},
 };
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 /// Any affix other than appositive referential affixes.
 pub enum RegularAffix {
     /// A plain affix.

@@ -3,7 +3,7 @@
 use crate::macros::bitflags;
 
 /// A bit flag of options passed to parsing functions.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FromTokenFlags(u8);
 
 impl FromTokenFlags {
@@ -20,7 +20,7 @@ impl FromTokenFlags {
 bitflags!(FromTokenFlags);
 
 /// A bit flag of options passed to generation functions.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct IntoTokensFlags(u8);
 
 impl IntoTokensFlags {

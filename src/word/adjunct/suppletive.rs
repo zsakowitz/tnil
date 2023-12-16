@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// A suppletive adjunct.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct SuppletiveAdjunct {
     /// The mode of this adjunct (CAR, QUO, NAM, or PHR).
     pub mode: SuppletiveAdjunctMode,

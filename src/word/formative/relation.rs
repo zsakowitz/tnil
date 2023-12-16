@@ -12,7 +12,7 @@ use crate::{
 ///
 /// See the type aliases of [`NormalRelation`] and [`NonDefaultRelation`] for common instantiations
 /// of the generics to this enum.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Relation<CaseScopeType, MoodType> {
     /// A nominal formative.
     Nominal {

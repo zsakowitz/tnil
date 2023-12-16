@@ -13,7 +13,7 @@ use crate::category::Stress;
 use std::str::FromStr;
 
 /// A tokenized word with stress marked.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TokenList {
     /// The tokens of this word.
     pub tokens: Vec<Token>,

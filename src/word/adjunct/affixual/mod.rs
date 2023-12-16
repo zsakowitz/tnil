@@ -18,7 +18,7 @@ use crate::{
 };
 
 /// An affixual adjunct.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AffixualAdjunct {
     /// A variant containing a single affix.
     Single(SingleAffixAdjunct),

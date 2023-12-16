@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// The core of a formative.
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FormativeCore<RootType, StemType> {
     /// The root of this formative.
     pub root: RootType,

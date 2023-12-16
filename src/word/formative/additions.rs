@@ -12,7 +12,7 @@ use crate::{
 use paste::paste;
 
 /// Additions to a non-shortcut formative.
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct NonShortcutAdditions<AffixShortcutType, SpecificationType> {
     /// The relation of this formative.
     pub relation: NormalRelation,
@@ -49,7 +49,7 @@ pub type ReferentialNonShortcutAdditions = NonShortcutAdditions<(), Specificatio
 pub type AffixualNonShortcutAdditions = NonShortcutAdditions<(), ()>;
 
 /// Additions to a Cn-shortcut formative.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CnShortcutAdditions<AffixShortcutType, SpecificationType> {
     /// The relation of this formative.
     pub relation: NonDefaultRelation,
@@ -77,7 +77,7 @@ pub type ReferentialCnShortcutAdditions = CnShortcutAdditions<(), Specification>
 pub type AffixualCnShortcutAdditions = CnShortcutAdditions<(), ()>;
 
 /// Additions to a Ca-shortcut formative.
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CaShortcutAdditions<CaShortcutType> {
     /// The relation of this formative.
     pub relation: NormalRelation,
@@ -99,7 +99,7 @@ pub type NormalCaShortcutAdditions = CaShortcutAdditions<NormalCaShortcut>;
 pub type ReferentialCaShortcutAdditions = CaShortcutAdditions<ReferentialCaShortcut>;
 
 /// Additions to a normal or numeric formative.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NormalFormativeAdditions {
     /// Additions to a non-shortcut formatives.
     Normal(NormalNonShortcutAdditions),
@@ -118,7 +118,7 @@ impl Default for NormalFormativeAdditions {
 }
 
 /// Additions to a referential formative.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ReferentialFormativeAdditions {
     /// Additions to a non-shortcut formatives.
     Normal(ReferentialNonShortcutAdditions),
@@ -137,7 +137,7 @@ impl Default for ReferentialFormativeAdditions {
 }
 
 /// Additions to an affixual formative.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AffixualFormativeAdditions {
     /// Additions to a non-shortcut formatives.
     Normal(AffixualNonShortcutAdditions),
@@ -153,7 +153,7 @@ impl Default for AffixualFormativeAdditions {
 }
 
 /// Additions to a general formative.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ShortcutCheckedFormativeAdditions {
     /// Additions to a non-shortcut formatives.
     Normal(NormalNonShortcutAdditions),

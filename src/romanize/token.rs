@@ -14,11 +14,11 @@ use std::{
 };
 
 /// An owned consonant form.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OwnedConsonantForm(pub String);
 
 /// A normal vowel form.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct VowelForm {
     /// Whether this form has a glottal stop.
     pub has_glottal_stop: bool,
@@ -31,15 +31,15 @@ pub struct VowelForm {
 }
 
 /// A vowel form consisting of -üa-.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ÜA;
 
 /// A vowel form consisting of -ë-.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Schwa;
 
 /// A consonant form starting with h-, w-, or y-.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct HForm {
     /// The sequence of this form.
     pub sequence: HFormSequence,
@@ -49,15 +49,15 @@ pub struct HForm {
 }
 
 /// A consonant form consisting of a single "h".
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Hh;
 
 /// A consonant form consisting of "hr".
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Hr;
 
 /// A consonant form that is either "w" or "y".
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WYForm {
     /// A consonant form consisting of a lone W.
     W,
@@ -67,7 +67,7 @@ pub enum WYForm {
 }
 
 /// A numeral form.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive] // TODO: Remove non_exhaustive once we decide how to work with decimals.
 pub struct NumeralForm {
     /// The integral part of this numeral.
@@ -75,11 +75,11 @@ pub struct NumeralForm {
 }
 
 /// A glottal stop without any corresponding vowels, or a word-final glottal stop.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct GlottalStop;
 
 /// A generic token.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     /// A consonant form.
     C(OwnedConsonantForm),
@@ -131,7 +131,7 @@ impl IntoToken for Token {
 }
 
 /// An error returned when an invalid vowel form is parsed.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ParseVowelFormError;
 
 impl fmt::Display for ParseVowelFormError {
@@ -394,7 +394,7 @@ impl FromToken for VowelForm {
 }
 
 /// An error returned when an invalid h-form is parsed.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ParseHFormError;
 
 impl fmt::Display for ParseHFormError {

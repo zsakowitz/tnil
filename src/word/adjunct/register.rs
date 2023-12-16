@@ -13,7 +13,7 @@ use crate::{
 };
 
 /// A register adjunct.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RegisterAdjunct {
     /// The register of this adjunct.
     pub register: RegisterType,

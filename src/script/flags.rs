@@ -3,7 +3,7 @@
 use crate::macros::bitflags;
 
 /// A bit flag of options passed to script generation functions.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct IntoScriptFlags(u8);
 
 impl IntoScriptFlags {

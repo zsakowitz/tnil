@@ -13,7 +13,7 @@ use crate::{
 };
 
 /// A parsing adjunct.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ParsingAdjunct {
     /// The stress indicated by this adjunct.
     pub stress: Stress,

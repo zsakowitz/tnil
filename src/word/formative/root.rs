@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// A normal formative root.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NormalFormativeRoot {
     /// The Cr form of this root.
     pub cr: OwnedConsonantForm,
@@ -41,7 +41,7 @@ impl Gloss for NormalFormativeRoot {
 }
 
 /// A numeric formative root.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NumericFormativeRoot {
     /// The numeral of this root.
     pub form: NumeralForm,
@@ -57,7 +57,7 @@ impl Gloss for NumericFormativeRoot {
 }
 
 /// A referential formative root.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferentialFormativeRoot {
     /// The referents of this formative.
     pub referents: PerspectivelessReferentList,
@@ -93,7 +93,7 @@ impl Gloss for ReferentialFormativeRoot {
 }
 
 /// An affixual formative root.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AffixualFormativeRoot {
     /// The Cs form of this affix.
     pub cs: String,
@@ -135,7 +135,7 @@ impl Gloss for AffixualFormativeRoot {
 }
 
 /// A general formative root.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ShortcutCheckedFormativeRoot {
     /// The root of a normal formative.
     Normal(NormalFormativeRoot),

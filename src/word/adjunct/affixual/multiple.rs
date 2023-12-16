@@ -14,7 +14,7 @@ use crate::{
 use vec1::Vec1;
 
 /// An affixual adjunct containing multiple affixes.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MultipleAffixAdjunct {
     /// The first affix of this adjunct.
     pub first_affix: RegularAffix,

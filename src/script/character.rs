@@ -13,7 +13,7 @@ macro_rules! item {
     ) => {
         ::paste::paste! {
             #[repr(u8)]
-            #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+            #[derive(Clone, Copy, Debug, PartialEq, Eq)]
             #[doc = "Represents a " $enum_name " value."]
             pub enum $enum_name {
                 $(
@@ -188,7 +188,7 @@ item!(
 );
 
 /// A secondary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Secondary {
     /// Whether this character is rotated.
     pub is_rotated: bool,
@@ -216,7 +216,7 @@ pub struct Secondary {
 }
 
 /// A segment in a tertiary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TertiarySegment {
     /// A phase segment.
     Phase(Phase),
@@ -229,7 +229,7 @@ pub enum TertiarySegment {
 }
 
 /// A tertiary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Tertiary {
     /// The valence of this character.
     pub valence: Valence,
@@ -248,7 +248,7 @@ pub struct Tertiary {
 }
 
 /// A general character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Character {
     /// A secondary character.
     Secondary(Secondary),
@@ -270,7 +270,7 @@ pub enum Character {
 }
 
 /// A primary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Primary {
     /// The specification of this primary.
     pub specification: Specification,
@@ -295,7 +295,7 @@ pub struct Primary {
 }
 
 /// A standard quaternary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StandardQuaternary {
     /// The case, illocution, or validation of this quaternary character.
     pub vc_or_vk: VcOrVk,
@@ -308,7 +308,7 @@ pub struct StandardQuaternary {
 }
 
 /// A case-accessor quaternary character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AccessorQuaternary {
     /// The slot this case-accessor is in.
     pub slot: AffixSlot,
@@ -324,7 +324,7 @@ pub struct AccessorQuaternary {
 }
 
 /// A numeral character.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Numeral {
     /// The value of this character. If greater than 9999, extra bits will be ignored during
     /// conversion to a secondary.

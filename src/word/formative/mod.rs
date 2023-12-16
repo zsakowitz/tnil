@@ -42,6 +42,7 @@
 
 pub mod additions;
 pub mod core;
+pub(super) mod extended;
 pub(super) mod formative;
 pub mod relation;
 pub mod root;

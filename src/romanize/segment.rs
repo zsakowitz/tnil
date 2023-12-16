@@ -613,7 +613,7 @@ impl FromTokens for ModularAdjunctScope {
 
 /// A parsed Cn that is arbitrarily either a mood or a case-scope and marks its corresponding Vn as
 /// aspectual or non-aspectual.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cn {
     /// The mood/case-scope of this Cn form.
     pub mcs: ArbitraryMoodOrCaseScope,
@@ -661,7 +661,7 @@ impl FromTokens for Cn {
 }
 
 /// A parsed Cm that marks its corresponding Vn as aspectual or non-aspectual.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cm {
     /// Whether the corresponding Vn is an aspect.
     pub is_aspect: bool,
@@ -689,7 +689,7 @@ impl FromTokens for Cm {
 }
 
 /// A VnCn pair.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct VnCn {
     /// The Vn of this pair.
     pub vn: Vn,
@@ -738,7 +738,7 @@ impl IntoTokens for VnCn {
 }
 
 /// A VnCm pair.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct VnCm {
     /// The Vn of this pair.
     pub vn: Vn,
@@ -776,7 +776,7 @@ impl IntoTokens for VnCm {
 }
 
 /// A VnCn pair with an optional glottal stop.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct VnCnWithGlottalStop {
     /// The Vn of this pair.
     pub vn: Vn,
@@ -828,7 +828,7 @@ impl IntoTokens for VnCnWithGlottalStop {
 }
 
 /// A VxCs pair with no glottal stop.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VxCs {
     /// The affix represented by this VxCs form.
     pub affix: RegularAffix,
@@ -848,7 +848,7 @@ impl FromTokens for VxCs {
 }
 
 /// A VxCs pair with an optional glottal stop.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VxCsWithGlottalStop {
     /// The affix represented by this VxCs form.
     pub affix: RegularAffix,
@@ -872,7 +872,7 @@ impl FromTokens for VxCsWithGlottalStop {
 }
 
 /// A CsVx pair with an optional glottal stop.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CsVxWithGlottalStop {
     /// The affix represented by this CsVx form.
     pub affix: RegularAffix,
@@ -896,7 +896,7 @@ impl FromTokens for CsVxWithGlottalStop {
 }
 
 /// A Vs form.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Vs {
     /// The scope marked by this Vs form.
     pub scope: AffixualAdjunctScope,
@@ -960,7 +960,7 @@ impl IntoVowelForm for Vs {
 }
 
 /// A Vz form.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Vz {
     /// The scope marked by this Vz form.
     pub scope: Option<AffixualAdjunctScope>,
@@ -1064,7 +1064,7 @@ impl IntoVowelForm for Vz {
 
 /// A CsVxCz triplet. These must be parsed together because the value of Cz is influenced by whether
 /// the Vx form has a glottal stop or not.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CsVxCz {
     /// The affix marked by the CsVx pair.
     pub affix: RegularAffix,
@@ -1099,7 +1099,7 @@ impl FromTokens for CsVxCz {
 }
 
 /// A case form found at the end of a combination referential.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Vc2 {
     /// The case of this Vc2 form.
     pub case: Option<Case>,

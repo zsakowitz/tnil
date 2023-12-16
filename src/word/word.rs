@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// A general word.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Word {
     /// A formative.
     Formative(word::ShortcutCheckedFormative),

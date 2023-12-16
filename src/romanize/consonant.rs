@@ -35,7 +35,7 @@ macro_rules! matches_any {
 ///
 /// This type is unsized, and thus can only be used behind some kind of pointer.
 #[repr(transparent)]
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ConsonantForm(str);
 
 impl From<&str> for &ConsonantForm {

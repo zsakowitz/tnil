@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// A numeric adjunct.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NumericAffix {
     /// The integer part of this number.
     pub form: NumeralForm,

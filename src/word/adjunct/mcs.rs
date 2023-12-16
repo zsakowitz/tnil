@@ -13,7 +13,7 @@ use crate::{
 };
 
 /// A mood/case-scope adjunct.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MCSAdjunct {
     /// The mood or case-scope represented by this adjunct.
     pub mcs: MoodOrCaseScope,

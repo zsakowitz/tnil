@@ -936,7 +936,7 @@ use super::Ca;
 
 /// Represents a AffixShortcut value.
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum AffixShortcut {
     #[default]
     /// An absence of an affix shortcut.
@@ -1004,7 +1004,7 @@ impl Category for AffixShortcut {
 
 #[repr(u8)]
 /// Represents a CaShortcut value.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum NormalCaShortcut {
     /// The Default (Default) CaShortcut.
     #[default]
@@ -1074,7 +1074,7 @@ impl Category for NormalCaShortcut {
 
 #[repr(u8)]
 /// Represents a ReferentialCaShortcut value.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ReferentialCaShortcut {
     /// The Default (Default) ReferentialCaShortcut.
     #[default]
@@ -1113,7 +1113,7 @@ impl Category for ReferentialCaShortcut {
 
 #[repr(u8)]
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 /// Represents a ArbitraryMoodOrCaseScope value.
 pub enum ArbitraryMoodOrCaseScope {
     #[default]

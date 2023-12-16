@@ -12,7 +12,7 @@ use crate::{
 ///
 /// Two common variants of this type, based on thematic and appositive cases, are exposed under the
 /// aliases [`ThematicReferentialAffix`] and [`AppositiveReferentialAffix`] respectively.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferentialAffix<CaseType> {
     /// The referents and perspective of this affix.
     pub referents: AffixualReferentList,

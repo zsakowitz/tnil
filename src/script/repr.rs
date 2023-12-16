@@ -11,7 +11,7 @@ use crate::{
 use std::fmt::Display;
 
 /// A newtype over `String` containing the encoding used in the IthkuilBasic and IthkuilFlow fonts.
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct IthkuilBasicEncoding(pub String);
 
 impl IthkuilBasicEncoding {

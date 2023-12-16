@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// A list of affixes in a formative slot.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AffixList {
     /// A list of normal affixes.
     Normal(Vec<RegularAffix>),

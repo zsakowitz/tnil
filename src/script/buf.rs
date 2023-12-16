@@ -7,7 +7,7 @@ use super::{
 };
 
 /// A buffer of characters.
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CharacterBuf {
     /// The inner vector of this buffer.
     pub vec: Vec<Character>,

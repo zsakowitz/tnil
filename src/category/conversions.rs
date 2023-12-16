@@ -1358,7 +1358,7 @@ impl From<AffixType> for VowelFormSequence {
 }
 
 /// An error returned when a bias cannot be parsed because its consonant form is invalid.
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ParseBiasError;
 
 impl Display for ParseBiasError {
