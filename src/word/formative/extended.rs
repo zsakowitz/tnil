@@ -74,3 +74,35 @@ macro_rules! as_extended_impl {
 as_extended_impl!(CheckedFormative);
 as_extended_impl!(ShortcutCheckedFormative);
 as_extended_impl!(UncheckedFormative);
+
+macro_rules! as_extended_general_impl {
+    ($general:ident, $specific:ident) => {
+        impl AsGeneral<Extended<$general>> for $specific {
+            fn as_general(self) -> Extended<$general> {
+                Extended {
+                    base: self.as_general(),
+                    slot_xi_affixes: Vec::new(),
+                }
+            }
+        }
+
+        impl From<$specific> for Extended<$general> {
+            fn from(value: $specific) -> Self {
+                value.as_general()
+            }
+        }
+
+        impl TryAsSpecific<$specific> for Extended<$general> {
+            fn try_as_specific(self) -> Option<$specific> {
+                self.slot_xi_affixes
+                    .is_empty()
+                    .then(|| self.base.try_as_specific())
+                    .flatten()
+            }
+        }
+    };
+}
+
+as_extended_general_impl!(ShortcutCheckedFormative, CheckedFormative);
+as_extended_general_impl!(UncheckedFormative, CheckedFormative);
+as_extended_general_impl!(UncheckedFormative, ShortcutCheckedFormative);

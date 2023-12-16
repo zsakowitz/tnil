@@ -494,6 +494,16 @@ impl Diacritic {
         }
     }
 
+    /// Gets the rightposed diacritic representing an affix slot.
+    ///
+    /// This returns [`Some(Dot)`] for `AffixSlot::XI` and [`None`] for everything else.
+    pub const fn affix_slot(slot: AffixSlot) -> Option<Self> {
+        match slot {
+            AffixSlot::V | AffixSlot::VII => None,
+            AffixSlot::XI => Some(Diacritic::Dot),
+        }
+    }
+
     /// Gets the _nonstandard_ superposed diacritic representing a numeric affix type.
     ///
     /// This is used because numerals can't be rotated, and thus need special handling to
@@ -505,8 +515,12 @@ impl Diacritic {
             (AffixSlot::V, AffixType::T3) => Some(Diacritic::HorizBar),
 
             (AffixSlot::VII, AffixType::T1) => Some(Diacritic::DiagBar),
-            (AffixSlot::VII, AffixType::T2) => Some(Diacritic::CurveTowardsLeftWithDot),
-            (AffixSlot::VII, AffixType::T3) => Some(Diacritic::CurveTowardsRightWithDot),
+            (AffixSlot::VII, AffixType::T2) => Some(Diacritic::CurveTowardsLeft),
+            (AffixSlot::VII, AffixType::T3) => Some(Diacritic::CurveTowardsRight),
+
+            (AffixSlot::XI, AffixType::T1) => Some(Diacritic::VertBar),
+            (AffixSlot::XI, AffixType::T2) => Some(Diacritic::CurveTowardsLeftWithDot),
+            (AffixSlot::XI, AffixType::T3) => Some(Diacritic::CurveTowardsRightWithDot),
         }
     }
 
@@ -520,6 +534,10 @@ impl Diacritic {
             AffixSlot::VII => match mode {
                 CaseAccessorMode::Normal => Self::CurveTowardsLeftWithDot,
                 CaseAccessorMode::Inverse => Self::CurveTowardsRightWithDot,
+            },
+            AffixSlot::XI => match mode {
+                CaseAccessorMode::Normal => Self::CurveTowardsTop,
+                CaseAccessorMode::Inverse => Self::CurveTowardsBottom,
             },
         }
     }

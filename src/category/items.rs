@@ -901,9 +901,16 @@ category!(
 );
 
 category!(
+    NormalAffixSlot,
+    (V, "Slot V", "slot V"),
+    (VII, "Slot VII", "slot VII"),
+);
+
+category!(
     AffixSlot,
     (V, "Slot V", "slot V"),
     (VII, "Slot VII", "slot VII"),
+    (XI, "Slot XI", "slot XI"),
 );
 
 /// HACK: Using a module here allows lints to be allowed properly, which we want need in order to

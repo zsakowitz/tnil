@@ -1,7 +1,7 @@
 //! A prelude containing common types and traits used in this crate.
 
 pub use crate::{
-    category::Category,
+    category::{self, Category},
     gloss::{Gloss, GlossFlags, GlossHelpers, GlossStatic},
     romanize::{
         flags::{FromTokenFlags, IntoTokensFlags},

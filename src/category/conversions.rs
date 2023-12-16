@@ -13,6 +13,7 @@ use super::{
 };
 use crate::{
     ca,
+    category::{AffixSlot, NormalAffixSlot},
     romanize::{stream::ParseError, token::VowelForm},
     specificity::{AsGeneral, AsSpecific, TryAsGeneral, TryAsSpecific},
 };
@@ -1974,4 +1975,29 @@ impl Aspect {
 
     /// The fourth Cs form used in the affix representing this type.
     pub const CS_FORM_4: &'static str = "mj";
+}
+
+impl AsGeneral<AffixSlot> for NormalAffixSlot {
+    fn as_general(self) -> AffixSlot {
+        match self {
+            NormalAffixSlot::V => AffixSlot::V,
+            NormalAffixSlot::VII => AffixSlot::VII,
+        }
+    }
+}
+
+impl From<NormalAffixSlot> for AffixSlot {
+    fn from(value: NormalAffixSlot) -> Self {
+        value.as_general()
+    }
+}
+
+impl TryAsSpecific<NormalAffixSlot> for AffixSlot {
+    fn try_as_specific(self) -> Option<NormalAffixSlot> {
+        match self {
+            AffixSlot::V => Some(NormalAffixSlot::V),
+            AffixSlot::VII => Some(NormalAffixSlot::VII),
+            AffixSlot::XI => None,
+        }
+    }
 }

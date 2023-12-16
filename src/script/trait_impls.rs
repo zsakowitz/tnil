@@ -1,30 +1,29 @@
-use super::{
-    buf::CharacterBuf,
-    character::{
-        AccessorQuaternary, Character, Core, Diacritic, Ext, Numeral, Primary, Register, Secondary,
-        StandardQuaternary, Tertiary, TertiarySegment,
-    },
-    flags::IntoScriptFlags,
-    traits::{IntoCharacter, IntoScript, IntoSecondary},
-};
 use crate::{
     affix::{
         AffixList, AppositiveReferentialAffix, CaStackingAffix, CaseAccessorAffix, NumericAffix,
         PlainAffix, RegularAffix, ThematicReferentialAffix,
     },
-    category::{
-        AffixDegree, AffixSlot, AffixType, ArbitraryMoodOrCaseScope, Aspect, Bias, Ca, Case,
-        CaseScope, DatalessRelation, DestructuredConfiguration, Effect, Essence, Illocution, Level,
-        Mood, Perspective, Phase, ReferentList, Specification, Valence, VcOrVk, Vn,
+    prelude::{
+        category::*,
+        character::{
+            AccessorQuaternary, Core, Diacritic, Ext, Numeral, Primary, Register, Secondary,
+            StandardQuaternary, Tertiary, TertiarySegment,
+        },
+        token::NumeralForm,
+        *,
     },
-    prelude::{token::NumeralForm, AsGeneral, AsSpecific},
+    script::{
+        buf::CharacterBuf,
+        traits::{IntoCharacter, IntoSecondary},
+    },
     word::{
         formative::root::{
             AffixualFormativeRoot, NormalFormativeRoot, NumericFormativeRoot,
             ReferentialFormativeRoot, ShortcutCheckedFormativeRoot,
         },
         referential::Referential,
-        CheckedFormative, NormalReferential, ShortcutCheckedFormative, UncheckedFormative,
+        CheckedFormative, Extended, NormalReferential, ShortcutCheckedFormative,
+        UncheckedFormative,
     },
 };
 use std::mem::replace;
@@ -324,28 +323,51 @@ fn vec1_h() -> Vec1<Secondary> {
 
 impl IntoScript for CheckedFormative {
     fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
-        let unchecked: UncheckedFormative = self.clone().as_general();
+        let unchecked: Extended<UncheckedFormative> = self.clone().as_general();
         unchecked.append_script_to(list, flags);
     }
 }
 
 impl IntoScript for ShortcutCheckedFormative {
     fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
-        let unchecked: UncheckedFormative = self.clone().as_general();
+        let unchecked: Extended<UncheckedFormative> = self.clone().as_general();
         unchecked.append_script_to(list, flags);
     }
 }
 
 impl IntoScript for UncheckedFormative {
     fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let unchecked: Extended<UncheckedFormative> = self.clone().as_general();
+        unchecked.append_script_to(list, flags);
+    }
+}
+
+impl IntoScript for Extended<CheckedFormative> {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let unchecked: Extended<UncheckedFormative> = self.clone().as_general();
+        unchecked.append_script_to(list, flags);
+    }
+}
+
+impl IntoScript for Extended<ShortcutCheckedFormative> {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let unchecked: Extended<UncheckedFormative> = self.clone().as_general();
+        unchecked.append_script_to(list, flags);
+    }
+}
+
+impl IntoScript for Extended<UncheckedFormative> {
+    fn append_script_to(&self, list: &mut CharacterBuf, flags: IntoScriptFlags) {
+        let base = &self.base;
+
         let primary = Primary {
-            specification: self.specification,
-            ca: self.ca,
-            function: self.function,
-            version: self.version,
-            stem: self.stem,
-            context: self.context,
-            relation: self.relation,
+            specification: base.specification,
+            ca: base.ca,
+            function: base.function,
+            version: base.version,
+            stem: base.stem,
+            context: base.context,
+            relation: base.relation,
         };
 
         if flags.matches(IntoScriptFlags::ELIDE_PRIMARIES) {
@@ -360,22 +382,22 @@ impl IntoScript for UncheckedFormative {
 
         let mut elided_quaternary = false;
 
-        match &self.root {
+        match &base.root {
             ShortcutCheckedFormativeRoot::Normal(NormalFormativeRoot { cr }) => {
                 let mut data = Secondary::cr_or_cs(&cr, false, flags).unwrap_or_else(vec1_h);
 
-                if self.cn == ArbitraryMoodOrCaseScope::FAC_CCN
+                if base.cn == ArbitraryMoodOrCaseScope::FAC_CCN
                     && !flags.matches(IntoScriptFlags::KEEP_QUATERNARIES)
                 {
                     elided_quaternary = true;
 
                     let (superposed, underposed) =
-                        Diacritic::elided_quaternary_pair(match self.relation {
-                            DatalessRelation::VRB => match self.vc.as_vk() {
+                        Diacritic::elided_quaternary_pair(match base.relation {
+                            DatalessRelation::VRB => match base.vc.as_vk() {
                                 Some(ivl) => ivl.as_general(),
                                 None => VcOrVk::Illocution(Illocution::ASR),
                             },
-                            _ => VcOrVk::Case(self.vc),
+                            _ => VcOrVk::Case(base.vc),
                         });
 
                     let first = data.first_mut();
@@ -412,7 +434,7 @@ impl IntoScript for UncheckedFormative {
             }
         }
 
-        let mut slot_vii_affixes = self.slot_vii_affixes.clone();
+        let mut slot_vii_affixes = base.slot_vii_affixes.clone();
 
         let mut valences = Vec::new();
         let mut tertiary_segments = Vec::new();
@@ -600,7 +622,7 @@ impl IntoScript for UncheckedFormative {
             }
         }
 
-        match self.vn {
+        match base.vn {
             Vn::Valence(Valence::MNO) => {}
             Vn::Valence(value) => valences.push(value),
             Vn::Phase(value) => tertiary_segments.push(TertiarySegment::Phase(value)),
@@ -612,15 +634,17 @@ impl IntoScript for UncheckedFormative {
         let mut case_stacking_affixes = Vec::new();
         let mut referentials = CharacterBuf::new();
 
+        // It's a bit hacky to use `Result` here, but it stops us from creating more one-off enums.
         for (affix_list, slot, is_rotated) in [
-            (&self.slot_v_affixes, AffixSlot::V, false),
-            (&slot_vii_affixes, AffixSlot::VII, true),
+            (Ok(&base.slot_v_affixes), AffixSlot::V, false),
+            (Ok(&slot_vii_affixes), AffixSlot::VII, true),
+            (Err(&self.slot_xi_affixes), AffixSlot::XI, false),
         ] {
             match affix_list {
-                AffixList::AppositiveReferential(AppositiveReferentialAffix {
+                Ok(AffixList::AppositiveReferential(AppositiveReferentialAffix {
                     case,
                     referents,
-                }) => {
+                })) => {
                     referentials.append(
                         NormalReferential::Single {
                             referent: ReferentList {
@@ -635,7 +659,7 @@ impl IntoScript for UncheckedFormative {
                     );
                 }
 
-                AffixList::Normal(affixes) => {
+                Ok(AffixList::Normal(affixes)) | Err(affixes) => {
                     for affix in affixes {
                         match affix {
                             RegularAffix::Plain(PlainAffix { cs, degree, r#type }) => {
@@ -644,6 +668,7 @@ impl IntoScript for UncheckedFormative {
 
                                 let first = data.first_mut();
                                 first.superposed = Diacritic::affix_type(*r#type);
+                                first.rightposed = Diacritic::affix_slot(slot);
                                 first.underposed = Some(Diacritic::affix_degree(*degree));
 
                                 for char in data {
@@ -757,16 +782,16 @@ impl IntoScript for UncheckedFormative {
         }
 
         if !elided_quaternary {
-            let (case_scope, mood, vc_or_vk) = match self.relation {
+            let (case_scope, mood, vc_or_vk) = match base.relation {
                 DatalessRelation::VRB => (
                     CaseScope::CCN,
-                    self.cn.as_specific(),
-                    match self.vc.as_vk() {
+                    base.cn.as_specific(),
+                    match base.vc.as_vk() {
                         Some(ivl) => ivl.as_general(),
                         None => VcOrVk::Illocution(Illocution::ASR),
                     },
                 ),
-                _ => (self.cn.as_specific(), Mood::FAC, VcOrVk::Case(self.vc)),
+                _ => (base.cn.as_specific(), Mood::FAC, VcOrVk::Case(base.vc)),
             };
 
             list.push(StandardQuaternary {
